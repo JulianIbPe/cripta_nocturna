@@ -208,8 +208,8 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 .acct label{font-size:14px;font-weight:600;color:var(--muted);width:100%}
 .acct input{flex:1 1 160px;min-width:0;font:inherit;font-size:18px;padding:10px 12px;border-radius:10px;border:1px solid var(--stone-2);background:#0f0d20;color:var(--ink);user-select:text;-webkit-user-select:text}
 .acct input:focus-visible{outline:2px solid var(--ember);outline-offset:1px}
-#authForm input,#passForm input{flex-basis:100%}
-#authForm .msg:empty,#passForm .msg:empty{display:none}
+#authForm input,#passForm input,#linkForm input{flex-basis:100%}
+#authForm .msg:empty,#passForm .msg:empty,#linkForm .msg:empty{display:none}
 #modBody .acct{margin-bottom:12px}
 #modBody form{display:flex;gap:8px;flex-wrap:wrap}#modBody form input{flex-basis:100%}
 .modgrid{grid-template-columns:1fr auto;align-items:center}
@@ -658,6 +658,25 @@ const WDEF={
   ballesta:{name:'Ballesta de plata',col:'#d8dbe8',mission:'m_lvl',
     up:['Dispara virotes rapidísimos al enemigo más cercano.','+2 de daño y más rápida','Atraviesa 1 más','+1 virote','+1 virote y +3 de daño'],
     dmg:[9,11,13,13,16],cd:[.55,.5,.45,.42,.38],n:[1,1,1,2,3],pierce:[2,2,3,3,4]},
+  // Exclusivas de los élite: arrancan con ella y solo a ese personaje le aparece al subir de nivel
+  lanzaodin:{name:'Lanza de Odín',col:'#ffd27a',excl:'valkiria',
+    up:['Arroja una lanza dorada que atraviesa a todos los enemigos en línea.','+10 de daño','+1 lanza y recarga más rápida','Atraviesa 3 más y +10 de daño','+1 lanza y +15 de daño'],
+    dmg:[30,40,40,50,65],cd:[1.4,1.35,1.2,1.15,1],n:[1,1,2,2,3],pierce:[4,4,4,7,7]},
+  fuegozorro:{name:'Llamas de zorro',col:'#ff9a3d',excl:'kitsune',
+    up:['Suelta llamas fatuas que zigzaguean hacia los enemigos.','+1 llama','+6 de daño','+1 llama y recarga más rápida','+2 llamas y +8 de daño'],
+    dmg:[14,14,20,20,28],cd:[1.1,1.05,1,.85,.8],n:[2,3,3,4,6],pierce:[1,1,1,2,2]},
+  novahelada:{name:'Nova de escarcha',col:'#9ad0ff',excl:'lich',
+    up:['Una onda de escarcha sale de vos, daña y congela un instante a los enemigos.','+6 de daño','Onda más grande y congela más','+8 de daño y recarga más rápida','Onda enorme y +10 de daño'],
+    dmg:[14,20,20,28,38],cd:[3,2.8,2.6,2.3,2.1],R:[130,140,160,170,200],frz:[.6,.6,1,1,1.3]},
+  luzdivina:{name:'Cruz de luz',col:'#fff2b0',excl:'angel',
+    up:['Rayos de luz salen de vos en cruz y atraviesan todo.','+8 de daño','Rayos más largos','+10 de daño y recarga más rápida','Ocho rayos y +12 de daño'],
+    dmg:[16,24,24,34,46],cd:[1.8,1.7,1.6,1.4,1.3],dirs:[4,4,4,4,8],len:[200,200,260,260,300]},
+  avalancha:{name:'Avalancha de lápidas',col:'#a89a8a',excl:'golem',
+    up:['Caen lápidas alrededor tuyo que aplastan a los enemigos.','+15 de daño','+1 lápida','Lápidas más grandes y +15 de daño','+2 lápidas y +20 de daño'],
+    dmg:[35,50,50,65,85],cd:[2.6,2.5,2.3,2.2,2],n:[2,2,3,3,5],r:[38,38,40,48,52]},
+  siegaalmas:{name:'Siega de almas',col:'#ff4d6d',excl:'parca',
+    up:['Un tajo circular que remata a los enemigos comunes con poca vida.','+10 de daño','Remata con más vida','+12 de daño y más alcance','Remata con mucha más vida y +15 de daño'],
+    dmg:[24,34,34,46,61],cd:[2,1.9,1.8,1.7,1.5],r:[90,90,95,110,120],exe:[.15,.15,.22,.22,.3]},
 };
 const MISSIONS=[
   {id:'m_kills',name:'Segador',desc:'Matá 1.000 enemigos sumando todas tus partidas',goal:1000,prog:()=>SAVE.life.kills|0},
@@ -665,7 +684,29 @@ const MISSIONS=[
   {id:'m_elite',name:'Cazacalabazas',desc:'Derrotá 10 calabazas malditas sumando todas tus partidas',goal:10,prog:()=>SAVE.life.elites|0},
   {id:'m_dawn',name:'Hasta el amanecer',desc:'Llegá al amanecer (10:00) en una partida',goal:1,prog:()=>SAVE.life.dawns|0},
   {id:'m_lvl',name:'Veterano',desc:'Llegá a nivel 20 en una partida',goal:20,prog:()=>SAVE.life.maxLvl|0},
+  // Difíciles: premio en monedas o gemas (se cobra una sola vez, ver payMissions)
+  {id:'m_kills2',name:'Exterminador',desc:'Matá 10.000 enemigos sumando todas tus partidas',goal:10000,prog:()=>SAVE.life.kills|0,reward:{coins:1500}},
+  {id:'m_kills3',name:'Plaga de la noche',desc:'Matá 50.000 enemigos sumando todas tus partidas',goal:50000,prog:()=>SAVE.life.kills|0,reward:{gems:5}},
+  {id:'m_runk',name:'Masacre',desc:'Matá 1.000 enemigos en una sola partida',goal:1000,prog:()=>SAVE.life.bestKills|0,reward:{coins:1000}},
+  {id:'m_runk2',name:'Carnicería',desc:'Matá 2.500 enemigos en una sola partida',goal:2500,prog:()=>SAVE.life.bestKills|0,reward:{gems:4}},
+  {id:'m_time2',name:'Noche eterna',desc:'Sobreviví 15 minutos en una partida',goal:900,prog:()=>Math.floor(SAVE.life.bestT||0),time:true,reward:{gems:4}},
+  {id:'m_time3',name:'Inmortal',desc:'Sobreviví 20 minutos en una partida',goal:1200,prog:()=>Math.floor(SAVE.life.bestT||0),time:true,reward:{gems:8}},
+  {id:'m_elite2',name:'Cosecha de calabazas',desc:'Derrotá 50 calabazas malditas sumando todas tus partidas',goal:50,prog:()=>SAVE.life.elites|0,reward:{coins:1500}},
+  {id:'m_elite3',name:'Rey de las calabazas',desc:'Derrotá 5 calabazas malditas en una sola partida',goal:5,prog:()=>SAVE.life.bestElites|0,reward:{gems:3}},
+  {id:'m_dawn2',name:'Amanecer temido',desc:'Llegá al amanecer en dificultad Medio',goal:1,prog:()=>(SAVE.life.dawnsBy||{}).medio|0,reward:{coins:2000}},
+  {id:'m_dawn3',name:'Amanecer imposible',desc:'Llegá al amanecer en dificultad Difícil',goal:1,prog:()=>(SAVE.life.dawnsBy||{}).dificil|0,reward:{gems:10}},
+  {id:'m_dawn4',name:'Veinte amaneceres',desc:'Llegá al amanecer 20 veces',goal:20,prog:()=>SAVE.life.dawns|0,reward:{gems:6}},
+  {id:'m_dawnch',name:'Todos ven el sol',desc:'Llegá al amanecer con 6 personajes distintos',goal:6,prog:()=>(SAVE.life.dawnChars||[]).length,reward:{gems:8}},
+  {id:'m_lvl2',name:'Leyenda',desc:'Llegá a nivel 50 en una partida',goal:50,prog:()=>SAVE.life.maxLvl|0,reward:{coins:2500}},
+  {id:'m_chars',name:'Coleccionista',desc:'Desbloqueá los 12 personajes',goal:12,prog:()=>SAVE.unlocked.length,reward:{gems:10}},
+  {id:'m_runs',name:'Insomne',desc:'Jugá 100 partidas',goal:100,prog:()=>SAVE.life.runs|0,reward:{coins:2000}},
+  {id:'m_hours',name:'Maratón',desc:'Jugá 10 horas en total',goal:36000,prog:()=>Math.floor(SAVE.life.time||0),time:true,reward:{gems:5}},
 ];
+const rewardTxt=r=>r.gems?r.gems+' gemas':r.coins.toLocaleString('es-AR')+' monedas';
+// Cobra los premios de las misiones cumplidas que todavía no se pagaron; devuelve las recién cobradas
+function payMissions(){if(!Array.isArray(SAVE.misPaid))SAVE.misPaid=[];const out=[];
+  for(const m of MISSIONS)if(m.reward&&!SAVE.misPaid.includes(m.id)&&m.prog()>=m.goal){SAVE.misPaid.push(m.id);if(m.reward.gems)SAVE.gems+=m.reward.gems;else SAVE.coins+=m.reward.coins;out.push(m);}
+  if(out.length)persist();return out;}
 const missionDone=id=>{const m=MISSIONS.find(x=>x.id===id);return !!m&&m.prog()>=m.goal;};
 const weaponUnlocked=id=>!WDEF[id].mission||missionDone(WDEF[id].mission);
 const WMAX=20,PMAX=20;
@@ -756,6 +797,12 @@ const ICON={
   ojo:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
   campana:'<path d="M6 17v-6a6 6 0 0 1 12 0v6l2 2H4z"/><path d="M10 21h4"/>',
   linterna:'<path d="M9 3h6M8 7h8v11a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2z"/><path d="M12 11c1.5 1.5 1.5 3 0 4-1.5-1-1.5-2.5 0-4z"/>',
+  lanzaodin:'<path d="M4 20 18 6"/><path d="m14 4 6 0 0 6z"/><path d="M7 14l3 3"/>',
+  fuegozorro:'<path d="M12 21c-4 0-6-3-6-6 0-4 4-6 3-11 3 2 6 5 6 9 1-1 1-3 1-4 2 2 2 4 2 6 0 3-2 6-6 6z"/>',
+  novahelada:'<path d="M12 2v20M2 12h20M5 5l14 14M19 5 5 19"/><circle cx="12" cy="12" r="3"/>',
+  luzdivina:'<path d="M12 2v20M5 9h14"/><circle cx="12" cy="9" r="2"/>',
+  avalancha:'<path d="M6 21V9a6 6 0 0 1 12 0v12z"/><path d="M10 13h4M12 11v6"/>',
+  siegaalmas:'<path d="M4 20c6 0 12-5 14-14-5 3-10 4-14 2"/><circle cx="17" cy="17" r="3"/>',
   ballesta:'<path d="M4 20 20 4"/><path d="M14 4h6v6"/><path d="M5 9c3 0 7 4 10 10"/>',
   cuenta:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
   mision:'<path d="M5 21V4h11l-2 4 2 4H5"/>',
@@ -794,61 +841,73 @@ const CHARS={
     col:{cloak:'#3a2f6e',hood:'#4a3d8c',face:'#efe6d2',lamp:'#ffb36b'},
     passive:{name:'Tierra firme',desc:'+20 de vida máxima y recibís 1 de daño menos por golpe.'},
     active:{name:'Palazo',icon:'pala',cd:12,desc:'Golpe de pala que daña y empuja lejos a todo lo cercano.'},
+    grow:{d:n=>'+'+dec(n*.4)+' de armadura',f:(G,n)=>{G.st.armor+=.4*n;}},
     setup(G){G.p.maxHp+=20;G.p.hp+=20;G.st.armor+=1;}},
   bruja:{name:'Morgana la Bruja',short:'Morgana',price:150,weapon:'incienso',hat:'witch',
     col:{cloak:'#24473a',hood:'#1a3329',face:'#bfe3b0',lamp:'#b38cff'},
     passive:{name:'Pacto oscuro',desc:'+25% de experiencia y +15% de área en todas las armas.'},
     active:{name:'Escarcha',icon:'escarcha',cd:20,desc:'Congela por 3 segundos a todos los enemigos en pantalla.'},
+    grow:{d:n=>'+'+(4*n)+'% de experiencia y +'+(2*n)+'% de área',f:(G,n)=>{G.st.xpMul+=.04*n;G.st.area+=.02*n;}},
     setup(G){G.st.xpMul+=.25;G.st.area+=.15;}},
   cazador:{name:'Van, el Cazador',short:'Van',price:300,weapon:'daga',hat:'brim',
     col:{cloak:'#5a3a22',hood:'#3d2716',face:'#f0cfa8',lamp:'#ffe27a'},
     passive:{name:'Ojo certero',desc:'15% de probabilidad de golpe crítico que hace el doble de daño.'},
     active:{name:'Abanico de acero',icon:'abanico',cd:10,desc:'Lanza 16 dagas perforantes en todas direcciones.'},
+    grow:{d:n=>'+'+(2*n)+'% de crítico',f:(G,n)=>{G.st.crit+=.02*n;}},
     setup(G){G.st.crit+=.15;}},
   necro:{name:'Osric el Necromante',short:'Osric',price:500,weapon:'calaveras',hat:'horns',
     col:{cloak:'#1e1b2e',hood:'#2b2445',face:'#c9d1c0',lamp:'#5ee6c4'},
     passive:{name:'Cosecha de almas',desc:'Cada 25 bajas recuperás 6 de vida.'},
     active:{name:'Levantar muertos',icon:'muertos',cd:18,desc:'Invoca 4 necrófagos que cazan enemigos durante 9 segundos.'},
+    grow:{d:n=>'+'+n+' de cura cada 25 bajas',f:(G,n)=>{G.st.killHeal+=n;}},
     setup(G){G.st.killHeal=6;}},
   vampira:{name:'Carmilla',short:'Carmilla',price:800,weapon:'varita',hat:'collar',
     col:{cloak:'#5a0f22',hood:'#22070e',face:'#f2e8ee',lamp:'#e2435a'},
     passive:{name:'Sed de sangre',desc:'Recuperás vida igual al 3% del daño que hacés. +5% de velocidad.'},
     active:{name:'Forma de niebla',icon:'niebla',cd:18,desc:'4 segundos invulnerable, 60% más rápida y dañando todo lo que tocás.'},
+    grow:{d:n=>'+'+dec(n*.5)+'% de robo de vida',f:(G,n)=>{G.st.leech+=.005*n;}},
     setup(G){G.st.leech+=.03;G.st.spd+=.05;}},
   calabaza:{name:'Jack Farol',short:'Jack',price:1200,weapon:'rayo',hat:'pumpkin',
     col:{cloak:'#3b2a14',hood:'#2a1d0e',face:'#ff8a3d',lamp:'#ffe27a'},
     passive:{name:'Suerte de calabaza',desc:'+1 proyectil en todas las armas y el doble de monedas.'},
     active:{name:'Calabomba',icon:'calabomba',cd:14,desc:'Explosión enorme que arrasa todo a tu alrededor.'},
+    grow:{d:n=>'+'+(20*n)+'% de monedas',f:(G,n)=>{G.st.coinMul+=.2*n;}},
     setup(G){G.st.amount+=1;G.st.coinMul+=1;}},
   valkiria:{name:'Brunhild la Valquiria',short:'Brunhild',gems:20,weapon:'daga',hat:'helm',
     col:{cloak:'#3d4f6e',hood:'#2a3850',face:'#f0e0d0',lamp:'#9ad0ff'},
     passive:{name:'Furia del norte',desc:'+25% de daño, +30 de vida máxima y +5% de velocidad.'},
     active:{name:'Lluvia de lanzas',icon:'lanza',cd:12,desc:'12 lanzas caen del cielo sobre los enemigos en pantalla.'},
+    grow:{d:n=>'+'+(3*n)+'% de daño y +'+(5*n)+' de vida',f:(G,n)=>{G.st.dmg+=.03*n;G.p.maxHp+=5*n;G.p.hp+=5*n;}},
     setup(G){G.st.dmg+=.25;G.p.maxHp+=30;G.p.hp+=30;G.st.spd+=.05;}},
   kitsune:{name:'Kitsune de Nueve Colas',short:'Kitsune',gems:35,weapon:'cruz',hat:'fox',
     col:{cloak:'#8a3a1a',hood:'#5e2410',face:'#fff4e8',lamp:'#ff9a4d'},
     passive:{name:'Nueve colas',desc:'+20% de velocidad, +25% de imán, +10% de crítico y +10% de experiencia.'},
     active:{name:'Fuego fatuo',icon:'fuego',cd:10,desc:'Lanza 9 llamas espirituales que atraviesan enemigos.'},
+    grow:{d:n=>'+'+(3*n)+'% de velocidad y +'+(5*n)+'% de imán',f:(G,n)=>{G.st.spd+=.03*n;G.st.magnet*=1+.05*n;}},
     setup(G){G.st.spd+=.2;G.st.magnet*=1.25;G.st.crit+=.1;G.st.xpMul+=.1;}},
   lich:{name:'El Rey Lich',short:'el Rey Lich',gems:45,weapon:'calaveras',hat:'crown',
     col:{cloak:'#1a2440',hood:'#101830',face:'#cfe8ff',lamp:'#7ad8ff'},
     passive:{name:'Corona helada',desc:'+2 de armadura, +10% de área y los enemigos cerca tuyo van 35% más lento.'},
     active:{name:'Tumba de hielo',icon:'tumba',cd:22,desc:'Congela 4 segundos todo lo que hay en pantalla y le hace 50 de daño.'},
+    grow:{d:n=>'+'+dec(n*.3)+' de armadura y +'+(2*n)+'% de área',f:(G,n)=>{G.st.armor+=.3*n;G.st.area+=.02*n;}},
     setup(G){G.st.armor+=2;G.st.area+=.1;G.st.slowAura=1;}},
   angel:{name:'Seraphiel la Caída',short:'Seraphiel',gems:65,weapon:'rayo',hat:'halo',
     col:{cloak:'#e8e2f6',hood:'#bfb6dc',face:'#fff0e0',lamp:'#ffe27a'},
     passive:{name:'Gracia',desc:'Regenera 1 de vida por segundo, +1 proyectil y +15% de área.'},
     active:{name:'Juicio final',icon:'juicio',cd:16,desc:'Un pilar de luz que hace 150 de daño en un área enorme.'},
+    grow:{d:n=>'+'+dec(n*.2)+' de regeneración por segundo',f:(G,n)=>{G.st.regen+=.2*n;}},
     setup(G){G.st.regen+=1;G.st.amount+=1;G.st.area+=.15;}},
   golem:{name:'El Gólem de Lápidas',short:'el Gólem',gems:90,weapon:'latigo',hat:'stone',
     col:{cloak:'#5a5a66',hood:'#45454f',face:'#9a9aa8',lamp:'#7dffb0'},
     passive:{name:'Piedra viva',desc:'+100 de vida, +3 de armadura, +10% de daño y devuelve 12 de daño a quien lo golpea. 10% más lento.'},
     active:{name:'Terremoto',icon:'terremoto',cd:15,desc:'Tres sacudidas seguidas que dañan y aturden todo alrededor.'},
+    grow:{d:n=>'+'+(3*n)+' de daño devuelto',f:(G,n)=>{G.st.thorns+=3*n;}},
     setup(G){G.p.maxHp+=100;G.p.hp+=100;G.st.armor+=3;G.st.dmg+=.1;G.st.thorns=12;G.st.spd-=.1;}},
   parca:{name:'La Parca',short:'la Parca',gems:130,weapon:'hacha',hat:'reaper',
     col:{cloak:'#0e0b14',hood:'#06050a',face:'#e6dcc4',lamp:'#b38cff'},
     passive:{name:'Cosechadora',desc:'+30% de daño, +15% de crítico, 4% de matar al instante y se cura 8 cada 25 bajas.'},
     active:{name:'Siega',icon:'siega',cd:20,desc:'Un tajo circular que mata al instante a los enemigos comunes cercanos y hace 200 a las calabazas.'},
+    grow:{d:n=>'+'+dec(n*.5)+'% de matar al instante',f:(G,n)=>{G.st.exec+=.005*n;}},
     setup(G){G.st.dmg+=.3;G.st.crit+=.15;G.st.exec=.04;G.st.killHeal=8;}},
 };
 
@@ -914,11 +973,12 @@ function newGame(ch,df){
     cam:{x:0,y:0},shake:0,banner:null};
   const c=CHARS[ch];
   G.weapons.push({id:c.weapon,lvl:1,timer:0.4,ang:0});
+  for(const id in WDEF)if(WDEF[id].excl===ch){G.weapons.push({id,lvl:1,timer:0.8,ang:0});G.wLv[id]=1;}
   c.setup(G);
   G.st.xpMul+=DIFFS[df].xp;
   G.st.xpMul+=.05*(SAVE.buffs.sabiduria|0);
   G.speed=[1,2,5].slice(0,1+Math.min(2,SAVE.buffs.velocidad|0)).includes(SAVE.speed)?SAVE.speed:1;
-  const cl=SAVE.charLv[ch]|0;G.st.dmg+=.1*cl;G.p.maxHp+=10*cl;G.p.hp+=10*cl;G.abMul=1-.08*cl;
+  const cl=SAVE.charLv[ch]|0;G.st.dmg+=.1*cl;G.p.maxHp+=10*cl;G.p.hp+=10*cl;G.abMul=Math.max(.4,1-.08*cl);if(cl&&c.grow)c.grow.f(G,cl);
   G.wLv[c.weapon]=1;
   G.charges={roll:SAVE.buffs.roll|0,ban:SAVE.buffs.ban|0,skip:SAVE.buffs.skip|0};
   G.mod=!!SAVE.mod;
@@ -1053,6 +1113,22 @@ function updateWeapons(dt){
     }else if(w.id==='ballesta'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.15;continue;}w.timer=D.cd[L]*st.cd;
       for(let i=0;i<n;i++){const t=ts[i%ts.length],a=Math.atan2(t.y-p.y,t.x-p.x)+(i>=ts.length?rand(-.15,.15):0);
         G.shots.push({src:'ballesta',kind:'quarrel',x:p.x,y:p.y,vx:Math.cos(a)*560,vy:Math.sin(a)*560,dmg:D.dmg[L],pierce:D.pierce[L],r:5,life:.9,hit:new Set()});}
+    }else if(w.id==='lanzaodin'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;
+      for(let i=0;i<n;i++){const t=ts[i%ts.length],a=Math.atan2(t.y-p.y,t.x-p.x)+(i>=ts.length?rand(-.2,.2):0);
+        G.shots.push({src:'lanzaodin',kind:'bolt',col:D.col,x:p.x,y:p.y,vx:Math.cos(a)*520,vy:Math.sin(a)*520,dmg:D.dmg[L],pierce:D.pierce[L],r:7,life:1.2,hit:new Set()});}
+    }else if(w.id==='fuegozorro'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;
+      for(let i=0;i<n;i++){const t=ts[i%ts.length],a=Math.atan2(t.y-p.y,t.x-p.x)+rand(-.35,.35);
+        G.shots.push({src:'fuegozorro',kind:'bolt',col:D.col,x:p.x,y:p.y,vx:Math.cos(a)*260,vy:Math.sin(a)*260,wob:Math.random()*TAU,dmg:D.dmg[L],pierce:D.pierce[L],r:6,life:1.8,hit:new Set()});}
+    }else if(w.id==='novahelada'){w.timer=D.cd[L]*st.cd;G.waves.push({x:p.x,y:p.y,r:0,max:D.R[L]*st.area,dmg:D.dmg[L],hit:new Set(),col:D.col,src:'novahelada',frz:D.frz[L]});
+    }else if(w.id==='luzdivina'){w.timer=D.cd[L]*st.cd;const n=D.dirs[L]+st.amount,len=D.len[L]*st.area,wd=7*st.area;w.ang=(w.ang||0)+.4;
+      for(let i=0;i<n;i++){const a=w.ang+i/n*TAU,cx=Math.cos(a),cy=Math.sin(a);G.beams.push({x:p.x,y:p.y,a,len,w:wd,life:.22,col:D.col});
+        for(const e of G.enemies){if(e.dead)continue;const rx=e.x-p.x,ry=e.y-p.y,al=rx*cx+ry*cy;if(al<0||al>len+e.r)continue;if(Math.abs(rx*cy-ry*cx)<wd+e.r)hurt(e,D.dmg[L],cx*80,cy*80,'luzdivina');}}
+    }else if(w.id==='avalancha'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount;
+      const ts=nearestEnemies(n);
+      for(let i=0;i<n;i++){const t=ts[i],a=Math.random()*TAU,r=rand(40,150);G.meteors.push({x:t?t.x+rand(-12,12):p.x+Math.cos(a)*r,y:t?t.y+rand(-12,12):p.y+Math.sin(a)*r,t:0,dur:.55+i*.1,R:D.r[L]*st.area,dmg:D.dmg[L],src:'avalancha',col:D.col});}
+    }else if(w.id==='siegaalmas'){w.timer=D.cd[L]*st.cd;const R=D.r[L]*st.area,ex=D.exe[L];G.sweeps.push({x:p.x,y:p.y,R,life:.3,a0:Math.atan2(p.fy,p.fx),col:D.col});
+      near(p.x,p.y,R+24,e=>{const dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy)||1;if(d>=R+e.r)return;hurt(e,D.dmg[L],dx/d*200,dy/d*200,'siegaalmas');
+        if(!e.dead&&!e.elite&&e.hp<e.max*ex)hurt(e,e.hp*10+1e5,0,0,'siegaalmas');});
     }else if(w.id==='cruz'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);w.timer=D.cd[L]*st.cd;
       for(let i=0;i<n;i++){let a;if(ts.length){const t=ts[i%ts.length];a=Math.atan2(t.y-p.y,t.x-p.x)+(i>=ts.length?rand(-.4,.4):0);}else a=Math.atan2(p.fy,p.fx)+i*.5;
         const v=D.spd[L],vx=Math.cos(a)*v,vy=Math.sin(a)*v;
@@ -1102,7 +1178,7 @@ function gainXp(v){G.xp+=v*G.st.xpMul;while(G.xp>=G.need){G.xp-=G.need;G.lvl++;G
 function buildOptions(exclude){
   let pool=[];
   for(const w of G.weapons)if(w.lvl<WMAX)pool.push({k:'w',id:w.id,lvl:w.lvl+1});
-  if(G.weapons.length<6)for(const id in WDEF)if(!G.weapons.find(w=>w.id===id)&&weaponUnlocked(id))pool.push({k:'w',id,lvl:1});
+  if(G.weapons.length<6)for(const id in WDEF)if(!G.weapons.find(w=>w.id===id)&&weaponUnlocked(id)&&(!WDEF[id].excl||WDEF[id].excl===G.char))pool.push({k:'w',id,lvl:1});
   const own=Object.keys(G.passives);
   for(const id of own)if(G.passives[id]<(PDEF[id].max||PMAX))pool.push({k:'p',id,lvl:G.passives[id]+1});
   if(own.length<6)for(const id in PDEF)if(!(id in G.passives))pool.push({k:'p',id,lvl:1});
@@ -1236,11 +1312,11 @@ function update(dt){
   for(const z of G.zones){z.life-=dt;z.tick-=dt;if(z.tick<=0){z.tick=.3*G.st.cd;near(z.x,z.y,z.r+24,e=>{if(Math.hypot(e.x-z.x,e.y-z.y)<z.r+e.r*.5)hurt(e,z.dmg,0,0,z.src||'agua');});}}
   for(const sl of G.slashes)sl.life-=dt;
   for(const sw of G.sweeps)sw.life-=dt;for(const bm of G.beams)bm.life-=dt;
-  for(const v of G.waves){v.r+=260*dt*G.st.projSpd;near(v.x,v.y,v.r+24,e=>{if(v.hit.has(e)||e.dead)return;const d=Math.hypot(e.x-v.x,e.y-v.y)||1;if(Math.abs(d-v.r)<14+e.r){v.hit.add(e);hurt(e,v.dmg,(e.x-v.x)/d*180,(e.y-v.y)/d*180,'campana');}});if(v.r>=v.max)v.dead=true;}
+  for(const v of G.waves){v.r+=260*dt*G.st.projSpd;near(v.x,v.y,v.r+24,e=>{if(v.hit.has(e)||e.dead)return;const d=Math.hypot(e.x-v.x,e.y-v.y)||1;if(Math.abs(d-v.r)<14+e.r){v.hit.add(e);hurt(e,v.dmg,(e.x-v.x)/d*180,(e.y-v.y)/d*180,v.src||'campana');if(v.frz&&!e.dead)e.frozen=Math.max(e.frozen||0,v.frz);}});if(v.r>=v.max)v.dead=true;}
   G.sweeps=G.sweeps.filter(x=>x.life>0);G.beams=G.beams.filter(x=>x.life>0);G.waves=G.waves.filter(x=>!x.dead);
   for(const m of G.meteors){m.t+=dt;if(m.t>=m.dur&&!m.dead){m.dead=true;
-    near(m.x,m.y,m.R+24,e=>{const dx=e.x-m.x,dy=e.y-m.y,d=Math.hypot(dx,dy)||1;if(d<m.R+e.r)hurt(e,m.dmg,dx/d*200,dy/d*200,'meteoro');});
-    G.rings.push({x:m.x,y:m.y,r:m.R,col:'#ff6a3d',life:.45});G.shake=Math.max(G.shake,.12);
+    near(m.x,m.y,m.R+24,e=>{const dx=e.x-m.x,dy=e.y-m.y,d=Math.hypot(dx,dy)||1;if(d<m.R+e.r)hurt(e,m.dmg,dx/d*200,dy/d*200,m.src||'meteoro');});
+    G.rings.push({x:m.x,y:m.y,r:m.R,col:m.col||'#ff6a3d',life:.45});G.shake=Math.max(G.shake,.12);
     for(let i=0;i<10;i++){const a=Math.random()*TAU,sp=rand(40,160);if(G.parts.length<300)G.parts.push({x:m.x,y:m.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:rand(.25,.5),max:.5,col:i%2?'#ff6a3d':'#ffe27a',sz:rand(2,4)});}}}
   G.meteors=G.meteors.filter(m=>!m.dead);
   for(const a of G.allies){a.life-=dt;a.cd-=dt;a.ph+=dt*10;
@@ -1487,14 +1563,16 @@ function draw(now){
         ctx.fillStyle='#e8ecff';ctx.beginPath();ctx.moveTo(9,0);ctx.lineTo(-3,-2.5);ctx.lineTo(-3,2.5);ctx.closePath();ctx.fill();
         ctx.fillStyle='#6b5a3a';ctx.fillRect(-8,-1.5,5,3);ctx.restore();}}
     // scythe sweeps, beams, bell waves
-    for(const sw of G.sweeps){const f=1-sw.life/.3,a=sw.a0+f*TAU;ctx.globalAlpha=Math.min(1,sw.life*5);ctx.strokeStyle='#c8beff';ctx.lineWidth=7;ctx.lineCap='round';
+    for(const sw of G.sweeps){const f=1-sw.life/.3,a=sw.a0+f*TAU;ctx.globalAlpha=Math.min(1,sw.life*5);ctx.strokeStyle=sw.col||'#c8beff';ctx.lineWidth=7;ctx.lineCap='round';
       ctx.beginPath();ctx.arc(G.p.x,G.p.y,sw.R*.85,a-1.3,a);ctx.stroke();ctx.strokeStyle='rgba(200,190,255,0.25)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(G.p.x,G.p.y,sw.R,0,TAU);ctx.stroke();ctx.lineCap='butt';ctx.globalAlpha=1;}
-    for(const bm of G.beams){ctx.save();ctx.translate(bm.x,bm.y);ctx.rotate(bm.a);ctx.globalAlpha=bm.life/.22;ctx.fillStyle='rgba(255,77,109,0.45)';ctx.fillRect(0,-bm.w,bm.len,bm.w*2);
+    for(const bm of G.beams){ctx.save();ctx.translate(bm.x,bm.y);ctx.rotate(bm.a);ctx.globalAlpha=bm.life/.22;ctx.fillStyle=bm.col?hexA(bm.col,.45):'rgba(255,77,109,0.45)';ctx.fillRect(0,-bm.w,bm.len,bm.w*2);
       ctx.fillStyle='#ffe0e6';ctx.fillRect(0,-bm.w*.25,bm.len,bm.w*.5);ctx.restore();ctx.globalAlpha=1;}
-    for(const v of G.waves){ctx.globalAlpha=Math.max(0,1-v.r/v.max);ctx.strokeStyle='#ffd27a';ctx.lineWidth=4;ctx.beginPath();ctx.arc(v.x,v.y,v.r,0,TAU);ctx.stroke();ctx.globalAlpha=1;}
+    for(const v of G.waves){ctx.globalAlpha=Math.max(0,1-v.r/v.max);ctx.strokeStyle=v.col||'#ffd27a';ctx.lineWidth=4;ctx.beginPath();ctx.arc(v.x,v.y,v.r,0,TAU);ctx.stroke();ctx.globalAlpha=1;}
     // meteors
     for(const m of G.meteors){const f=Math.min(1,m.t/m.dur);ctx.fillStyle='rgba(0,0,0,'+(0.15+f*.3)+')';ctx.beginPath();ctx.ellipse(m.x,m.y,m.R*f,m.R*f*.5,0,0,TAU);ctx.fill();
-      const my=m.y-(1-f)*220,mx=m.x+(1-f)*60;ctx.strokeStyle='rgba(255,106,61,0.5)';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(mx,my);ctx.lineTo(mx+18,my-30);ctx.stroke();
+      const my=m.y-(1-f)*220,mx=m.x+(1-f)*60;
+      if(m.src==='avalancha'){ctx.fillStyle='#8a7f74';ctx.fillRect(mx-7,my-10,14,18);ctx.fillStyle='#5f564d';ctx.fillRect(mx-3,my-6,6,2);ctx.fillRect(mx-1,my-8,2,7);continue;}
+      ctx.strokeStyle='rgba(255,106,61,0.5)';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(mx,my);ctx.lineTo(mx+18,my-30);ctx.stroke();
       ctx.fillStyle='#ffb36b';ctx.beginPath();ctx.arc(mx,my,7,0,TAU);ctx.fill();ctx.fillStyle='#6b2f1a';ctx.beginPath();ctx.arc(mx+1,my+1,4,0,TAU);ctx.fill();}
     // flasks + whip slashes
     for(const f of G.flasks){const x=f.sx+(f.tx-f.sx)*f.t,y=f.sy+(f.ty-f.sy)*f.t-Math.sin(Math.PI*f.t)*50;
@@ -1753,12 +1831,24 @@ async function fbPost(url,body,form){
   const j=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(new Error('auth'),{code:(j.error&&j.error.message)||'NETWORK'});return j;}
 const fbAuth=(a,body)=>fbPost('https://identitytoolkit.googleapis.com/v1/accounts:'+a+'?key='+FB.apiKey,body);
 const toAuth=j=>({uid:j.localId,email:j.email,idToken:j.idToken,refreshToken:j.refreshToken,exp:Date.now()+(+j.expiresIn-60)*1000});
+// Entrar es en dos pasos: mail y contraseña, y después el código del link que llega al mail.
+// Usar el link también deja el mail verificado, que es lo que exigen las reglas de la base.
+const LINK_PAGE='https://julianibpe.github.io/cripta_nocturna/verificar.html';
 async function fbLogin(email,password,signup){
   const j=await fbAuth(signup?'signUp':'signInWithPassword',{email,password,returnSecureToken:true});
-  // La sesión solo queda iniciada con el mail verificado; si no, se manda (o reenvía) el link de verificación
-  if(signup||!(await fbAuth('lookup',{idToken:j.idToken})).users[0].emailVerified){
-    try{await fbAuth('sendOobCode',{requestType:'VERIFY_EMAIL',idToken:j.idToken});}catch(e){}
-    throw Object.assign(new Error('verify'),{code:'EMAIL_NOT_VERIFIED',email:j.email,signup});}
+  await sendLoginLink(j.email);
+  return{email:j.email,uid:j.localId};}
+async function sendLoginLink(email){
+  // Si la página de verificación todavía no está autorizada en Firebase, el link va al dominio del proyecto
+  for(const continueUrl of [LINK_PAGE,'https://cripta-nocturna.firebaseapp.com/']){
+    try{await fbAuth('sendOobCode',{requestType:'EMAIL_SIGNIN',email,continueUrl,canHandleCodeInApp:true});return;}
+    catch(e){if(!/^(UNAUTHORIZED_DOMAIN|INVALID_CONTINUE_URI)/.test(e.code))throw e;}}
+  throw Object.assign(new Error('link'),{code:'UNAUTHORIZED_DOMAIN'});}
+async function fbConfirmLink(pend,text){
+  const t=String(text).trim(),m=t.match(/oobCode=([^&#\s]+)/),code=decodeURIComponent(m?m[1]:t);
+  if(!code)throw Object.assign(new Error('code'),{code:'MISSING_OOB_CODE'});
+  const j=await fbAuth('signInWithEmailLink',{email:pend.email,oobCode:code});
+  if(j.localId!==pend.uid)throw Object.assign(new Error('code'),{code:'INVALID_OOB_CODE'});
   setAuth(toAuth(j));}
 async function fbToken(){
   if(AUTH.exp>Date.now())return AUTH.idToken;
@@ -1773,7 +1863,7 @@ function cloudRef(){
     if(!r.ok)throw Object.assign(new Error('db'),{code:r.status===401||r.status===403?'denied':'NETWORK'});return r.json();};
   return{set:d=>req('PUT',{at:d.at,data:JSON.stringify(d.data)}),
     get:async()=>{const j=await req('GET');return{exists:!!j,data:()=>({at:+j.at||0,data:JSON.parse(j.data)})};}};}
-const AUTH_ERR={EMAIL_EXISTS:'Ya hay una cuenta con ese mail. Iniciá sesión.',INVALID_LOGIN_CREDENTIALS:'Mail o contraseña incorrectos.',INVALID_PASSWORD:'Mail o contraseña incorrectos.',EMAIL_NOT_FOUND:'Mail o contraseña incorrectos.',INVALID_EMAIL:'Ese mail no es válido.',MISSING_PASSWORD:'Escribí tu contraseña.',WEAK_PASSWORD:'La contraseña tiene que tener al menos 6 caracteres.',PASSWORD_DOES_NOT_MEET_REQUIREMENTS:'La contraseña no cumple los requisitos: revisá el largo y mezclá letras y números.',TOO_MANY_ATTEMPTS_TRY_LATER:'Demasiados intentos. Probá de nuevo en unos minutos.',USER_DISABLED:'Esa cuenta está desactivada.',CONFIGURATION_NOT_FOUND:'Las cuentas todavía no están habilitadas en el servidor. Probá más tarde.',OPERATION_NOT_ALLOWED:'Las cuentas todavía no están habilitadas en el servidor. Probá más tarde.'};
+const AUTH_ERR={INVALID_OOB_CODE:'Ese código no es válido o ya se usó. Tocá Reenviar mail y usá el del último mail.',EXPIRED_OOB_CODE:'Ese código venció. Tocá Reenviar mail y usá el del último mail.',MISSING_OOB_CODE:'Pegá el código o el link del mail.',UNAUTHORIZED_DOMAIN:'El acceso con link de mail todavía no está configurado en el servidor.',EMAIL_EXISTS:'Ya hay una cuenta con ese mail. Iniciá sesión.',INVALID_LOGIN_CREDENTIALS:'Mail o contraseña incorrectos.',INVALID_PASSWORD:'Mail o contraseña incorrectos.',EMAIL_NOT_FOUND:'Mail o contraseña incorrectos.',INVALID_EMAIL:'Ese mail no es válido.',MISSING_PASSWORD:'Escribí tu contraseña.',WEAK_PASSWORD:'La contraseña tiene que tener al menos 6 caracteres.',PASSWORD_DOES_NOT_MEET_REQUIREMENTS:'La contraseña no cumple los requisitos: revisá el largo y mezclá letras y números.',TOO_MANY_ATTEMPTS_TRY_LATER:'Demasiados intentos. Probá de nuevo en unos minutos.',USER_DISABLED:'Esa cuenta está desactivada.',CONFIGURATION_NOT_FOUND:'Las cuentas todavía no están habilitadas en el servidor. Probá más tarde.',OPERATION_NOT_ALLOWED:'Las cuentas todavía no están habilitadas en el servidor. Probá más tarde.'};
 const authMsg=e=>AUTH_ERR[String(e&&e.code||'').split(' ')[0]]||'No se pudo conectar. Revisá tu internet.';
 let cloudTimer=null,cloudState={status:'idle',at:0};
 /* ---- Aviso de actualización (APK y .exe): compara con el último Release de GitHub ---- */
@@ -1809,10 +1899,25 @@ function renderAcctTile(){const el=$('#tAcSub');if(!el)return;
   el.textContent=AUTH&&cloudState.status!=='denied'?'Guardado en tu cuenta':FB.apiKey?'Iniciá sesión o creá tu cuenta':'Copia en archivo';}
 const ago=ms=>{const s_=Math.max(0,Math.round((Date.now()-ms)/1000));return s_<10?'recién':s_<60?'hace '+s_+' s':'hace '+Math.round(s_/60)+' min';};
 let passOpen=false; // el formulario de cambiar contraseña sigue abierto aunque se redibuje la cuenta
+let pendLogin=null; // {email, uid} entre la contraseña y el código del mail; solo en memoria
 function renderAcct(){
   const el=$('#acctCloud');el.innerHTML='';
   const msg=(t,c)=>{const p_=document.createElement('p');p_.className=c||'msg';p_.textContent=t;el.appendChild(p_);};
   if(!FB.apiKey){msg('Las cuentas todavía no están activadas en esta versión del juego. Mientras tanto, usá la copia en archivo de abajo.');return;}
+  if(!AUTH&&pendLogin){
+    const f=document.createElement('form');f.id='linkForm';f.noValidate=true;
+    f.innerHTML='<label for="linkCode">Código del mail</label><input id="linkCode" type="text" autocomplete="one-time-code" spellcheck="false">'+
+      '<button class="btn" type="submit" id="linkOk">Confirmar</button><button class="btn ghost" type="button" id="linkAgain">Reenviar mail</button>'+
+      '<button class="btn ghost" type="button" id="linkCancel">Cancelar</button><p class="msg" id="linkMsg" aria-live="polite"></p>';
+    msg('Para confirmar que sos vos, te mandamos un mail a '+pendLogin.email+'. Abrí el link, copiá el código que aparece y pegalo acá (también sirve pegar el link entero). Si no llega, fijate en spam.');el.appendChild(f);
+    const out=t=>{f.querySelector('#linkMsg').textContent=t;},btns=on=>f.querySelectorAll('button').forEach(b=>b.disabled=!on);
+    f.onsubmit=async e=>{e.preventDefault();const v=f.linkCode.value;if(!v.trim()){out('Pegá el código o el link del mail.');return;}
+      btns(false);out('Confirmando…');
+      try{await fbConfirmLink(pendLogin,v);pendLogin=null;cloudState={status:'idle',at:0};checkDev();renderAcctIfOpen();await pullCloud();}
+      catch(er){out(authMsg(er));btns(true);}};
+    f.querySelector('#linkAgain').onclick=async()=>{btns(false);try{await sendLoginLink(pendLogin.email);out('Te mandamos otro mail. Usá el código del último que llegue.');}catch(er){out(authMsg(er));}btns(true);};
+    f.querySelector('#linkCancel').onclick=()=>{pendLogin=null;renderAcct();};
+    return;}
   if(!AUTH){
     const f=document.createElement('form');f.id='authForm';f.noValidate=true;
     f.innerHTML='<label for="authMail">Mail</label><input id="authMail" type="email" autocomplete="email" inputmode="email" required>'+
@@ -1825,9 +1930,8 @@ function renderAcct(){
     const go=async signup=>{const em=f.authMail.value.trim(),pw=f.authPass.value;if(!em||!pw){out('Completá tu mail y tu contraseña.');return;}
       if(signup&&pw.length<6){out('La contraseña tiene que tener al menos 6 caracteres (tiene '+pw.length+').');return;}
       f.querySelectorAll('button').forEach(b=>b.disabled=true);out(signup?'Creando tu cuenta…':'Entrando…');
-      try{await fbLogin(em,pw,signup);cloudState={status:'idle',at:0};checkDev();renderAcctIfOpen();await pullCloud();}
-      catch(e){out(e.code!=='EMAIL_NOT_VERIFIED'?authMsg(e):e.signup?'Te mandamos un mail a '+e.email+' para verificar tu cuenta. Abrí el link (fijate también en spam) y después tocá Iniciar sesión.':'Tu mail todavía no está verificado. Te reenviamos el link a '+e.email+': abrilo y volvé a iniciar sesión.');
-        f.querySelectorAll('button').forEach(b=>b.disabled=false);}};
+      try{pendLogin=await fbLogin(em,pw,signup);renderAcct();}
+      catch(e){out(authMsg(e));f.querySelectorAll('button').forEach(b=>b.disabled=false);}};
     f.onsubmit=e=>{e.preventDefault();go(false);};f.querySelector('#authUp').onclick=()=>go(true);
     f.querySelector('#authReset').onclick=async()=>{const em=f.authMail.value.trim();if(!em){out('Escribí tu mail arriba y tocá de nuevo.');return;}
       try{await fbAuth('sendOobCode',{requestType:'PASSWORD_RESET',email:em});out('Si hay una cuenta con ese mail, te mandamos un link para cambiar la contraseña.');}catch(e){out(authMsg(e));}};
@@ -1908,9 +2012,11 @@ function renderMod(){
 // Devuelve el texto para mostrar
 function modAction(m){
   const unlockChars=()=>{SAVE.unlocked=CH_IDS.slice();},
-    missions=()=>{const L=SAVE.life;L.kills=Math.max(L.kills|0,1000);L.bestT=Math.max(L.bestT||0,300);L.elites=Math.max(L.elites|0,10);L.dawns=Math.max(L.dawns|0,1);L.maxLvl=Math.max(L.maxLvl|0,20);},
+    missions=()=>{const L=SAVE.life;L.kills=Math.max(L.kills|0,50000);L.bestT=Math.max(L.bestT||0,1200);L.elites=Math.max(L.elites|0,50);L.dawns=Math.max(L.dawns|0,20);L.maxLvl=Math.max(L.maxLvl|0,50);
+      L.bestKills=Math.max(L.bestKills|0,2500);L.bestElites=Math.max(L.bestElites|0,5);L.dawnsBy=Object.assign({medio:1,dificil:1},L.dawnsBy);L.dawnChars=CH_IDS.slice(0,Math.max(6,(L.dawnChars||[]).length));
+      L.runs=Math.max(L.runs|0,100);L.time=Math.max(L.time||0,36000);unlockChars();},
     shop=()=>{for(const id in BUFFS)SAVE.buffs[id]=BUFFS[id].gemOnly?BUFFS[id].gemOnly.length:7;},
-    charlv=()=>{for(const id of CH_IDS)SAVE.charLv[id]=CHAR_UP.length;};
+    charlv=()=>{for(const id of CH_IDS)SAVE.charLv[id]=CHAR_MAX;};
   const P={all:[()=>{unlockChars();missions();shop();charlv();},'Todo desbloqueado y al máximo.'],chars:[unlockChars,'Personajes desbloqueados.'],
     mis:[missions,'Misiones completadas: todas las armas desbloqueadas.'],shop:[shop,'Tienda al máximo.'],charlv:[charlv,'Personajes mejorados al máximo.']};
   if(P[m]){P[m][0]();modMark(false);persist();return P[m][1];}
@@ -1971,20 +2077,23 @@ function renderChars(){
   startLabel($('#startBtn'),'Empezar con ');
   renderCharUp();
 }
-const CHAR_UP=[600,1200,2500,4000,6000],CU=document.getElementById('charUp');
+const CHAR_UP=[600,1200,2500,4000,6000],CHAR_GEM=[30,60],CHAR_MAX=CHAR_UP.length+CHAR_GEM.length,CU=document.getElementById('charUp');
+// Del 1 al 5 se paga con monedas; el 6 y el 7, con gemas
+const charUpCost=lv=>lv<CHAR_UP.length?{n:CHAR_UP[lv],gem:false}:lv<CHAR_MAX?{n:CHAR_GEM[lv-CHAR_UP.length],gem:true}:null;
 let cuConfirm=false,cuTimer=null;
 function renderCharUp(){
   const el=CU,c=CHARS[pickSel],own=SAVE.unlocked.includes(pickSel);
   if(!own){el.hidden=true;return;}el.hidden=false;
-  const lv=SAVE.charLv[pickSel]|0,max=CHAR_UP.length,next=lv<max?CHAR_UP[lv]:null,can=next!==null&&SAVE.coins>=next;
+  const lv=SAVE.charLv[pickSel]|0,max=CHAR_MAX,nc=charUpCost(lv),next=nc&&nc.n,have=nc&&nc.gem?SAVE.gems:SAVE.coins,can=!!nc&&have>=next;
   let bars='';for(let i=0;i<max;i++)bars+=`<i class="${i<lv?'on':''}"></i>`;
   el.innerHTML=`<strong>Mejoras de ${c.name} · Nv ${lv}/${max}</strong><div class="cu-lv">${bars}</div>
     <p>Ahora empieza con +${lv*10}% de daño, +${lv*10} de vida y ${lv*8}% menos de recarga en ${c.active.name}. Cada nivel suma +10% de daño, +10 de vida y -8% de recarga.</p>
-    ${next===null?'<p class="maxed">Nivel máximo</p>':`<button class="shopitem${cuConfirm?' confirm':''}" id="cuBtn"${can?'':' disabled'}><strong>Subir a nivel ${lv+1}</strong><small>${can?'Se paga con monedas':'Te faltan '+(next-SAVE.coins).toLocaleString('es-AR')+' monedas'}</small><span class="pr">${cuConfirm?'Confirmar':'<i class="coin"></i>'+next.toLocaleString('es-AR')}</span></button>`}`;
+    ${c.grow?`<p>Pasiva mejorada: ${c.grow.d(1)} por nivel${lv?' (ahora '+c.grow.d(lv)+')':''}. Los niveles 6 y 7 se pagan con gemas.</p>`:''}
+    ${next===null?'<p class="maxed">Nivel máximo</p>':`<button class="shopitem${cuConfirm?' confirm':''}" id="cuBtn"${can?'':' disabled'}><strong>Subir a nivel ${lv+1}</strong><small>${can?(nc.gem?'Se paga con gemas':'Se paga con monedas'):'Te faltan '+(next-have).toLocaleString('es-AR')+(nc.gem?' gemas':' monedas')}</small><span class="pr">${cuConfirm?'Confirmar':(nc.gem?'<i class="gemi"></i>':'<i class="coin"></i>')+next.toLocaleString('es-AR')}</span></button>`}`;
   const b=el.querySelector('#cuBtn');if(b)b.addEventListener('click',()=>{
     if(!cuConfirm){cuConfirm=true;clearTimeout(cuTimer);cuTimer=setTimeout(()=>{cuConfirm=false;if(!$('#chars').hidden)renderCharUp();},3500);renderCharUp();return;}
-    cuConfirm=false;clearTimeout(cuTimer);const lv2=SAVE.charLv[pickSel]|0,cost=CHAR_UP[lv2];if(cost===undefined||SAVE.coins<cost)return;
-    SAVE.coins-=cost;SAVE.charLv[pickSel]=lv2+1;persist();sfx('level');renderChars();});
+    cuConfirm=false;clearTimeout(cuTimer);const lv2=SAVE.charLv[pickSel]|0,cost=charUpCost(lv2);if(!cost||(cost.gem?SAVE.gems:SAVE.coins)<cost.n)return;
+    if(cost.gem)SAVE.gems-=cost.n;else SAVE.coins-=cost.n;SAVE.charLv[pickSel]=lv2+1;persist();sfx('level');renderChars();});
 }
 function costOf(c){return c.gems?{n:c.gems,have:SAVE.gems,w:'gemas',gem:true}:{n:c.price,have:SAVE.coins,w:'monedas',gem:false};}
 function priceHtml(c){const k=costOf(c);return `<span class="price${k.gem?' g':''}">${k.gem?'<i class="gemi"></i>':'<i class="coin"></i>'}${k.n}</span>`;}
@@ -2057,7 +2166,7 @@ function renderArsenal(){
   let h='';
   if(arsTab==='w'){for(const id in WDEF){const D=WDEF[id],st=Object.values(CHARS).find(c=>c.weapon===id);
     const lk=!weaponUnlocked(id),ms=D.mission&&MISSIONS.find(m=>m.id===D.mission);
-    h+=`<div class="aitem${lk?' lockd':''}"><span class="ic">${svg(lk?'candado':id,lk?'#6b6390':D.col)}</span><div><strong>${D.name}</strong><p>${D.up[0]}</p><small>${lk?'Bloqueada · misión '+ms.name+': '+ms.desc:st?'Arma inicial de '+st.short:ms?'Desbloqueada con la misión '+ms.name:'Aparece al subir de nivel'} · hasta nivel ${WMAX}</small></div></div>`;}}
+    h+=`<div class="aitem${lk?' lockd':''}"><span class="ic">${svg(lk?'candado':id,lk?'#6b6390':D.col)}</span><div><strong>${D.name}</strong><p>${D.up[0]}</p><small>${lk?'Bloqueada · misión '+ms.name+': '+ms.desc:st?'Arma inicial de '+st.short:ms?'Desbloqueada con la misión '+ms.name:D.excl?'Exclusiva de '+CHARS[D.excl].short+': arranca con ella':'Aparece al subir de nivel'} · hasta nivel ${WMAX}</small></div></div>`;}}
   else{for(const id in PDEF){const D=PDEF[id];
     h+=`<div class="aitem"><span class="ic">${svg(id,D.col)}</span><div><strong>${D.name}</strong><p>${D.desc(1)}${D.fixed?'':' (común)'}.</p><small>Hasta nivel ${D.max||PMAX}</small></div></div>`;}}
   $('#arsList').innerHTML=h;
@@ -2081,11 +2190,13 @@ $('#expBtn').addEventListener('click',exportSave);
 $('#impBtn').addEventListener('click',()=>{$('#impFile').value='';$('#impFile').click();});
 $('#impFile').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const rd=new FileReader();
   rd.onload=()=>{let obj=null;try{obj=JSON.parse(rd.result);}catch(err){}previewImport(obj);};rd.onerror=()=>{$('#acctToast').textContent='No se pudo leer el archivo.';};rd.readAsText(f);});
-function renderMissions(){
+function renderMissions(){payMissions();
+  const ftime=t=>t>=3600?fmtLong(t):fmt(t);
   $('#misList').innerHTML=MISSIONS.map(m=>{const wid=Object.keys(WDEF).find(k=>WDEF[k].mission===m.id),W_=WDEF[wid],pr=Math.min(m.goal,m.prog()),done=pr>=m.goal;
-    const ptxt=m.time?fmt(pr)+' / '+fmt(m.goal):pr.toLocaleString('es-AR')+' / '+m.goal.toLocaleString('es-AR');
-    return `<div class="aitem"><span class="ic">${svg(done?wid:'candado',done?W_.col:'#6b6390')}</span><div><strong>${m.name}</strong><p>${m.desc}.</p>
-      <small class="${done?'mdone':''}">${done?'Cumplida · desbloqueaste '+W_.name:'Premio: '+W_.name+' · '+ptxt}</small><div class="mbar"><i style="width:${(pr/m.goal*100).toFixed(1)}%"></i></div></div></div>`;}).join('');}
+    const ptxt=m.time?ftime(pr)+' / '+ftime(m.goal):pr.toLocaleString('es-AR')+' / '+m.goal.toLocaleString('es-AR');
+    const prize=m.reward?rewardTxt(m.reward):W_.name,ic=m.reward?(m.reward.gems?['gema','#ff8ad8']:['bolsa','#ffd27a']):[wid,W_.col];
+    return `<div class="aitem"><span class="ic">${svg(done?ic[0]:'candado',done?ic[1]:'#6b6390')}</span><div><strong>${m.name}</strong><p>${m.desc}.</p>
+      <small class="${done?'mdone':''}">${done?(m.reward?'Cumplida · cobraste '+prize:'Cumplida · desbloqueaste '+prize):'Premio: '+prize+' · '+ptxt}</small><div class="mbar"><i style="width:${(pr/m.goal*100).toFixed(1)}%"></i></div></div></div>`;}).join('');}
 $('#tMis').addEventListener('click',()=>{renderMissions();show('missions');$('#missions').scrollTop=0;});
 /* ---- Shop ---- */
 const SHOP={gems:[{id:'g1',get:1,pay:300},{id:'g5',get:5,pay:1300,save:13},{id:'g12',get:12,pay:2900,save:19}],
@@ -2165,6 +2276,8 @@ function gameOver(){
   const prev=SAVE.bestBy[G.diff],record=!prev||G.t>prev.t;
   const doneBefore=MISSIONS.filter(m=>m.prog()>=m.goal).map(m=>m.id);
   const L=SAVE.life;L.elites=(L.elites|0)+G.elitesKilled;L.bestT=Math.max(L.bestT||0,G.t);L.maxLvl=Math.max(L.maxLvl|0,G.lvl);L.runs++;L.kills+=G.kills;L.time+=G.t;L.coins+=earned;if(G.dawn)L.dawns++;
+  L.bestKills=Math.max(L.bestKills|0,G.kills);L.bestElites=Math.max(L.bestElites|0,G.elitesKilled);
+  if(G.dawn){L.dawnsBy=L.dawnsBy||{};L.dawnsBy[G.diff]=(L.dawnsBy[G.diff]|0)+1;L.dawnChars=L.dawnChars||[];if(!L.dawnChars.includes(G.char))L.dawnChars.push(G.char);}
   const gemsEarned=G.crys+(G.dawn?2:0);SAVE.gems+=gemsEarned;L.gems+=gemsEarned;
   SAVE.coins+=earned;if(record)SAVE.bestBy[G.diff]={t:G.t,k:G.kills,c:G.char};persist();
   $('#overPanel').className='panel '+(G.dawn?'win':'lose');
@@ -2178,8 +2291,10 @@ function gameOver(){
   $('#stTime').textContent=fmt(G.t);$('#stLvl').textContent=G.lvl;$('#stKills').textContent=G.kills;
   $('#overCoins').innerHTML=`<div><span>Monedas recogidas</span><span>${G.coins}</span></div><div><span>Por tiempo sobrevivido</span><span>${timeBonus}</span></div>${dawnBonus?`<div><span>Bonus amanecer</span><span>${dawnBonus}</span></div>`:''}${diffBonus?`<div><span>Bonus ${DF.name} (+${Math.round((DF.coin-1)*100)}%)</span><span>${diffBonus}</span></div>`:''}<div class="tot"><span>Ganaste +${earned}</span><span>Total ${SAVE.coins}</span></div><div class="gemrow"><span>Gemas +${gemsEarned}${G.dawn?' (2 del amanecer)':''}</span><span>Total ${SAVE.gems}</span></div>`;
   $('#overInv').innerHTML=dmgHtml();
-  const newly=MISSIONS.filter(m=>m.prog()>=m.goal&&!doneBefore.includes(m.id)),mn=$('#misNote');
-  if(newly.length){mn.textContent='¡Misión cumplida! Desbloqueaste: '+newly.map(m=>WDEF[Object.keys(WDEF).find(k=>WDEF[k].mission===m.id)].name).join(', ')+'.';mn.hidden=false;}else mn.hidden=true;
+  const newly=MISSIONS.filter(m=>!m.reward&&m.prog()>=m.goal&&!doneBefore.includes(m.id)),paid=payMissions(),mn=$('#misNote');
+  const parts=[];if(newly.length)parts.push('Desbloqueaste: '+newly.map(m=>WDEF[Object.keys(WDEF).find(k=>WDEF[k].mission===m.id)].name).join(', '));
+  if(paid.length)parts.push('Cobraste: '+paid.map(m=>m.name+' ('+rewardTxt(m.reward)+')').join(', '));
+  if(parts.length){mn.textContent='¡Misión cumplida! '+parts.join('. ')+'.';mn.hidden=false;}else mn.hidden=true;
   const sub=submitScore(),ln=$('#lbNote');
   if(sub==='mod'){ln.textContent='Partida con el menú de pruebas: no cuenta para la clasificación.';ln.hidden=false;}
   else if(sub===true){ln.textContent='¡Nuevo mejor puntaje! Ya está en la clasificación.';ln.hidden=false;}

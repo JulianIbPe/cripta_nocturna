@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cripta Nocturna · Código de acceso</title>
+<style>
+:root{color-scheme:dark;--ink:#ece6ff;--muted:#a79fc4;--stone:#1d1832;--line:#3a3160;--ember:#ff8a3d;--soul:#5ee6c4}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px 16px;background:radial-gradient(circle at 50% 0,#2a1f4a,#0c0a18 70%);color:var(--ink);font:16px/1.5 system-ui,-apple-system,sans-serif}
+main{width:100%;max-width:440px;display:grid;gap:16px;padding:24px;border-radius:18px;background:var(--stone);border:1px solid var(--line)}
+.eyebrow{margin:0;text-transform:uppercase;letter-spacing:.18em;font-size:13px;font-weight:600;color:var(--ember)}
+h1{margin:0;font-size:28px;line-height:1.15}
+p{margin:0;color:var(--muted)}
+.code{padding:14px;border-radius:12px;background:#0f0d20;border:1px solid var(--line);font:15px/1.4 ui-monospace,Consolas,monospace;word-break:break-all;color:var(--ink);user-select:all}
+button{appearance:none;border:0;border-radius:12px;padding:14px 18px;font:inherit;font-weight:700;background:var(--ember);color:#1a0d02;cursor:pointer}
+button:focus-visible{outline:2px solid var(--soul);outline-offset:3px}
+.ok{color:var(--soul);min-height:1.5em}
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Cripta Nocturna</p>
+  <h1 id="title">Tu código de acceso</h1>
+  <p id="lead">Copiá este código, volvé al juego y pegalo donde dice "Código del mail".</p>
+  <div class="code" id="code"></div>
+  <button id="copy" type="button">Copiar código</button>
+  <p class="ok" id="ok" aria-live="polite"></p>
+  <p>Si no fuiste vos quien intentó entrar, ignorá este mensaje: sin este código nadie puede abrir tu cuenta. Igual conviene que cambies tu contraseña.</p>
+</main>
+<script>
+// Muestra el oobCode del link de Firebase (modo signIn) para pegarlo en el juego
+const code=new URLSearchParams(location.search).get('oobCode');
+const box=document.getElementById('code'),btn=document.getElementById('copy'),ok=document.getElementById('ok');
+if(code){box.textContent=code;}
+else{document.getElementById('title').textContent='Falta el código';document.getElementById('lead').textContent='Abrí esta página desde el link del mail que te mandó el juego.';box.hidden=true;btn.hidden=true;}
+btn.onclick=async()=>{
+  try{await navigator.clipboard.writeText(code);ok.textContent='Copiado. Volvé al juego y pegalo.';}
+  catch(e){const r=document.createRange();r.selectNodeContents(box);const s=getSelection();s.removeAllRanges();s.addRange(r);ok.textContent='Quedó seleccionado: copialo y pegalo en el juego.';}
+};
+</script>
+</body>
+</html>
