@@ -553,6 +553,7 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
     <button class="updbar" id="updBarPause" hidden>Hay una versión nueva (<b></b>). Tocá acá para descargarla.</button>
     <button class="btn" id="resumeBtn">Seguir</button>
     <button class="btn ghost" id="restartBtn">Reiniciar partida</button>
+    <button class="btn ghost" id="endBtn">Terminar y cobrar</button>
     <button class="btn ghost" id="modPause" hidden>Menú de pruebas</button>
     <div class="btnrow">
       <button class="btn ghost" id="soundPause">Sonido: sí</button>
@@ -2342,7 +2343,7 @@ function resumeRun(){
 }
 function start(ch){clearRun();initAudio();newGame(ch,SAVE.diff);lastRunSave=0;hudCache={};state='play';show(null);last=performance.now();
   try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{});}catch(e){}}
-function pause(){if(state!=='play')return;state='paused';saveRun();if(restartArm){clearTimeout(restartArm);restartArm=null;}$('#restartBtn').textContent='Reiniciar partida';$('#restartBtn').style.borderColor='';joy.active=false;$('#inv').innerHTML=invHtml();$('#statgrid').innerHTML=statsHtml();chaosLogRender();show('pause');$('#pause').scrollTop=0;}
+function pause(){if(state!=='play')return;state='paused';saveRun();endReset();if(restartArm){clearTimeout(restartArm);restartArm=null;}$('#restartBtn').textContent='Reiniciar partida';$('#restartBtn').style.borderColor='';joy.active=false;$('#inv').innerHTML=invHtml();$('#statgrid').innerHTML=statsHtml();chaosLogRender();show('pause');$('#pause').scrollTop=0;}
 function resume(){state='play';show(null);last=performance.now();}
 function gameOver(){
   state='over';clearRun();joy.active=false;
@@ -2356,7 +2357,7 @@ function gameOver(){
   SAVE.coins+=earned;if(record)SAVE.bestBy[G.diff]={t:G.t,k:G.kills,c:G.char};persist();
   $('#overPanel').className='panel '+(G.dawn?'win':'lose');
   $('#overEyebrow').textContent=(record?'¡Nuevo récord!':G.dawn?'Sobreviviste la noche':'Fin de la noche')+' · '+DF.name;
-  $('#overTitle').textContent=G.dawn?'¡Viste el amanecer!':'Te alcanzaron';
+  $('#overTitle').textContent=G.dawn?'¡Viste el amanecer!':G.ended?'Terminaste la partida':'Te alcanzaron';
   $('#overSub').textContent=G.dawn?'Pasaste el amanecer y aguantaste hasta '+fmt(G.t)+' con '+CHARS[G.char].short+'.':'Sobreviviste '+fmt(G.t)+' con '+CHARS[G.char].short+'. El amanecer llega a los 10:00.';
   G.score=Math.floor(G.score);
   $('#stScore').textContent=fmtPts(G.score);
@@ -2387,6 +2388,13 @@ $('#restartBtn').addEventListener('click',()=>{
   if(!restartArm){b.textContent='¿Seguro? Tocá de nuevo para reiniciar';b.style.borderColor='var(--blood)';restartArm=setTimeout(()=>{restartArm=null;b.textContent='Reiniciar partida';b.style.borderColor='';},3500);return;}
   clearTimeout(restartArm);restartArm=null;b.textContent='Reiniciar partida';b.style.borderColor='';
   start(G?G.char:SAVE.sel);});
+// Terminar a propósito: igual que morir (monedas, gemas, misiones, récord); pide un segundo toque
+let endArm=null;
+const endReset=()=>{clearTimeout(endArm);endArm=null;const b=$('#endBtn');b.textContent='Terminar y cobrar';b.style.borderColor='';};
+$('#endBtn').addEventListener('click',()=>{
+  const b=$('#endBtn');
+  if(!endArm){b.textContent='¿Seguro? Tocá de nuevo para terminar y cobrar';b.style.borderColor='var(--ember)';endArm=setTimeout(endReset,3500);return;}
+  endReset();G.ended=true;gameOver();});
 // Salir no termina la partida: queda guardada y se retoma con Continuar partida desde el menú
 $('#quitBtn').addEventListener('click',()=>{saveRun();goMenu();});
 $('#soundMenu').addEventListener('click',()=>setMuted(!muted));
