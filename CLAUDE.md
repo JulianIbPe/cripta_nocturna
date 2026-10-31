@@ -6,6 +6,7 @@ Juego survivors para celular en un solo archivo, `index.html` (HTML + CSS + JS s
 
 - El juego también está publicado como artifact de claude.ai: https://claude.ai/artifact/SAwN8hy8ZUgAMZfhDAwgrD
 - El artifact se publica con el contenido de `index.html` **sin** el esqueleto (`<!doctype>`, `<html>`, `<head>`, `<body>` y el `<style>` de reset del principio): la plataforma de artifacts agrega su propio esqueleto. Para republicar, sacá ese envoltorio y publicá el resto al mismo URL.
+- La clasificación y las cuentas usan Firebase, no la base del artifact; dentro de claude.ai pueden no andar si el artifact bloquea pedidos externos.
 - Capacidades del artifact: `db` (reglas `scores` read view / write owner, `scores/{self}` read view / write interact y `data/users/{self}` write interact), `user` con scope `profile` y `downloads`. Si se republica sin pasar `capabilities`, se mantienen.
 
 ## Apps
@@ -24,7 +25,7 @@ Juego survivors para celular en un solo archivo, `index.html` (HTML + CSS + JS s
 - **Teclado (PC):** un solo `keydown` en la sección Input; Esc toca el `.backBtn` visible.
 - **Bucle:** `update(dt)` + `draw(now)`; con el Reloj del tiempo, `update` corre varias veces por frame.
 - **Daño:** todo pasa por `hurt(e, base, kx, ky, src)` (críticos/overcrit, multiplicadores por arma, robo de vida, monedas, gemas y puntos).
-- **Clasificación:** `initOnline`, `joinBoard`, `submitScore`, `subscribeBoard` usan `window.claude.use('db'|'user')`; sin eso el juego sigue funcionando.
+- **Clasificación:** Firebase `scores/<uid>` = `{name, score, best, at}` (lectura pública; para aparecer hace falta sesión y nombre de usuario, y las reglas exigen que `name` sea el de `users/<uid>/name`). `initOnline` trae tu mejor puntaje, `submitScore` lo guarda en `SAVE.pendScore` y `flushScore` lo sube (reintenta con el guardado automático), `subscribeBoard` recarga la tabla cada 30 s.
 
 ## Al cambiar algo
 

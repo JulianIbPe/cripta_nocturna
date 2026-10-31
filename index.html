@@ -1755,112 +1755,86 @@ function dmgHtml(){
     return `<div class="drow"><span class="dn">${svg(W_?k:ab.icon,col)}${W_?W_.name:'Habilidad: '+ab.name}</span><span class="dv">${fmtN(v)}</span><i style="width:${(v/mx*100).toFixed(1)}%;background:${col}"></i></div>`;}).join('');}
 
 /* ---------- Online leaderboard ---------- */
-const LB={ready:false,online:false,uid:null,me:null,canWrite:null,joined:false,nick:'',remote:null,editing:false,err:'',busy:false};
-let DB=null,USER=null,wq=Promise.resolve();
+/* ---- Clasificación: scores/<uid> = {name, score, best, at} en Firebase. Se lee sin sesión; para aparecer
+   hace falta sesión y nombre de usuario (las reglas exigen que el nombre sea el de la cuenta). ---- */
+const LB={ready:false,remote:null};
+let wq=Promise.resolve();
 function queueWrite(fn){const pr=wq.then(fn);wq=pr.catch(()=>{});return pr;}
 async function initOnline(){
-  try{
-    if(window.claude&&typeof window.claude.use==='function'){
-      [DB,USER]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);
-    }
-    if(USER){LB.uid=await USER.id();LB.me=await USER.me();LB.canWrite=await USER.can('data.write');}
-    LB.online=!!(DB&&LB.uid);
-    if(LB.online){try{const sn=await DB.doc('scores/'+LB.uid).get();if(sn.exists){const d=sn.data();LB.joined=true;LB.nick=String(d.nick||'');LB.remote=d;}}catch(e){}}
-  }catch(e){}
-  LB.ready=true;renderBoardTile();renderAcctIfOpen();if(!$('#board').hidden){renderAccount();subscribeBoard();}
+  LB.remote=null;
+  if(AUTH&&FB.apiKey){try{LB.remote=await fbDb('GET','scores/'+AUTH.uid,undefined,true);}catch(e){}}
+  LB.ready=true;flushScore();renderBoardTile();if(!$('#board').hidden){renderAccount();subscribeBoard();}
 }
 function renderBoardTile(){
   const sub=$('#tBoSub');if(!sub)return;$('#tBoIc').innerHTML=svg('corazon','#ffd27a').replace(ICON.corazon,'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/>');
-  sub.textContent=!LB.ready?'Conectando…':LB.joined?'Jugás como '+LB.nick+(LB.remote&&LB.remote.score?' · mejor '+fmtPts(LB.remote.score):''):LB.online&&LB.canWrite!==false?'Unite y elegí tu apodo':'Los mejores puntajes de todos';
+  sub.textContent=!FB.apiKey?'Los mejores puntajes de todos':AUTH&&AUTH.name?'Jugás como '+AUTH.name+(LB.remote&&LB.remote.score?' · mejor '+fmtPts(LB.remote.score):''):AUTH?'Elegí tu nombre de usuario para aparecer':'Iniciá sesión para aparecer';
 }
-const NICK_RE=/^[\p{L}\p{N} _.\-]{3,16}$/u;
 function renderAccount(){
   const el=$('#acct');el.innerHTML='';
-  const msg=(t,cls)=>{const p=document.createElement('p');p.className=cls||'msg';p.textContent=t;return p;};
-  if(!LB.ready){el.appendChild(msg('Conectando con la clasificación…'));return;}
-  if(!DB){el.appendChild(msg('La clasificación funciona cuando abrís el juego desde su link de Claude con tu cuenta iniciada.'));return;}
-  if(!LB.uid){el.appendChild(msg('Iniciá sesión en Claude y volvé a abrir el juego para unirte a la clasificación.'));return;}
-  const who=document.createElement('div');who.className='who';
-  const img=document.createElement('img');img.alt='';img.src=LB.me?LB.me.avatarUrl:'';who.appendChild(img);
-  const box=document.createElement('div');const st=document.createElement('strong');const sm=document.createElement('small');
-  if(LB.joined){st.textContent=LB.nick;sm.textContent=(LB.remote&&LB.remote.score?'Tu mejor puntaje: '+fmtPts(LB.remote.score)+'. ':'')+'Se actualiza solo cuando lo superás.';}
-  else{st.textContent=(LB.me&&LB.me.name)||'Tu cuenta de Claude';sm.textContent='Todavía no estás en la tabla';}
+  const msg=t=>{const p=document.createElement('p');p.className='msg';p.textContent=t;el.appendChild(p);};
+  const toAcct=t=>{const b=document.createElement('button');b.className='btn ghost';b.id='boardToAcct';b.textContent=t;b.onclick=()=>$('#tAcc').click();el.appendChild(b);};
+  if(!FB.apiKey){msg('La clasificación todavía no está activada en esta versión del juego.');return;}
+  if(!AUTH){msg('Iniciá sesión o creá tu cuenta para aparecer en la tabla con tu nombre de usuario.');toAcct('Ir a Cuenta');return;}
+  if(!AUTH.name){msg('Elegí tu nombre de usuario en Cuenta para aparecer en la tabla.');toAcct('Elegir nombre');return;}
+  const who=document.createElement('div');who.className='who';const box=document.createElement('div');
+  const st=document.createElement('strong');st.textContent=AUTH.name;const sm=document.createElement('small');
+  sm.textContent=(LB.remote&&LB.remote.score?'Tu mejor puntaje: '+fmtPts(LB.remote.score)+'. ':'Todavía no tenés puntaje en la tabla. ')+'Se actualiza solo cuando lo superás.';
   box.append(st,sm);who.appendChild(box);el.appendChild(who);
-  if(LB.canWrite===false){el.appendChild(msg('Podés ver la tabla, pero tu cuenta no tiene permiso para guardar puntajes. Pedile al dueño del juego que te invite como editor.'));return;}
-  if(LB.joined&&!LB.editing){const b=document.createElement('button');b.className='btn ghost';b.id='editNick';b.textContent='Cambiar apodo';b.onclick=()=>{LB.editing=true;LB.err='';renderAccount();};el.appendChild(b);return;}
-  const f=document.createElement('form');f.id='nickForm';
-  f.innerHTML='<label for="nickIn">'+(LB.joined?'Nuevo apodo':'Elegí tu apodo para la tabla')+'</label><input id="nickIn" maxlength="16" autocomplete="nickname" spellcheck="false" placeholder="Ej: CazadorDeNoche"><button class="btn" type="submit">'+(LB.joined?'Guardar':'Unirme')+'</button>';
-  el.appendChild(f);const inp=f.querySelector('input');inp.value=LB.joined?LB.nick:'';
-  f.addEventListener('submit',ev=>{ev.preventDefault();joinBoard(inp.value);});
-  if(LB.err)el.appendChild(msg(LB.err,'err'));
-  if(!LB.joined)el.appendChild(msg('Te identificamos con tu cuenta de Claude, así que no necesitás contraseña. En la tabla solo se muestra tu apodo.'));
 }
-async function joinBoard(raw){
-  if(LB.busy)return;
-  const nick=String(raw||'').trim().replace(/\s+/g,' ');
-  if(!NICK_RE.test(nick)){LB.err='El apodo tiene que tener entre 3 y 16 letras, números, espacios, puntos, guiones o guiones bajos.';renderAccount();return;}
-  LB.busy=true;LB.err='';
-  const ref=DB.doc('scores/'+LB.uid);
-  try{
-    if(LB.joined){await queueWrite(()=>ref.update({nick,at:Date.now()}));LB.remote=Object.assign({},LB.remote,{nick});}
-    else{const body={nick,at:Date.now()};
-      const B=SAVE.bestScore;if(B&&B.score>0){body.score=B.score|0;body.best={t:Math.round(B.t*10)/10,k:B.k|0,c:B.c||null,d:B.diff};}
-      await queueWrite(()=>ref.set(body));LB.remote=body;LB.joined=true;}
-    LB.nick=nick;LB.editing=false;sfx('level');
-  }catch(e){
-    if(e&&e.code==='invalid_argument'){LB.canWrite=false;}
-    else if(e&&e.code==='quota_exceeded'){LB.err='La tabla está llena. Avisale al dueño del juego.';}
-    else LB.err='No se pudo guardar. Probá de nuevo en un rato.';
-  }
-  LB.busy=false;renderAccount();renderBoardTile();renderBoardList();
+// Si no había internet al terminar la partida, el récord queda pendiente en SAVE y se sube después
+async function flushScore(){
+  const row=SAVE.pendScore;if(!row||!AUTH||!AUTH.name||!FB.apiKey)return;
+  try{await queueWrite(()=>fbDb('PUT','scores/'+AUTH.uid,Object.assign({},row,{name:AUTH.name}),true));delete SAVE.pendScore;persist();}catch(e){}
 }
 function submitScore(){
   if(G.mod)return 'mod';
-  if(!LB.joined||!DB||!LB.uid||LB.canWrite===false)return null;
+  if(!AUTH||!AUTH.name||!FB.apiKey)return null;
   const sc=Math.floor(G.score),cur=(LB.remote&&LB.remote.score)||0;
   if(sc<=cur)return false;
-  const patch={score:sc,best:{t:Math.round(G.t*10)/10,k:G.kills,c:G.char,d:G.diff},at:Date.now()};
-  LB.remote=Object.assign({},LB.remote,patch);
-  queueWrite(()=>DB.doc('scores/'+LB.uid).update(patch)).catch(e=>{if(e&&e.code==='invalid_argument')LB.canWrite=false;});
+  const row={name:AUTH.name,score:sc,best:{t:Math.round(G.t*10)/10,k:G.kills,c:G.char,d:G.diff},at:Date.now()};
+  LB.remote=row;SAVE.pendScore=row;persist();flushScore();
   return true;
 }
-let boardUnsub=null,boardRows=null,boardTimer=null,boardState='idle';
+let boardRows=null,boardTimer=null,boardState='idle';
 function openBoard(){show('board');$('#board').scrollTop=0;renderAccount();subscribeBoard();}
-function closeBoard(){if(boardUnsub){boardUnsub();boardUnsub=null;}clearTimeout(boardTimer);}
-function subscribeBoard(){
-  closeBoard();boardRows=null;
-  if(!LB.ready){boardState='loading';renderBoardList();return;}
-  if(!DB){boardState='off';renderBoardList();return;}
-  boardState='loading';renderBoardList();
-  boardTimer=setTimeout(()=>{if(boardState==='loading'){boardState='slow';renderBoardList();}},10000);
+function closeBoard(){clearInterval(boardTimer);boardTimer=null;}
+async function loadBoard(){
   try{
-    boardUnsub=DB.collection('scores').where('score','>',0).orderBy('score','desc').limit(50).onSnapshot(sn=>{
-      boardRows=sn.docs.map(d=>Object.assign({id:d.id},d.data()));
-      if(!sn.metadata.fromCache){boardState='ok';clearTimeout(boardTimer);}else if(boardState==='loading')boardState='cached';
-      renderBoardList();
-    },()=>{boardState='error';clearTimeout(boardTimer);renderBoardList();});
-  }catch(e){boardState='error';renderBoardList();}
+    // Con ".indexOn":"score" en las reglas trae solo los 50 mejores; si no, trae todo y ordena acá
+    let r=await fetch(FB.dbUrl+'/scores.json?orderBy=%22score%22&limitToLast=50');
+    if(!r.ok)r=await fetch(FB.dbUrl+'/scores.json');
+    if(!r.ok)throw new Error('board');
+    const j=await r.json()||{};
+    boardRows=Object.entries(j).map(([id,v])=>Object.assign({id},v)).filter(x=>typeof x.score==='number'&&x.score>0&&x.name).sort((x,y)=>y.score-x.score).slice(0,50);
+    boardState='ok';
+  }catch(e){if(!boardRows)boardState='error';}
+  renderBoardList();
+}
+function subscribeBoard(){
+  closeBoard();
+  if(!FB.apiKey){boardState='off';boardRows=null;renderBoardList();return;}
+  if(!boardRows){boardState='loading';renderBoardList();}
+  loadBoard();boardTimer=setInterval(loadBoard,30000);
 }
 function renderBoardList(){
   const el=$('#lbList');if(!el||$('#board').hidden)return;el.innerHTML='';
   const note=t=>{const p=document.createElement('p');p.className='lbempty';p.textContent=t;el.appendChild(p);};
-  if(boardState==='off'){note('No hay conexión con la clasificación en esta vista.');return;}
-  if(boardState==='error'){note('No se pudo cargar la tabla. Volvé a abrirla en un rato.');return;}
-  if(!boardRows){note(boardState==='slow'?'La tabla está tardando en responder…':'Cargando la tabla…');return;}
-  const rows=boardRows.filter(r=>typeof r.score==='number'&&r.nick);
-  if(!rows.length){note('Nadie aparece todavía en la tabla. ¡El primer puesto puede ser tuyo!');return;}
-  rows.forEach((r,i)=>{
-    const d=(r.best&&typeof r.best==='object')?r.best:{},row=document.createElement('div');row.className='lbrow'+(i<3?' r'+(i+1):'')+(r.id===LB.uid?' me':'');
+  if(boardState==='off'){note('La clasificación todavía no está activada en esta versión del juego.');return;}
+  if(boardState==='error'){note('No se pudo cargar la tabla. Revisá tu internet; se vuelve a intentar sola.');return;}
+  if(!boardRows){note('Cargando la tabla…');return;}
+  if(!boardRows.length){note('Nadie aparece todavía en la tabla. ¡El primer puesto puede ser tuyo!');return;}
+  const me=AUTH&&AUTH.uid;
+  boardRows.forEach((r,i)=>{
+    const d=(r.best&&typeof r.best==='object')?r.best:{},row=document.createElement('div');row.className='lbrow'+(i<3?' r'+(i+1):'')+(r.id===me?' me':'');
     const rk=document.createElement('span');rk.className='lbrank';rk.textContent=i+1;
-    const nm=document.createElement('span');nm.className='lbname';nm.textContent=String(r.nick).slice(0,16);
-    if(r.id===LB.uid){const y=document.createElement('span');y.className='youtag';y.textContent='vos';nm.appendChild(y);}
+    const nm=document.createElement('span');nm.className='lbname';nm.textContent=String(r.name).slice(0,16);
+    if(r.id===me){const y=document.createElement('span');y.className='youtag';y.textContent='vos';nm.appendChild(y);}
     const tm=document.createElement('span');tm.className='lbtime';tm.textContent=fmtPts(r.score);
     const mt=document.createElement('span');mt.className='lbmeta';
     if(DIFFS[d.d]){const ch=document.createElement('span');ch.className='diffchip '+d.d;ch.textContent=DIFFS[d.d].name;mt.appendChild(ch);}
     mt.appendChild(document.createTextNode((typeof d.t==='number'?fmt(d.t)+' · ':'')+((d.k|0)+' bajas')+(d.c&&CHARS[d.c]?' · '+CHARS[d.c].short:'')));
     row.append(rk,nm,tm,mt);el.appendChild(row);
   });
-  if(boardState==='slow'||boardState==='cached')note('Puede que la tabla no esté al día.');
 }
 
 /* ---------- Screens ---------- */
@@ -1917,16 +1891,16 @@ async function fbDb(method,path,body,auth){
   const r=await fetch(FB.dbUrl+'/'+path+'.json'+q,{method,body:body===undefined?undefined:JSON.stringify(body)});
   if(!r.ok)throw Object.assign(new Error('db'),{code:r.status===401||r.status===403?'denied':'NETWORK'});return r.json();}
 async function loadUsername(){if(!AUTH||!FB.apiKey)return;
-  try{const n=await fbDb('GET','users/'+AUTH.uid+'/name',undefined,true);if(AUTH&&(n||null)!==(AUTH.name||null)){setAuth({...AUTH,name:n||null});renderAcctIfOpen();}}catch(e){}}
+  try{const n=await fbDb('GET','users/'+AUTH.uid+'/name',undefined,true);if(AUTH&&(n||null)!==(AUTH.name||null)){setAuth({...AUTH,name:n||null});renderAcctIfOpen();}}catch(e){}renderBoardTile();flushScore();}
 // Reserva el nombre y libera el anterior en un solo pedido: o se aplica todo o nada
 async function setUsername(name){
   if(!NAME_RE.test(name))throw Object.assign(new Error('name'),{code:'BAD_NAME'});
   const key=name.toLowerCase(),old=AUTH.name&&AUTH.name.toLowerCase();
   const owner=await fbDb('GET','usernames/'+key);
   if(owner&&owner!==AUTH.uid)throw Object.assign(new Error('name'),{code:'NAME_TAKEN'});
-  const up={['usernames/'+key]:AUTH.uid,['users/'+AUTH.uid+'/name']:name};if(old&&old!==key)up['usernames/'+old]=null;
+  const up={['usernames/'+key]:AUTH.uid,['users/'+AUTH.uid+'/name']:name};if(old&&old!==key)up['usernames/'+old]=null;if(LB.remote)up['scores/'+AUTH.uid+'/name']=name;
   try{await fbDb('PATCH','',up,true);}catch(e){if(e.code==='denied')e.code='NAME_TAKEN';throw e;}
-  setAuth({...AUTH,name});}
+  setAuth({...AUTH,name});if(LB.remote)LB.remote.name=name;renderBoardTile();}
 function cloudRef(){
   if(!FB.apiKey||!AUTH)return null;
   // Realtime Database: saves/<uid> = {at, data}; data va como texto porque la base borra objetos y listas vacías
@@ -1994,7 +1968,7 @@ function renderAcct(){
     const out=t=>{f.querySelector('#linkMsg').textContent=t;},btns=on=>f.querySelectorAll('button').forEach(b=>b.disabled=!on);
     f.onsubmit=async e=>{e.preventDefault();const v=f.linkCode.value;if(!v.trim()){out('Pegá el código o el link del mail.');return;}
       btns(false);out('Confirmando…');
-      try{await fbConfirmLink(pendLogin,v);pendLogin=null;cloudState={status:'idle',at:0};checkDev();renderAcctIfOpen();loadUsername();await pullCloud();}
+      try{await fbConfirmLink(pendLogin,v);pendLogin=null;cloudState={status:'idle',at:0};checkDev();renderAcctIfOpen();loadUsername();initOnline();await pullCloud();}
       catch(er){out(authMsg(er));btns(true);}};
     f.querySelector('#linkAgain').onclick=async()=>{btns(false);try{await sendLoginLink(pendLogin.email);out('Te mandamos otro mail. Usá el código del último que llegue.');}catch(er){out(authMsg(er));}btns(true);};
     f.querySelector('#linkCancel').onclick=()=>{pendLogin=null;renderAcct();};
@@ -2025,7 +1999,7 @@ function renderAcct(){
   else msg(S==='saving'?'Guardando…':S==='error'?'No se pudo sincronizar. Se vuelve a intentar solo en 30 segundos.':S==='loaded'?'Cargamos el progreso guardado en tu cuenta.':cloudState.at?'Última sincronización: '+ago(cloudState.at)+'.':'Todavía no se sincronizó.',S==='error'?'err':'msg');
   const row=document.createElement('div');row.className='btnrow';
   const b=document.createElement('button');b.className='btn ghost';b.id='cloudNow';b.textContent='Guardar ahora';b.disabled=S==='saving'||S==='denied';b.onclick=()=>pushCloud();
-  const lo=document.createElement('button');lo.className='btn ghost';lo.id='authOut';lo.textContent='Cerrar sesión';lo.onclick=()=>{clearTimeout(cloudTimer);setAuth(null);cloudState={status:'idle',at:0};checkDev();};
+  const lo=document.createElement('button');lo.className='btn ghost';lo.id='authOut';lo.textContent='Cerrar sesión';lo.onclick=()=>{clearTimeout(cloudTimer);setAuth(null);cloudState={status:'idle',at:0};checkDev();initOnline();};
   const cp=document.createElement('button');cp.className='btn ghost';cp.id='passOpen';cp.textContent='Cambiar contraseña';
   const cn=document.createElement('button');cn.className='btn ghost';cn.id='nameOpen';cn.textContent='Cambiar nombre';cn.hidden=!AUTH.name;
   row.append(b,cn,cp,lo);el.appendChild(row);
@@ -2391,7 +2365,7 @@ function gameOver(){
   const sub=submitScore(),ln=$('#lbNote');
   if(sub==='mod'){ln.textContent='Partida con el menú de pruebas: no cuenta para la clasificación.';ln.hidden=false;}
   else if(sub===true){ln.textContent='¡Nuevo mejor puntaje! Ya está en la clasificación.';ln.hidden=false;}
-  else if(sub===null&&LB.online&&!LB.joined&&LB.canWrite!==false){ln.textContent='Unite a la clasificación desde el menú para que tus récords aparezcan.';ln.hidden=false;}
+  else if(sub===null&&FB.apiKey){ln.textContent=AUTH?'Elegí tu nombre de usuario en Cuenta para que tus récords aparezcan en la clasificación.':'Iniciá sesión en Cuenta para que tus récords aparezcan en la clasificación.';ln.hidden=false;}
   else ln.hidden=true;
   sfx(G.dawn?'level':'hurt');show('over');}
 $('#playBtn').addEventListener('click',tryStartOrBuy);
@@ -2421,7 +2395,7 @@ initOnline();pullCloud();checkUpdate();checkDev();loadUsername();
 // Sin conexión se juega igual; al volver internet se sincroniza (gana el progreso más nuevo)
 window.addEventListener('online',()=>{if(cloudState.status==='error'||cloudState.status==='idle')pullCloud();});
 setInterval(()=>{if(!cloudRef()||cloudState.status==='denied'||cloudState.status==='saving')return;
-  if(cloudState.status==='error'||cloudState.status==='idle')pullCloud();else if(cloudDirty())pushCloud();},30000);
+  if(cloudState.status==='error'||cloudState.status==='idle')pullCloud();else if(cloudDirty())pushCloud();flushScore();},30000);
 const flushCloud=()=>{if(cloudRef()&&cloudState.status!=='denied'&&cloudDirty())pushCloud();};
 document.addEventListener('visibilitychange',()=>{if(document.hidden)flushCloud();});
 window.addEventListener('pagehide',flushCloud);

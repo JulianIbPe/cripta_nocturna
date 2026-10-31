@@ -32,7 +32,7 @@ En [Releases](https://github.com/JulianIbPe/cripta_nocturna/releases/latest) est
 
 ## Clasificación online
 
-La tabla de clasificación usa la base de datos y la identidad de los artifacts de claude.ai, así que solo funciona cuando el juego se abre desde su link de Claude. Abierto como archivo local, el resto del juego funciona igual y la clasificación avisa que no está disponible.
+La tabla de clasificación usa las cuentas del juego (Firebase): cualquiera la puede ver, y para aparecer hay que iniciar sesión y elegir un nombre de usuario. Cada jugador aparece con su mejor partida, que se sube sola al superarla (si no hay internet, queda pendiente y se sube después). Funciona en el navegador, el APK y el .exe.
 
 ## Compilar
 
