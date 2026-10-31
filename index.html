@@ -1896,10 +1896,11 @@ async function loadUsername(){if(!AUTH||!FB.apiKey)return;
 async function setUsername(name){
   if(!NAME_RE.test(name))throw Object.assign(new Error('name'),{code:'BAD_NAME'});
   const key=name.toLowerCase(),old=AUTH.name&&AUTH.name.toLowerCase();
-  const owner=await fbDb('GET','usernames/'+key);
+  // Si ni siquiera se puede leer usernames/, el problema son las reglas del servidor, no el nombre
+  const owner=await fbDb('GET','usernames/'+key).catch(e=>{if(e.code==='denied')e.code='NAME_RULES';throw e;});
   if(owner&&owner!==AUTH.uid)throw Object.assign(new Error('name'),{code:'NAME_TAKEN'});
   const up={['usernames/'+key]:AUTH.uid,['users/'+AUTH.uid+'/name']:name};if(old&&old!==key)up['usernames/'+old]=null;if(LB.remote)up['scores/'+AUTH.uid+'/name']=name;
-  try{await fbDb('PATCH','',up,true);}catch(e){if(e.code==='denied')e.code='NAME_TAKEN';throw e;}
+  try{await fbDb('PATCH','',up,true);}catch(e){if(e.code==='denied')e.code='NAME_FAILED';throw e;}
   setAuth({...AUTH,name});if(LB.remote)LB.remote.name=name;renderBoardTile();}
 function cloudRef(){
   if(!FB.apiKey||!AUTH)return null;
@@ -1909,7 +1910,7 @@ function cloudRef(){
     if(!r.ok)throw Object.assign(new Error('db'),{code:r.status===401||r.status===403?'denied':'NETWORK'});return r.json();};
   return{set:d=>req('PUT',{at:d.at,data:JSON.stringify(d.data)}),
     get:async()=>{const j=await req('GET');return{exists:!!j,data:()=>({at:+j.at||0,data:JSON.parse(j.data)})};}};}
-const AUTH_ERR={BAD_NAME:'El nombre tiene que tener de 3 a 16 caracteres: letras sin acentos, números, guion o guion bajo.',NAME_TAKEN:'Ese nombre ya lo usa otra cuenta. Probá con otro.',INVALID_OOB_CODE:'Ese código no es válido o ya se usó. Tocá Reenviar mail y usá el del último mail.',EXPIRED_OOB_CODE:'Ese código venció. Tocá Reenviar mail y usá el del último mail.',MISSING_OOB_CODE:'Pegá el código o el link del mail.',UNAUTHORIZED_DOMAIN:'El acceso con link de mail todavía no está configurado en el servidor.',EMAIL_EXISTS:'Ya hay una cuenta con ese mail. Iniciá sesión.',INVALID_LOGIN_CREDENTIALS:'Mail o contraseña incorrectos.',INVALID_PASSWORD:'Mail o contraseña incorrectos.',EMAIL_NOT_FOUND:'Mail o contraseña incorrectos.',INVALID_EMAIL:'Ese mail no es válido.',MISSING_PASSWORD:'Escribí tu contraseña.',WEAK_PASSWORD:'La contraseña tiene que tener al menos 6 caracteres.',PASSWORD_DOES_NOT_MEET_REQUIREMENTS:'La contraseña no cumple los requisitos: revisá el largo y mezclá letras y números.',TOO_MANY_ATTEMPTS_TRY_LATER:'Demasiados intentos. Probá de nuevo en unos minutos.',USER_DISABLED:'Esa cuenta está desactivada.',CONFIGURATION_NOT_FOUND:'Las cuentas todavía no están habilitadas en el servidor. Probá más tarde.',OPERATION_NOT_ALLOWED:'Las cuentas todavía no están habilitadas en el servidor. Probá más tarde.'};
+const AUTH_ERR={BAD_NAME:'El nombre tiene que tener de 3 a 16 caracteres: letras sin acentos, números, guion o guion bajo.',NAME_TAKEN:'Ese nombre ya lo usa otra cuenta (las mayúsculas no cuentan). Probá con otro.',NAME_RULES:'El servidor todavía no permite elegir nombres de usuario. Probá más tarde.',NAME_FAILED:'No se pudo reservar ese nombre. Probá de nuevo o elegí otro.',INVALID_OOB_CODE:'Ese código no es válido o ya se usó. Tocá Reenviar mail y usá el del último mail.',EXPIRED_OOB_CODE:'Ese código venció. Tocá Reenviar mail y usá el del último mail.',MISSING_OOB_CODE:'Pegá el código o el link del mail.',UNAUTHORIZED_DOMAIN:'El acceso con link de mail todavía no está configurado en el servidor.',EMAIL_EXISTS:'Ya hay una cuenta con ese mail. Iniciá sesión.',INVALID_LOGIN_CREDENTIALS:'Mail o contraseña incorrectos.',INVALID_PASSWORD:'Mail o contraseña incorrectos.',EMAIL_NOT_FOUND:'Mail o contraseña incorrectos.',INVALID_EMAIL:'Ese mail no es válido.',MISSING_PASSWORD:'Escribí tu contraseña.',WEAK_PASSWORD:'La contraseña tiene que tener al menos 6 caracteres.',PASSWORD_DOES_NOT_MEET_REQUIREMENTS:'La contraseña no cumple los requisitos: revisá el largo y mezclá letras y números.',TOO_MANY_ATTEMPTS_TRY_LATER:'Demasiados intentos. Probá de nuevo en unos minutos.',USER_DISABLED:'Esa cuenta está desactivada.',CONFIGURATION_NOT_FOUND:'Las cuentas todavía no están habilitadas en el servidor. Probá más tarde.',OPERATION_NOT_ALLOWED:'Las cuentas todavía no están habilitadas en el servidor. Probá más tarde.'};
 const authMsg=e=>AUTH_ERR[String(e&&e.code||'').split(' ')[0]]||'No se pudo conectar. Revisá tu internet.';
 let cloudTimer=null,cloudState={status:'idle',at:0};
 /* ---- Aviso de actualización (APK y .exe): compara con el último Release de GitHub ---- */
@@ -2005,7 +2006,7 @@ function renderAcct(){
   row.append(b,cn,cp,lo);el.appendChild(row);
   const nf=document.createElement('form');nf.id='nameForm';nf.noValidate=true;nf.hidden=!!AUTH.name&&!nameOpen;
   nf.innerHTML='<label for="nameIn">'+(AUTH.name?'Nombre de usuario nuevo':'Elegí tu nombre de usuario')+'</label><input id="nameIn" type="text" autocomplete="username" spellcheck="false" maxlength="16" aria-describedby="nameHint">'+
-    '<p class="hint" id="nameHint">De 3 a 16 caracteres: letras sin acentos, números, guion o guion bajo. Es único: nadie más puede usarlo.</p>'+
+    '<p class="hint" id="nameHint">De 3 a 16 caracteres: letras sin acentos, números, guion o guion bajo. Las mayúsculas no cuentan: Julian-08 y julian-08 son el mismo nombre. Es único: nadie más puede usarlo.</p>'+
     '<button class="btn" type="submit" id="nameSave">Guardar nombre</button><p class="msg" id="nameMsg" aria-live="polite"></p>';
   el.appendChild(nf);
   cn.onclick=()=>{nf.hidden=!nf.hidden;nameOpen=!nf.hidden;if(nameOpen)nf.nameIn.focus();};
