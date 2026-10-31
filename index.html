@@ -210,6 +210,12 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 .acct input:focus-visible{outline:2px solid var(--ember);outline-offset:1px}
 #authForm input,#passForm input{flex-basis:100%}
 #authForm .msg:empty,#passForm .msg:empty{display:none}
+#modBody .acct{margin-bottom:12px}
+#modBody form{display:flex;gap:8px;flex-wrap:wrap}#modBody form input{flex-basis:100%}
+.modgrid{grid-template-columns:1fr auto;align-items:center}
+.modgrid input,.modgrid select{width:110px;flex:none;font:inherit;font-size:16px;padding:6px 8px;border-radius:8px;border:1px solid var(--stone-2);background:#0f0d20;color:var(--ink)}
+.modgrid .btn{padding:6px 14px}
+.modchk{display:flex;gap:8px;align-items:center;font-size:17px;color:var(--ink)}.modchk input{width:22px;height:22px;flex:none}
 #authForm .hint,#passForm .hint{margin:-2px 0 2px;width:100%;font-size:13px;color:var(--muted)}
 .acct .btn{font-size:16px;padding:11px 16px;box-shadow:0 4px 0 #a3480f}
 .acct .btn.ghost{box-shadow:none}
@@ -478,6 +484,17 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
   </div>
 </section>
 
+<section id="mod" class="screen" hidden>
+  <div class="panel">
+    <div class="eyebrow">Solo para pruebas</div>
+    <h2>Menú de pruebas</h2>
+    <p>Las partidas en las que usás algo de acá no cuentan para la clasificación.</p>
+    <p class="toast" id="modToast" aria-live="polite"></p>
+    <div id="modBody"></div>
+    <button class="btn ghost" id="modBack">Volver</button>
+  </div>
+</section>
+
 <section id="records" class="screen" hidden>
   <div class="panel">
     <div class="eyebrow">Tu historial</div>
@@ -529,6 +546,7 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
     <h2>La noche espera</h2>
     <button class="btn" id="resumeBtn">Seguir</button>
     <button class="btn ghost" id="restartBtn">Reiniciar partida</button>
+    <button class="btn ghost" id="modPause" hidden>Menú de pruebas</button>
     <div class="btnrow">
       <button class="btn ghost" id="soundPause">Sonido: sí</button>
       <button class="btn ghost" id="quitBtn">Abandonar</button>
@@ -903,6 +921,7 @@ function newGame(ch,df){
   const cl=SAVE.charLv[ch]|0;G.st.dmg+=.1*cl;G.p.maxHp+=10*cl;G.p.hp+=10*cl;G.abMul=1-.08*cl;
   G.wLv[c.weapon]=1;
   G.charges={roll:SAVE.buffs.roll|0,ban:SAVE.buffs.ban|0,skip:SAVE.buffs.skip|0};
+  G.mod=!!SAVE.mod;
   grid.clear();
   $('#abIcon').innerHTML=svg(c.active.icon,'#ffb36b');
   $('#abName').textContent=c.active.name;
@@ -1149,6 +1168,7 @@ window.addEventListener('keydown',e=>{
   const k=e.key.toLowerCase(),onBtn=!!(e.target.closest&&e.target.closest('button'));
   if(/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)&&k!=='escape')return;
   keys.add(k);
+  if(k==='escape'&&!$('#mod').hidden){closeMod();e.preventDefault();return;}
   if(k===' '||k==='escape'||k==='p'){
     if(state==='play'){pause();e.preventDefault();}else if(state==='paused'){resume();e.preventDefault();}
     else if(k==='escape'){const b=visBtn('.screen:not([hidden]) .backBtn')||visBtn('#homeBtn');if(b){b.click();e.preventDefault();}}}
@@ -1203,7 +1223,7 @@ function update(dt){
       if(ex>0)hurt(e,20*(1+ex*10),-dx/d*220,-dy/d*220);
       if(G.texts.length<60)G.texts.push({x:p.x,y:p.y-18,txt:ex>0?'Contraataque':'Esquivado',life:.6,heal:true});}
     else if(p.inv<=0&&d<e.r+p.r-2){
-      const dmg=Math.max(1,Math.round(e.dmg-st.armor));p.hp-=dmg;if(st.thorns)hurt(e,st.thorns,-dx/d*150,-dy/d*150);p.inv=.45;G.shake=.18;sfx('hurt');
+      const dmg=Math.max(1,Math.round(e.dmg-st.armor));if(!G.god)p.hp-=dmg;if(st.thorns)hurt(e,st.thorns,-dx/d*150,-dy/d*150);p.inv=.45;G.shake=.18;sfx('hurt');
       if(G.texts.length<60)G.texts.push({x:p.x,y:p.y-18,txt:'-'+dmg,life:.7,hurt:true});
       if(p.hp<=0){gameOver();return;}
     }
@@ -1663,6 +1683,7 @@ async function joinBoard(raw){
   LB.busy=false;renderAccount();renderBoardTile();renderBoardList();
 }
 function submitScore(){
+  if(G.mod)return 'mod';
   if(!LB.joined||!DB||!LB.uid||LB.canWrite===false)return null;
   const sc=Math.floor(G.score),cur=(LB.remote&&LB.remote.score)||0;
   if(sc<=cur)return false;
@@ -1711,7 +1732,7 @@ function renderBoardList(){
 }
 
 /* ---------- Screens ---------- */
-const screens=['menu','chars','howto','arsenal','records','board','shop','missions','account','levelup','pause','over'];
+const screens=['menu','chars','howto','arsenal','records','board','shop','missions','account','levelup','pause','over','mod'];
 function show(name){for(const sc of screens)$('#'+sc).hidden=sc!==name;const h=!(G&&(state==='play'||state==='levelup'||state==='paused'));$('#hud').hidden=h;$('#abBtn').hidden=h||state!=='play';}
 const SAVE_KEY='cripta-save';
 function loadSave(){let sv=null;try{sv=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');}catch(e){}return normalizeSave(sv);}
@@ -1804,7 +1825,7 @@ function renderAcct(){
     const go=async signup=>{const em=f.authMail.value.trim(),pw=f.authPass.value;if(!em||!pw){out('Completá tu mail y tu contraseña.');return;}
       if(signup&&pw.length<6){out('La contraseña tiene que tener al menos 6 caracteres (tiene '+pw.length+').');return;}
       f.querySelectorAll('button').forEach(b=>b.disabled=true);out(signup?'Creando tu cuenta…':'Entrando…');
-      try{await fbLogin(em,pw,signup);cloudState={status:'idle',at:0};renderAcctIfOpen();await pullCloud();}
+      try{await fbLogin(em,pw,signup);cloudState={status:'idle',at:0};checkDev();renderAcctIfOpen();await pullCloud();}
       catch(e){out(e.code!=='EMAIL_NOT_VERIFIED'?authMsg(e):e.signup?'Te mandamos un mail a '+e.email+' para verificar tu cuenta. Abrí el link (fijate también en spam) y después tocá Iniciar sesión.':'Tu mail todavía no está verificado. Te reenviamos el link a '+e.email+': abrilo y volvé a iniciar sesión.');
         f.querySelectorAll('button').forEach(b=>b.disabled=false);}};
     f.onsubmit=e=>{e.preventDefault();go(false);};f.querySelector('#authUp').onclick=()=>go(true);
@@ -1819,7 +1840,7 @@ function renderAcct(){
   else msg(S==='saving'?'Guardando…':S==='error'?'No se pudo sincronizar. Se vuelve a intentar con el próximo cambio.':S==='loaded'?'Cargamos el progreso guardado en tu cuenta.':cloudState.at?'Última sincronización: '+ago(cloudState.at)+'.':'Todavía no se sincronizó.',S==='error'?'err':'msg');
   const row=document.createElement('div');row.className='btnrow';
   const b=document.createElement('button');b.className='btn ghost';b.id='cloudNow';b.textContent='Guardar ahora';b.disabled=S==='saving'||S==='denied';b.onclick=()=>pushCloud();
-  const lo=document.createElement('button');lo.className='btn ghost';lo.id='authOut';lo.textContent='Cerrar sesión';lo.onclick=()=>{clearTimeout(cloudTimer);setAuth(null);cloudState={status:'idle',at:0};renderAcctIfOpen();};
+  const lo=document.createElement('button');lo.className='btn ghost';lo.id='authOut';lo.textContent='Cerrar sesión';lo.onclick=()=>{clearTimeout(cloudTimer);setAuth(null);cloudState={status:'idle',at:0};checkDev();};
   const cp=document.createElement('button');cp.className='btn ghost';cp.id='passOpen';cp.textContent='Cambiar contraseña';
   row.append(b,cp,lo);el.appendChild(row);
   const pf=document.createElement('form');pf.id='passForm';pf.noValidate=true;pf.hidden=!passOpen;
@@ -1839,6 +1860,66 @@ function renderAcct(){
       setAuth(toAuth(await fbAuth('update',{idToken:j.idToken,password:n,returnSecureToken:true})));pf.reset();out('Listo: cambiaste tu contraseña.');}
     catch(er){out(er.code==='WRONG_CURRENT'?'La contraseña actual no es correcta.':authMsg(er));}
     sv.disabled=false;};
+  if(IS_DEV){const md=document.createElement('button');md.className='btn ghost';md.id='modOpen';md.textContent='Menú de pruebas';md.onclick=openMod;el.appendChild(md);}
+}
+/* ---- Menú de pruebas: solo para la cuenta dueña (hash SHA-256 del mail, para no publicarlo) ---- */
+// shortcut: el chequeo es del lado del cliente; alcanza para que no lo vea nadie más, no para impedir que alguien edite el juego
+const DEV_HASH='842985e128aa4f898b629990dbe6de9a9ec0236f6a085118d7b7663fa000f796';
+let IS_DEV=false;
+async function checkDev(){
+  try{IS_DEV=!!AUTH&&[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(AUTH.email.toLowerCase())))].map(b=>b.toString(16).padStart(2,'0')).join('')===DEV_HASH;}catch(e){IS_DEV=false;}
+  $('#modPause').hidden=!IS_DEV;renderAcctIfOpen();}
+const ST_NAMES={dmg:'Daño ×',cd:'Enfriamiento ×',cdRaw:'Enfriamiento base ×',area:'Área ×',spd:'Velocidad ×',projSpd:'Vel. de proyectiles ×',amount:'Proyectiles extra',magnet:'Imán (px)',regen:'Regeneración',armor:'Armadura',crit:'Crítico',leech:'Robo de vida',killHeal:'Cura por baja',evade:'Esquivar',thorns:'Espinas',exec:'Ejecución',slowAura:'Aura lenta',curse:'Maldición',luck:'Suerte',xpMul:'Experiencia ×',coinMul:'Monedas ×',kb:'Empuje ×'};
+const modToast=t=>{$('#modToast').textContent=t;};
+function modMark(inRun){if(G)G.mod=true;if(!inRun)SAVE.mod=true;}
+function openMod(){if(!IS_DEV)return;modToast('');renderMod();show('mod');$('#mod').scrollTop=0;}
+function closeMod(){if(G&&state==='paused'){$('#inv').innerHTML=invHtml();$('#statgrid').innerHTML=statsHtml();show('pause');}else{renderAcct();show('account');}}
+function renderMod(){
+  const el=$('#modBody'),run=G&&state==='paused';
+  const opts=(n,v)=>Array.from({length:n+1},(_,i)=>`<option value="${i}"${i===v?' selected':''}>${i}</option>`).join('');
+  let h=`<div class="dtitle">Progreso</div><div class="acct"><form id="modMoney"><label for="modCoins">Monedas</label><input id="modCoins" type="number" min="0" value="${SAVE.coins}">`+
+    `<label for="modGems">Gemas</label><input id="modGems" type="number" min="0" value="${SAVE.gems}"><button class="btn" type="submit">Aplicar</button></form>`+
+    `<div class="btnrow"><button class="btn ghost" data-m="all">Todo desbloqueado</button><button class="btn ghost" data-m="chars">Desbloquear personajes</button>`+
+    `<button class="btn ghost" data-m="mis">Completar misiones</button><button class="btn ghost" data-m="shop">Tienda al máximo</button><button class="btn ghost" data-m="charlv">Personajes al máximo</button></div></div>`;
+  if(!run)h+=`<p class="msg">Para cambiar armas, objetos y estadísticas, abrí este menú desde la pausa de una partida.</p>`;
+  else{
+    h+=`<div class="dtitle">Partida</div><div class="acct"><label class="modchk"><input type="checkbox" id="modGod"${G.god?' checked':''}> Invencible</label>`+
+      `<div class="btnrow"><button class="btn ghost" data-m="heal">Curar</button><button class="btn ghost" data-m="lvl1">+1 nivel</button><button class="btn ghost" data-m="lvl5">+5 niveles</button>`+
+      `<button class="btn ghost" data-m="min">+1 minuto</button><button class="btn ghost" data-m="kill">Matar enemigos</button></div></div>`;
+    h+=`<div class="dtitle">Armas</div><div class="acct modgrid">`+Object.keys(WDEF).map(id=>{const w=G.weapons.find(x=>x.id===id);
+      return `<label for="mw-${id}">${WDEF[id].name}</label><select id="mw-${id}" data-w="${id}">${opts(WMAX,w?w.lvl:0)}</select>`;}).join('')+`</div>`;
+    h+=`<div class="dtitle">Objetos</div><div class="acct modgrid">`+Object.keys(PDEF).map(id=>`<span>${PDEF[id].name} · Nv ${G.passives[id]|0}</span><button class="btn ghost" data-p="${id}"${(G.passives[id]|0)>=PMAX?' disabled':''}>+1</button>`).join('')+`</div>`;
+    h+=`<div class="dtitle">Estadísticas</div><div class="acct modgrid"><label for="ms-maxHp">Vida máxima</label><input id="ms-maxHp" type="number" step="10" value="${G.p.maxHp}">`+
+      Object.keys(G.st).map(k=>`<label for="ms-${k}">${ST_NAMES[k]||k}</label><input id="ms-${k}" type="number" step="${G.st[k]>=10?1:0.05}" value="${Math.round(G.st[k]*1000)/1000}" data-s="${k}">`).join('')+`</div>`;
+  }
+  el.innerHTML=h;
+  el.querySelector('#modMoney').onsubmit=e=>{e.preventDefault();SAVE.coins=Math.max(0,+$('#modCoins').value|0);SAVE.gems=Math.max(0,+$('#modGems').value|0);modMark(false);persist();modToast('Listo: monedas y gemas actualizadas.');};
+  el.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{const t=modAction(b.dataset.m);renderMod();modToast(t);});
+  if(!run)return;
+  el.querySelector('#modGod').onchange=e=>{G.god=e.target.checked;modMark(true);modToast(G.god?'Ahora sos invencible.':'Ya no sos invencible.');};
+  el.querySelectorAll('[data-w]').forEach(s=>s.onchange=()=>{const id=s.dataset.w,n=+s.value,w=G.weapons.find(x=>x.id===id);
+    if(!n)G.weapons=G.weapons.filter(x=>x.id!==id);else if(w)w.lvl=n;else G.weapons.push({id,lvl:n,timer:.2,ang:0});
+    if(n)G.wLv[id]=n;else delete G.wLv[id];modMark(true);modToast(WDEF[id].name+(n?' en nivel '+n+'.':' quitada.'));});
+  el.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const id=b.dataset.p;if((G.passives[id]|0)>=PMAX)return;
+    G.passives[id]=(G.passives[id]|0)+1;PDEF[id].apply(1);modMark(true);renderMod();modToast(PDEF[id].name+' en nivel '+G.passives[id]+'.');});
+  el.querySelector('#ms-maxHp').onchange=e=>{const v=Math.max(1,+e.target.value||1);G.p.maxHp=v;G.p.hp=Math.min(G.p.hp,v);modMark(true);modToast('Vida máxima: '+v);};
+  el.querySelectorAll('[data-s]').forEach(i=>i.onchange=()=>{const v=+i.value;if(!isFinite(v))return;G.st[i.dataset.s]=v;modMark(true);modToast((ST_NAMES[i.dataset.s]||i.dataset.s)+': '+v);});
+}
+// Devuelve el texto para mostrar
+function modAction(m){
+  const unlockChars=()=>{SAVE.unlocked=CH_IDS.slice();},
+    missions=()=>{const L=SAVE.life;L.kills=Math.max(L.kills|0,1000);L.bestT=Math.max(L.bestT||0,300);L.elites=Math.max(L.elites|0,10);L.dawns=Math.max(L.dawns|0,1);L.maxLvl=Math.max(L.maxLvl|0,20);},
+    shop=()=>{for(const id in BUFFS)SAVE.buffs[id]=BUFFS[id].gemOnly?BUFFS[id].gemOnly.length:7;},
+    charlv=()=>{for(const id of CH_IDS)SAVE.charLv[id]=CHAR_UP.length;};
+  const P={all:[()=>{unlockChars();missions();shop();charlv();},'Todo desbloqueado y al máximo.'],chars:[unlockChars,'Personajes desbloqueados.'],
+    mis:[missions,'Misiones completadas: todas las armas desbloqueadas.'],shop:[shop,'Tienda al máximo.'],charlv:[charlv,'Personajes mejorados al máximo.']};
+  if(P[m]){P[m][0]();modMark(false);persist();return P[m][1];}
+  if(!G)return '';modMark(true);
+  if(m==='heal'){G.p.hp=G.p.maxHp;return 'Vida al máximo.';}
+  if(m==='lvl1'||m==='lvl5'){const n=m==='lvl1'?1:5;G.lvl+=n;G.pending+=n;G.xp=0;G.need=xpNeed(G.lvl);return '+'+n+(n>1?' niveles: elegís las mejoras al seguir.':' nivel: elegís la mejora al seguir.');}
+  if(m==='min'){G.t+=60;return 'Reloj en '+fmt(G.t)+'.';}
+  if(m==='kill'){let n=0;for(const e of G.enemies)if(!e.dead){hurt(e,e.hp*10+1e6,0,0);n++;}return n+' enemigos eliminados.';}
+  return '';
 }
 function exportSave(){
   const data=JSON.stringify({app:'cripta-nocturna',v:1,exportedAt:new Date().toISOString(),save:SAVE},null,2);
@@ -2051,7 +2132,7 @@ function saveRun(){
   try{const r={v:1,char:G.char,diff:G.diff,t:G.t,kills:G.kills,lvl:G.lvl,xp:G.xp,need:G.need,pending:G.pending,score:G.score,coins:G.coins,crys:G.crys,dawn:G.dawn,
     p:{x:G.p.x,y:G.p.y,hp:G.p.hp,maxHp:G.p.maxHp,fx:G.p.fx,fy:G.p.fy},st:G.st,weapons:G.weapons.map(w=>({id:w.id,lvl:w.lvl})),passives:G.passives,wMult:G.wMult,wLv:G.wLv,
     banned:[...G.banned],charges:G.charges,elites:G.elites,nextElite:G.nextElite,nextSwarm:G.nextSwarm,swarms:G.swarms,warned:G.warned,elitesKilled:G.elitesKilled,
-    dmgBy:G.dmgBy,chaosLog:G.chaosLog,killN:G.killN,lastMult:G.lastMult,abcd:G.ab.cd,abMul:G.abMul,
+    dmgBy:G.dmgBy,chaosLog:G.chaosLog,mod:!!G.mod,god:!!G.god,killN:G.killN,lastMult:G.lastMult,abcd:G.ab.cd,abMul:G.abMul,
     enemies:G.enemies.filter(e=>!e.dead).slice(0,400).map(e=>[e.type,Math.round(e.x),Math.round(e.y),Math.round(e.hp*10)/10,Math.round(e.max*10)/10,Math.round(e.spd),Math.round(e.dmg*10)/10]),
     gems:G.gems.slice(0,300).map(g=>[Math.round(g.x),Math.round(g.y),g.v]),coinsArr:G.coinsArr.map(c=>[Math.round(c.x),Math.round(c.y)]),
     crysArr:G.crysArr.map(c=>[Math.round(c.x),Math.round(c.y)]),items:G.items.map(i=>[Math.round(i.x),Math.round(i.y),i.kind])};
@@ -2071,7 +2152,7 @@ function resumeRun(){
   G.coinsArr=(r.coinsArr||[]).map(a=>({x:a[0],y:a[1],sp:0,fly:false}));G.crysArr=(r.crysArr||[]).map(a=>({x:a[0],y:a[1],sp:0,fly:false}));
   G.items=(r.items||[]).map(a=>({x:a[0],y:a[1],kind:a[2]}));
   G.cam.x=G.p.x;G.cam.y=G.p.y;lastRunSave=G.t;hudCache={};
-  G.chaosLog=r.chaosLog||[];
+  G.chaosLog=r.chaosLog||[];G.mod=G.mod||!!r.mod;G.god=!!r.god;
   state='paused';joy.active=false;$('#inv').innerHTML=invHtml();$('#statgrid').innerHTML=statsHtml();chaosLogRender();show('pause');
 }
 function start(ch){clearRun();initAudio();newGame(ch,SAVE.diff);lastRunSave=0;hudCache={};state='play';show(null);last=performance.now();
@@ -2100,7 +2181,8 @@ function gameOver(){
   const newly=MISSIONS.filter(m=>m.prog()>=m.goal&&!doneBefore.includes(m.id)),mn=$('#misNote');
   if(newly.length){mn.textContent='¡Misión cumplida! Desbloqueaste: '+newly.map(m=>WDEF[Object.keys(WDEF).find(k=>WDEF[k].mission===m.id)].name).join(', ')+'.';mn.hidden=false;}else mn.hidden=true;
   const sub=submitScore(),ln=$('#lbNote');
-  if(sub===true){ln.textContent='¡Nuevo mejor puntaje! Ya está en la clasificación.';ln.hidden=false;}
+  if(sub==='mod'){ln.textContent='Partida con el menú de pruebas: no cuenta para la clasificación.';ln.hidden=false;}
+  else if(sub===true){ln.textContent='¡Nuevo mejor puntaje! Ya está en la clasificación.';ln.hidden=false;}
   else if(sub===null&&LB.online&&!LB.joined&&LB.canWrite!==false){ln.textContent='Unite a la clasificación desde el menú para que tus récords aparezcan.';ln.hidden=false;}
   else ln.hidden=true;
   sfx(G.dawn?'level':'hurt');show('over');}
@@ -2122,9 +2204,11 @@ $('#soundPause').addEventListener('click',()=>setMuted(!muted));
 document.addEventListener('visibilitychange',()=>{if(document.hidden){if(state==='play')pause();else saveRun();}});
 window.addEventListener('pagehide',saveRun);
 $('#contBtn').addEventListener('click',resumeRun);
+$('#modPause').addEventListener('click',openMod);
+$('#modBack').addEventListener('click',closeMod);
 renderBest();
 
-initOnline();pullCloud();checkUpdate();
+initOnline();pullCloud();checkUpdate();checkDev();
 // Sin conexión se juega igual; al volver internet se sincroniza (gana el progreso más nuevo)
 window.addEventListener('online',()=>{if(cloudState.status==='error'||cloudState.status==='idle')pullCloud();});
 
