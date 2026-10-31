@@ -1912,7 +1912,8 @@ async function fbToken(){
 function cloudRef(){
   if(!FB.apiKey||!AUTH)return null;
   // Realtime Database: saves/<uid> = {at, data}; data va como texto porque la base borra objetos y listas vacías
-  const req=async(method,body)=>{const r=await fetch(FB.dbUrl+'/saves/'+AUTH.uid+'.json?auth='+encodeURIComponent(await fbToken()),{method,body:body&&JSON.stringify(body)});
+  const req=async(method,body)=>{const b=body&&JSON.stringify(body);
+    const r=await fetch(FB.dbUrl+'/saves/'+AUTH.uid+'.json?auth='+encodeURIComponent(await fbToken()),{method,body:b,keepalive:!!b&&b.length<60000});
     if(!r.ok)throw Object.assign(new Error('db'),{code:r.status===401||r.status===403?'denied':'NETWORK'});return r.json();};
   return{set:d=>req('PUT',{at:d.at,data:JSON.stringify(d.data)}),
     get:async()=>{const j=await req('GET');return{exists:!!j,data:()=>({at:+j.at||0,data:JSON.parse(j.data)})};}};}
@@ -1929,9 +1930,12 @@ async function checkUpdate(){
     const n=s=>+String(s).split('.').pop()||0;if(n(j.tag_name)<=n(APP_VER))return;
     const el=$('#updBar');el.querySelector('b').textContent=j.tag_name;el.hidden=false;el.onclick=()=>openExt(RELEASES);}catch(e){}}
 function scheduleCloud(){if(!cloudRef()||cloudState.status==='denied')return;clearTimeout(cloudTimer);cloudTimer=setTimeout(pushCloud,3000);}
+let cloudSyncedAt=0; // savedAt del progreso que ya está en la nube
+const cloudDirty=()=>(SAVE.savedAt||0)>cloudSyncedAt;
 async function pushCloud(){
   const ref=cloudRef();if(!ref)return;clearTimeout(cloudTimer);cloudState.status='saving';renderAcctIfOpen();
-  try{await queueWrite(()=>ref.set({v:1,at:SAVE.savedAt||Date.now(),data:JSON.parse(JSON.stringify(SAVE))}));cloudState={status:'ok',at:Date.now()};}
+  const at=SAVE.savedAt||Date.now();
+  try{await queueWrite(()=>ref.set({v:1,at,data:JSON.parse(JSON.stringify(SAVE))}));cloudState={status:'ok',at:Date.now()};cloudSyncedAt=at;}
   catch(e){cloudState={status:e&&e.code==='denied'?'denied':'error',at:cloudState.at};}
   renderAcctIfOpen();
 }
@@ -1941,8 +1945,8 @@ async function pullCloud(){
     if(sn.exists){const d=sn.data(),cloudAt=d.at||0,localAt=SAVE.savedAt||0;
       if(d.data&&cloudAt>localAt){SAVE=normalizeSave(JSON.parse(JSON.stringify(d.data)));SAVE.savedAt=cloudAt;
         try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE));}catch(e){}
-        cloudState={status:'loaded',at:Date.now()};pickSel=SAVE.sel;if(state==='menu'&&!$('#menu').hidden)renderMenu();}
-      else if(localAt>cloudAt)await pushCloud();else cloudState={status:'ok',at:Date.now()};}
+        cloudState={status:'loaded',at:Date.now()};cloudSyncedAt=cloudAt;pickSel=SAVE.sel;if(state==='menu'&&!$('#menu').hidden)renderMenu();}
+      else if(localAt>cloudAt)await pushCloud();else{cloudState={status:'ok',at:Date.now()};cloudSyncedAt=cloudAt;}}
     else await pushCloud();
   }catch(e){cloudState.status='error';}
   renderAcctIfOpen();
@@ -1991,10 +1995,10 @@ function renderAcct(){
     return;}
   const who=document.createElement('div');who.className='who';
   const box=document.createElement('div');const st=document.createElement('strong');st.textContent=AUTH.email;
-  const sm=document.createElement('small');sm.textContent='Tu progreso se guarda solo y se sincroniza entre dispositivos';box.append(st,sm);who.append(box);el.appendChild(who);
+  const sm=document.createElement('small');sm.textContent='Guardado automático cada 30 segundos y al salir. Se sincroniza entre dispositivos';box.append(st,sm);who.append(box);el.appendChild(who);
   const S=cloudState.status;
   if(S==='denied')msg('Tu cuenta no tiene permiso para guardar. Revisá las reglas de Realtime Database del proyecto, o usá la copia en archivo.','err');
-  else msg(S==='saving'?'Guardando…':S==='error'?'No se pudo sincronizar. Se vuelve a intentar con el próximo cambio.':S==='loaded'?'Cargamos el progreso guardado en tu cuenta.':cloudState.at?'Última sincronización: '+ago(cloudState.at)+'.':'Todavía no se sincronizó.',S==='error'?'err':'msg');
+  else msg(S==='saving'?'Guardando…':S==='error'?'No se pudo sincronizar. Se vuelve a intentar solo en 30 segundos.':S==='loaded'?'Cargamos el progreso guardado en tu cuenta.':cloudState.at?'Última sincronización: '+ago(cloudState.at)+'.':'Todavía no se sincronizó.',S==='error'?'err':'msg');
   const row=document.createElement('div');row.className='btnrow';
   const b=document.createElement('button');b.className='btn ghost';b.id='cloudNow';b.textContent='Guardar ahora';b.disabled=S==='saving'||S==='denied';b.onclick=()=>pushCloud();
   const lo=document.createElement('button');lo.className='btn ghost';lo.id='authOut';lo.textContent='Cerrar sesión';lo.onclick=()=>{clearTimeout(cloudTimer);setAuth(null);cloudState={status:'idle',at:0};checkDev();};
@@ -2381,6 +2385,11 @@ renderBest();
 initOnline();pullCloud();checkUpdate();checkDev();
 // Sin conexión se juega igual; al volver internet se sincroniza (gana el progreso más nuevo)
 window.addEventListener('online',()=>{if(cloudState.status==='error'||cloudState.status==='idle')pullCloud();});
+setInterval(()=>{if(!cloudRef()||cloudState.status==='denied'||cloudState.status==='saving')return;
+  if(cloudState.status==='error'||cloudState.status==='idle')pullCloud();else if(cloudDirty())pushCloud();},30000);
+const flushCloud=()=>{if(cloudRef()&&cloudState.status!=='denied'&&cloudDirty())pushCloud();};
+document.addEventListener('visibilitychange',()=>{if(document.hidden)flushCloud();});
+window.addEventListener('pagehide',flushCloud);
 
 /* ---------- Loop ---------- */
 let last=performance.now();
