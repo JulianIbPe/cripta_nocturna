@@ -1,0 +1,34 @@
+{
+  "rules": {
+    "saves": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid && auth.token.email_verified === true",
+        ".write": "auth != null && auth.uid === $uid && auth.token.email_verified === true"
+      }
+    },
+    "usernames": {
+      ".read": true,
+      "$name": {
+        ".write": "auth != null && auth.token.email_verified === true && ((!data.exists() && newData.val() === auth.uid) || (data.val() === auth.uid && (!newData.exists() || newData.val() === auth.uid)))",
+        ".validate": "$name.matches(/^[a-z0-9_-]{3,16}$/)"
+      }
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "name": {
+          ".write": "auth != null && auth.uid === $uid && auth.token.email_verified === true",
+          ".validate": "newData.isString() && newData.parent().parent().parent().child('usernames').child(newData.val().toLowerCase()).val() === $uid"
+        }
+      }
+    },
+    "scores": {
+      ".read": true,
+      ".indexOn": ["score"],
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid && auth.token.email_verified === true",
+        ".validate": "newData.hasChildren(['name', 'score']) && newData.child('score').isNumber() && newData.child('score').val() >= 0 && newData.child('name').val() === newData.parent().parent().child('users').child($uid).child('name').val()"
+      }
+    }
+  }
+}

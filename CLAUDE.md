@@ -25,6 +25,7 @@ Juego survivors para celular en un solo archivo, `index.html` (HTML + CSS + JS s
 - **Teclado (PC):** un solo `keydown` en la sección Input; Esc toca el `.backBtn` visible.
 - **Bucle:** `update(dt)` + `draw(now)`; con el Reloj del tiempo, `update` corre varias veces por frame.
 - **Daño:** todo pasa por `hurt(e, base, kx, ky, src)` (críticos/overcrit, multiplicadores por arma, robo de vida, monedas, gemas y puntos).
+- **Reglas de Firebase:** `firebase-rules.json` (pegarlas en Realtime Database → Reglas cuando cambien).
 - **Clasificación:** Firebase `scores/<uid>` = `{name, score, best, at}` (lectura pública; para aparecer hace falta sesión y nombre de usuario, y las reglas exigen que `name` sea el de `users/<uid>/name`). `initOnline` trae tu mejor puntaje, `submitScore` lo guarda en `SAVE.pendScore` y `flushScore` lo sube (reintenta con el guardado automático), `subscribeBoard` recarga la tabla cada 30 s.
 
 ## Al cambiar algo
