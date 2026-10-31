@@ -265,6 +265,22 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 .elite{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:#ff8be0}
 .price.g{color:#ff8be0}
 .tile.wide.shop{border-color:rgba(255,95,210,.35);background:linear-gradient(135deg,#34183f,#17122b)}
+/* Menú en PC: tiles de progreso a la izquierda, personaje y Jugar al centro, info a la derecha. En celular los contenedores no existen (display:contents). */
+.mcenter,.tcol{display:contents}
+@media (min-width:900px) and (min-height:600px){
+  .menupanel{display:grid;max-width:1240px;grid-template-columns:minmax(230px,1fr) minmax(380px,440px) minmax(230px,1fr);grid-template-areas:"top top top" "l c r" "l b s";column-gap:32px;row-gap:14px;align-items:start}
+  .menupanel .topline{grid-area:top}
+  .mcenter{grid-area:c;display:flex;flex-direction:column;gap:16px}
+  .menupanel h1{text-align:center}
+  .menupanel .tiles{display:contents}
+  .tcol{display:flex;flex-direction:column;gap:12px;align-self:center}
+  .tl{grid-area:l}.tr{grid-area:r}
+  #soundMenu{grid-area:s}
+  #best{grid-area:b;text-align:center}
+  #heroCv{width:190px;height:190px}
+  .tcol .tile{grid-template-columns:auto 1fr;align-items:center;column-gap:14px;row-gap:2px}
+  .tcol .tile>span:first-child{grid-row:span 2}
+}
 .shoplist{display:grid;gap:8px}
 .shopitem{appearance:none;display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 12px;text-align:left;padding:12px 14px;border-radius:12px;border:1px solid var(--stone-2);background:var(--stone);transition:transform .1s,border-color .1s}
 .shopitem:hover{border-color:var(--ember)}.shopitem:active{transform:scale(.98)}
@@ -320,11 +336,12 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 </div>
 
 <section id="menu" class="screen">
-  <div class="panel">
+  <div class="panel menupanel">
     <div class="topline">
       <div class="eyebrow">Noche del 31 de octubre</div>
       <div class="wallet"><span class="coinline small"><i class="coin"></i><span id="menuCoins">0</span></span><span class="gemline"><i class="gemi"></i><span id="menuGems">0</span></span></div>
     </div>
+    <div class="mcenter">
     <h1>Cripta Nocturna</h1>
     <button class="updbar" id="updBar" hidden>Hay una versión nueva (<b></b>). Tocá acá para descargarla.</button>
     <div class="hero">
@@ -345,15 +362,20 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
     <button class="btn cont" id="contBtn" hidden>Continuar partida</button>
     <p class="contnote" id="contNote" hidden></p>
     <button class="btn" id="playBtn">Jugar</button>
+    </div>
     <div class="tiles">
-      <button class="tile wide" id="tBoard"><span id="tBoIc"></span><strong>Clasificación</strong><small id="tBoSub">Los mejores puntajes de todos</small></button>
-      <button class="tile wide shop" id="tShop"><span id="tShIc"></span><strong>Tienda</strong><small>Mejoras permanentes y cambio de gemas por monedas</small></button>
-      <button class="tile" id="tChars"><span id="tChIc"></span><strong>Personajes</strong><small id="tChSub"></small></button>
-      <button class="tile" id="tArsenal"><span id="tArIc"></span><strong>Arsenal</strong><small id="tArSub"></small></button>
-      <button class="tile" id="tRecords"><span id="tReIc"></span><strong>Récords</strong><small id="tReSub"></small></button>
-      <button class="tile" id="tMis"><span id="tMiIc"></span><strong>Misiones</strong><small id="tMiSub"></small></button>
-      <button class="tile" id="tAcc"><span id="tAcIc"></span><strong>Cuenta</strong><small id="tAcSub">Guardar tu progreso</small></button>
-      <button class="tile" id="tHow"><span id="tHoIc"></span><strong>Cómo jugar</strong><small>Controles y consejos</small></button>
+      <div class="tcol tl">
+      <button class="tile wide shop" id="tShop" style="order:2"><span id="tShIc"></span><strong>Tienda</strong><small>Mejoras permanentes y cambio de gemas por monedas</small></button>
+      <button class="tile" id="tChars" style="order:3"><span id="tChIc"></span><strong>Personajes</strong><small id="tChSub"></small></button>
+      <button class="tile" id="tArsenal" style="order:4"><span id="tArIc"></span><strong>Arsenal</strong><small id="tArSub"></small></button>
+      <button class="tile" id="tMis" style="order:6"><span id="tMiIc"></span><strong>Misiones</strong><small id="tMiSub"></small></button>
+      </div>
+      <div class="tcol tr">
+      <button class="tile wide" id="tBoard" style="order:1"><span id="tBoIc"></span><strong>Clasificación</strong><small id="tBoSub">Los mejores puntajes de todos</small></button>
+      <button class="tile" id="tRecords" style="order:5"><span id="tReIc"></span><strong>Récords</strong><small id="tReSub"></small></button>
+      <button class="tile" id="tAcc" style="order:7"><span id="tAcIc"></span><strong>Cuenta</strong><small id="tAcSub">Guardar tu progreso</small></button>
+      <button class="tile" id="tHow" style="order:8"><span id="tHoIc"></span><strong>Cómo jugar</strong><small>Controles y consejos</small></button>
+      </div>
     </div>
     <button class="btn ghost" id="soundMenu">Sonido: sí</button>
     <p class="best" id="best" hidden></p>
@@ -738,7 +760,7 @@ const BUFFS={
     desc:'+5% de experiencia en todas tus partidas por cada nivel.'},
   velocidad:{name:'Reloj del tiempo',short:'Velocidad',icon:'reloj',gemOnly:[75,250],
     desc:'Acelera el juego. Nivel 1 desbloquea velocidad ×2 y nivel 2 desbloquea ×5. La cambiás con el botón ×1 durante la partida.'},
-  gemspawn:{name:'Imán de gemas',short:'Gemas',icon:'gema',gemOnly:[7,13,20,32,50],
+  gemspawn:{name:'Imán de gemas',short:'Gemas',icon:'gema',gemOnly:[20,30,45,65,90],
     desc:'+20% de probabilidad de que caigan gemas por cada nivel.'},
 };
 function buffNext(id){const B=BUFFS[id],lv=SAVE.buffs[id]|0;
