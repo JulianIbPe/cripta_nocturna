@@ -205,6 +205,7 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 .acct input:focus-visible{outline:2px solid var(--ember);outline-offset:1px}
 #authForm input{flex-basis:100%}
 #authForm .msg:empty{display:none}
+#authForm .hint{margin:-2px 0 2px;width:100%;font-size:13px;color:var(--muted)}
 .acct .btn{font-size:16px;padding:11px 16px;box-shadow:0 4px 0 #a3480f}
 .acct .btn.ghost{box-shadow:none}
 .acct .msg{font-size:14px;color:var(--muted);line-height:1.35}
@@ -1719,7 +1720,7 @@ function cloudRef(){
     if(r.status===404)return null;if(!r.ok)throw Object.assign(new Error('db'),{code:r.status===403?'denied':'NETWORK'});return r.json();};
   return{set:d=>req('PATCH',{fields:{at:{integerValue:String(d.at)},data:{stringValue:JSON.stringify(d.data)}}}),
     get:async()=>{const j=await req('GET');return{exists:!!j,data:()=>({at:+j.fields.at.integerValue,data:JSON.parse(j.fields.data.stringValue)})};}};}
-const AUTH_ERR={EMAIL_EXISTS:'Ya hay una cuenta con ese mail. Iniciá sesión.',INVALID_LOGIN_CREDENTIALS:'Mail o contraseña incorrectos.',INVALID_PASSWORD:'Mail o contraseña incorrectos.',EMAIL_NOT_FOUND:'Mail o contraseña incorrectos.',INVALID_EMAIL:'Ese mail no es válido.',MISSING_PASSWORD:'Escribí tu contraseña.',WEAK_PASSWORD:'La contraseña tiene que tener al menos 6 caracteres.',TOO_MANY_ATTEMPTS_TRY_LATER:'Demasiados intentos. Probá de nuevo en unos minutos.',USER_DISABLED:'Esa cuenta está desactivada.'};
+const AUTH_ERR={EMAIL_EXISTS:'Ya hay una cuenta con ese mail. Iniciá sesión.',INVALID_LOGIN_CREDENTIALS:'Mail o contraseña incorrectos.',INVALID_PASSWORD:'Mail o contraseña incorrectos.',EMAIL_NOT_FOUND:'Mail o contraseña incorrectos.',INVALID_EMAIL:'Ese mail no es válido.',MISSING_PASSWORD:'Escribí tu contraseña.',WEAK_PASSWORD:'La contraseña tiene que tener al menos 6 caracteres.',PASSWORD_DOES_NOT_MEET_REQUIREMENTS:'La contraseña no cumple los requisitos: revisá el largo y mezclá letras y números.',TOO_MANY_ATTEMPTS_TRY_LATER:'Demasiados intentos. Probá de nuevo en unos minutos.',USER_DISABLED:'Esa cuenta está desactivada.'};
 const authMsg=e=>AUTH_ERR[String(e&&e.code||'').split(' ')[0]]||'No se pudo conectar. Revisá tu internet.';
 let cloudTimer=null,cloudState={status:'idle',at:0};
 /* ---- Aviso de actualización (APK y .exe): compara con el último Release de GitHub ---- */
@@ -1761,12 +1762,14 @@ function renderAcct(){
   if(!AUTH){
     const f=document.createElement('form');f.id='authForm';f.noValidate=true;
     f.innerHTML='<label for="authMail">Mail</label><input id="authMail" type="email" autocomplete="email" inputmode="email" required>'+
-      '<label for="authPass">Contraseña</label><input id="authPass" type="password" autocomplete="current-password" minlength="6" required>'+
+      '<label for="authPass">Contraseña</label><input id="authPass" type="password" autocomplete="current-password" minlength="6" required aria-describedby="authPassHint">'+
+      '<p class="hint" id="authPassHint">Mínimo 6 caracteres. Distingue mayúsculas de minúsculas y podés usar letras, números, espacios y símbolos. Para que sea segura, usá 10 o más mezclando letras y números, y no repitas la de otro sitio.</p>'+
       '<button class="btn" type="submit" id="authIn">Iniciar sesión</button><button class="btn ghost" type="button" id="authUp">Crear cuenta</button>'+
       '<button class="btn ghost" type="button" id="authReset">Olvidé mi contraseña</button><p class="msg" id="authMsg" aria-live="polite"></p>';
     msg('Iniciá sesión o creá una cuenta con tu mail para que tu progreso se guarde y lo puedas seguir en otro dispositivo.');el.appendChild(f);
     const out=t=>{f.querySelector('#authMsg').textContent=t;};
     const go=async signup=>{const em=f.authMail.value.trim(),pw=f.authPass.value;if(!em||!pw){out('Completá tu mail y tu contraseña.');return;}
+      if(signup&&pw.length<6){out('La contraseña tiene que tener al menos 6 caracteres (tiene '+pw.length+').');return;}
       f.querySelectorAll('button').forEach(b=>b.disabled=true);out(signup?'Creando tu cuenta…':'Entrando…');
       try{await fbLogin(em,pw,signup);cloudState={status:'idle',at:0};renderAcctIfOpen();await pullCloud();}
       catch(e){out(authMsg(e));f.querySelectorAll('button').forEach(b=>b.disabled=false);}};
