@@ -1,6 +1,6 @@
 # Cripta Nocturna — notas para Claude
 
-Juego survivors para celular en un solo archivo, `index.html` (HTML + CSS + JS sin dependencias ni build). Idioma de la interfaz y de las respuestas al usuario: español rioplatense.
+Juego survivors para celular en un solo archivo, `index.html` (HTML + CSS + JS sin dependencias ni build). Funciona sin internet: las fuentes van incrustadas en base64 (subset latin) y todo lo online (cuenta, clasificación, aviso de versión) falla sin romper el juego. Idioma de la interfaz y de las respuestas al usuario: español rioplatense.
 
 ## Publicación
 
