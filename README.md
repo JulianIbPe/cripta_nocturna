@@ -20,7 +20,9 @@ Abrí `index.html` en el navegador (celular o compu). No necesita instalación n
 
 ## Guardado
 
-El progreso (monedas, gemas, personajes, récords y la partida en curso) se guarda en el `localStorage` del navegador, así que queda en ese dispositivo y navegador.
+- **En el navegador:** el progreso (monedas, gemas, personajes, récords y la partida en curso) se guarda solo en el `localStorage`.
+- **En tu cuenta:** abierto desde su link de Claude, el progreso también se guarda en tu cuenta de Claude y se sincroniza entre dispositivos (pantalla Cuenta).
+- **En un archivo:** desde la pantalla Cuenta podés guardar el progreso en un archivo `.json` y dejarlo en la carpeta que quieras (por ejemplo `saves/`). Después lo cargás con "Cargar archivo" en este u otro dispositivo.
 
 ## Clasificación online
 

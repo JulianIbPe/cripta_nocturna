@@ -271,6 +271,10 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 .shopitem:disabled{opacity:.45;cursor:default;transform:none}
 .toast{min-height:1.4em;color:var(--soul);font-weight:600}
 .earn .gemrow{color:#ff8be0;font-weight:700}
+.earn .btnrow{margin-top:8px}
+.earn .btnrow .btn{font-size:16px;padding:12px 14px}
+#account .acct .btn.ghost{font-size:16px;padding:11px 16px}
+#account .btnrow .btn{font-size:17px;padding:14px 12px}
 .lutools{display:flex;gap:8px;flex-wrap:wrap}
 .lutool{appearance:none;flex:1 1 90px;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:12px;border:1px solid var(--stone-2);background:rgba(12,10,24,.75);color:var(--ink);font-weight:700;font-size:16px}
 .lutool svg{width:20px;height:20px}
@@ -342,7 +346,8 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
       <button class="tile" id="tArsenal"><span id="tArIc"></span><strong>Arsenal</strong><small id="tArSub"></small></button>
       <button class="tile" id="tRecords"><span id="tReIc"></span><strong>Récords</strong><small id="tReSub"></small></button>
       <button class="tile" id="tMis"><span id="tMiIc"></span><strong>Misiones</strong><small id="tMiSub"></small></button>
-      <button class="tile full" id="tHow"><span id="tHoIc"></span><strong>Cómo jugar</strong><small>Controles y consejos</small></button>
+      <button class="tile" id="tAcc"><span id="tAcIc"></span><strong>Cuenta</strong><small id="tAcSub">Guardar tu progreso</small></button>
+      <button class="tile" id="tHow"><span id="tHoIc"></span><strong>Cómo jugar</strong><small>Controles y consejos</small></button>
     </div>
     <button class="btn ghost" id="soundMenu">Sonido: sí</button>
     <p class="best" id="best" hidden></p>
@@ -418,6 +423,24 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
     <h2>Misiones</h2>
     <p>Cada misión cumplida desbloquea un arma nueva que empieza a aparecer al subir de nivel. El progreso se cuenta al terminar cada partida.</p>
     <div class="alist" id="misList"></div>
+    <button class="btn ghost backBtn">Volver</button>
+  </div>
+</section>
+
+<section id="account" class="screen" hidden>
+  <div class="panel">
+    <div class="eyebrow">Que no se pierda tu progreso</div>
+    <h2>Cuenta</h2>
+    <div class="acct" id="acctCloud"></div>
+    <div class="dtitle">Copia en archivo</div>
+    <p>Guardá tu progreso en un archivo y dejalo en la carpeta que quieras. Después lo podés cargar acá o en otro dispositivo.</p>
+    <div class="btnrow">
+      <button class="btn" id="expBtn">Guardar en archivo</button>
+      <button class="btn ghost" id="impBtn">Cargar archivo</button>
+    </div>
+    <input type="file" id="impFile" accept=".json,application/json" hidden>
+    <p class="toast" id="acctToast" aria-live="polite"></p>
+    <div class="earn" id="impPreview" hidden></div>
     <button class="btn ghost backBtn">Volver</button>
   </div>
 </section>
@@ -683,6 +706,7 @@ const ICON={
   campana:'<path d="M6 17v-6a6 6 0 0 1 12 0v6l2 2H4z"/><path d="M10 21h4"/>',
   linterna:'<path d="M9 3h6M8 7h8v11a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2z"/><path d="M12 11c1.5 1.5 1.5 3 0 4-1.5-1-1.5-2.5 0-4z"/>',
   ballesta:'<path d="M4 20 20 4"/><path d="M14 4h6v6"/><path d="M5 9c3 0 7 4 10 10"/>',
+  cuenta:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
   mision:'<path d="M5 21V4h11l-2 4 2 4H5"/>',
   candado:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
   roll:'<path d="M4 12a8 8 0 0 1 14-5l2-2v6h-6l2-2a5 5 0 1 0 1 6"/>',
@@ -1546,7 +1570,8 @@ async function initOnline(){
     LB.online=!!(DB&&LB.uid);
     if(LB.online){try{const sn=await DB.doc('scores/'+LB.uid).get();if(sn.exists){const d=sn.data();LB.joined=true;LB.nick=String(d.nick||'');LB.remote=d;}}catch(e){}}
   }catch(e){}
-  LB.ready=true;renderBoardTile();if(!$('#board').hidden){renderAccount();subscribeBoard();}
+  if(LB.online)await pullCloud();
+  LB.ready=true;renderBoardTile();renderAcctIfOpen();if(!$('#board').hidden){renderAccount();subscribeBoard();}
 }
 function renderBoardTile(){
   const sub=$('#tBoSub');if(!sub)return;$('#tBoIc').innerHTML=svg('corazon','#ffd27a').replace(ICON.corazon,'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/>');
@@ -1642,15 +1667,80 @@ function renderBoardList(){
 }
 
 /* ---------- Screens ---------- */
-const screens=['menu','chars','howto','arsenal','records','board','shop','missions','levelup','pause','over'];
+const screens=['menu','chars','howto','arsenal','records','board','shop','missions','account','levelup','pause','over'];
 function show(name){for(const sc of screens)$('#'+sc).hidden=sc!==name;const h=!(G&&(state==='play'||state==='levelup'||state==='paused'));$('#hud').hidden=h;$('#abBtn').hidden=h||state!=='play';}
 const SAVE_KEY='cripta-save';
-function loadSave(){let sv=null;try{sv=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');}catch(e){}
+function loadSave(){let sv=null;try{sv=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');}catch(e){}return normalizeSave(sv);}
+function normalizeSave(sv){
   if(!sv||typeof sv!=='object'){sv={coins:0,unlocked:['sepulturero'],sel:'sepulturero',best:null};try{const b=JSON.parse(localStorage.getItem('cripta-best')||'null');if(b)sv.best=b;}catch(e){}}
   if(!Array.isArray(sv.unlocked))sv.unlocked=[];if(!sv.unlocked.includes('sepulturero'))sv.unlocked.push('sepulturero');
   if(!CHARS[sv.sel])sv.sel='sepulturero';if(!DIFFS[sv.diff])sv.diff='facil';if(!sv.life||typeof sv.life!=='object')sv.life={runs:0,kills:0,time:0,coins:0,dawns:0};if(!sv.bestBy||typeof sv.bestBy!=='object'){sv.bestBy={};if(sv.best)sv.bestBy.facil=sv.best;}sv.coins=sv.coins|0;sv.gems=sv.gems|0;if(!sv.buffs||typeof sv.buffs!=='object')sv.buffs={};if(!sv.charLv||typeof sv.charLv!=='object')sv.charLv={};for(const k of ['roll','ban','skip','sabiduria','gemspawn','velocidad'])sv.buffs[k]=Math.max(0,sv.buffs[k]|0);if(typeof sv.life.gems!=='number')sv.life.gems=0;return sv;}
 let SAVE=loadSave();
-function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE));}catch(e){}}
+function persist(){SAVE.savedAt=Date.now();try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE));}catch(e){}scheduleCloud();}
+/* ---- Account: cloud save + file backup ---- */
+let cloudTimer=null,cloudState={status:'idle',at:0};
+function cloudRef(){return DB&&LB.uid?DB.collection('data/users/'+LB.uid).doc('save'):null;}
+function scheduleCloud(){if(!cloudRef()||cloudState.status==='denied')return;clearTimeout(cloudTimer);cloudTimer=setTimeout(pushCloud,3000);}
+async function pushCloud(){
+  const ref=cloudRef();if(!ref)return;clearTimeout(cloudTimer);cloudState.status='saving';renderAcctIfOpen();
+  try{await queueWrite(()=>ref.set({v:1,at:SAVE.savedAt||Date.now(),data:JSON.parse(JSON.stringify(SAVE))}));cloudState={status:'ok',at:Date.now()};}
+  catch(e){cloudState={status:e&&e.code==='invalid_argument'?'denied':'error',at:cloudState.at};}
+  renderAcctIfOpen();
+}
+async function pullCloud(){
+  const ref=cloudRef();if(!ref)return;
+  try{const sn=await ref.get();
+    if(sn.exists){const d=sn.data(),cloudAt=d.at||0,localAt=SAVE.savedAt||0;
+      if(d.data&&cloudAt>localAt){SAVE=normalizeSave(JSON.parse(JSON.stringify(d.data)));SAVE.savedAt=cloudAt;
+        try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE));}catch(e){}
+        cloudState={status:'loaded',at:Date.now()};pickSel=SAVE.sel;if(state==='menu'&&!$('#menu').hidden)renderMenu();}
+      else if(localAt>cloudAt)await pushCloud();else cloudState={status:'ok',at:Date.now()};}
+    else await pushCloud();
+  }catch(e){cloudState.status='error';}
+  renderAcctIfOpen();
+}
+function renderAcctIfOpen(){if(!$('#account').hidden)renderAcct();renderAcctTile();}
+function renderAcctTile(){const el=$('#tAcSub');if(!el)return;
+  el.textContent=LB.online&&cloudState.status!=='denied'?'Guardado en tu cuenta':'Copia en archivo';}
+const ago=ms=>{const s_=Math.max(0,Math.round((Date.now()-ms)/1000));return s_<10?'recién':s_<60?'hace '+s_+' s':'hace '+Math.round(s_/60)+' min';};
+function renderAcct(){
+  const el=$('#acctCloud');el.innerHTML='';
+  const msg=(t,c)=>{const p_=document.createElement('p');p_.className=c||'msg';p_.textContent=t;el.appendChild(p_);};
+  if(!LB.ready){msg('Conectando con tu cuenta…');return;}
+  if(!DB){msg('El guardado en tu cuenta funciona cuando abrís el juego desde su link de Claude. Mientras tanto, usá la copia en archivo de abajo.');return;}
+  if(!LB.uid){msg('Iniciá sesión en Claude y volvé a abrir el juego para que tu progreso se guarde en tu cuenta.');return;}
+  const who=document.createElement('div');who.className='who';const img=document.createElement('img');img.alt='';img.src=LB.me?LB.me.avatarUrl:'';
+  const box=document.createElement('div');const st=document.createElement('strong');st.textContent=(LB.me&&LB.me.name)||'Tu cuenta de Claude';
+  const sm=document.createElement('small');sm.textContent='Tu progreso se guarda solo y se sincroniza entre dispositivos';box.append(st,sm);who.append(img,box);el.appendChild(who);
+  const S=cloudState.status;
+  if(S==='denied'){msg('Tu cuenta no tiene permiso para guardar en este juego. Pedile al dueño que te invite como editor, o usá la copia en archivo.','err');return;}
+  msg(S==='saving'?'Guardando…':S==='error'?'No se pudo sincronizar. Se vuelve a intentar con el próximo cambio.':S==='loaded'?'Cargamos el progreso guardado en tu cuenta.':cloudState.at?'Última sincronización: '+ago(cloudState.at)+'.':'Todavía no se sincronizó.',S==='error'?'err':'msg');
+  const b=document.createElement('button');b.className='btn ghost';b.id='cloudNow';b.textContent='Guardar ahora';b.disabled=S==='saving';b.onclick=()=>pushCloud();el.appendChild(b);
+}
+function exportSave(){
+  const data=JSON.stringify({app:'cripta-nocturna',v:1,exportedAt:new Date().toISOString(),save:SAVE},null,2);
+  const d=new Date(),fn='cripta-nocturna-progreso-'+d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'.json';
+  const toast=t=>{$('#acctToast').textContent=t;};
+  const fallback=()=>{try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);toast('Listo: se descargó '+fn+'. Movelo a la carpeta que quieras.');}catch(e){toast('No se pudo crear el archivo en este navegador.');}};
+  if(window.claude&&typeof window.claude.use==='function'){
+    window.claude.use('downloads').then(dl=>{if(!dl){fallback();return;}
+      dl.save({filename:fn,data}).then(()=>toast('Listo: guardaste '+fn+'. Movelo a la carpeta que quieras.'))
+        .catch(e=>toast(e&&e.code==='declined'?'Cancelaste la descarga.':'No se pudo guardar el archivo acá.'));}).catch(fallback);
+  }else fallback();
+}
+let pendingImport=null;
+function previewImport(obj){
+  const pv=$('#impPreview');
+  if(!obj||obj.app!=='cripta-nocturna'||!obj.save||typeof obj.save!=='object'){pendingImport=null;pv.hidden=true;$('#acctToast').textContent='Ese archivo no es un progreso de Cripta Nocturna.';return;}
+  pendingImport=normalizeSave(JSON.parse(JSON.stringify(obj.save)));const sv=pendingImport,bs=sv.bestScore;
+  pv.hidden=false;
+  pv.innerHTML=`<div><span>Monedas</span><span>${(sv.coins|0).toLocaleString('es-AR')}</span></div><div><span>Gemas</span><span>${sv.gems|0}</span></div>
+    <div><span>Personajes</span><span>${sv.unlocked.length} de ${CH_IDS.length}</span></div><div><span>Mejor puntaje</span><span>${bs?fmtPts(bs.score):'—'}</span></div>
+    <div class="tot"><span>Esto reemplaza tu progreso actual</span><span></span></div>
+    <div class="btnrow"><button class="btn" id="impOk">Cargar este progreso</button><button class="btn ghost" id="impNo">Cancelar</button></div>`;
+  $('#impOk').onclick=()=>{SAVE=pendingImport;pendingImport=null;persist();pushCloud();pickSel=SAVE.sel;pv.hidden=true;$('#acctToast').textContent='Listo: cargaste tu progreso.';sfx('level');};
+  $('#impNo').onclick=()=>{pendingImport=null;pv.hidden=true;$('#acctToast').textContent='';};
+}
 function renderBest(){renderMenu();}
 
 let pickSel=SAVE.sel;
@@ -1724,6 +1814,7 @@ function renderMenu(){
   if(rn){$('#contBtn').textContent='Continuar · '+CHARS[rn.char].short+' · '+fmt(rn.t);$('#contNote').textContent='Tenés una partida guardada en '+DIFFS[rn.diff].name+'. Si empezás otra, se reemplaza.';}
   $('#tChIc').innerHTML=svg('calaveras','#efe6d2');$('#tArIc').innerHTML=svg('hacha','#ff9b8a');
   $('#tReIc').innerHTML=svg('reloj','#ffd27a');$('#tHoIc').innerHTML=svg('grimorio','#b38cff');
+  $('#tAcIc').innerHTML=svg('cuenta','#9ad0ff');renderAcctTile();
   $('#tMiIc').innerHTML=svg('mision','#5ee6c4');$('#tMiSub').textContent=MISSIONS.filter(m=>m.prog()>=m.goal).length+' de '+MISSIONS.length+' cumplidas';
   $('#tChSub').textContent=SAVE.unlocked.length+' de '+CH_IDS.length+' desbloqueados';
   $('#tArSub').textContent=Object.keys(WDEF).length+' armas · '+Object.keys(PDEF).length+' objetos';
@@ -1780,6 +1871,11 @@ function renderRecords(){
 }
 $('#tChars').addEventListener('click',()=>openChars());
 $('#tBoard').addEventListener('click',openBoard);
+$('#tAcc').addEventListener('click',()=>{initAudio();$('#acctToast').textContent='';$('#impPreview').hidden=true;renderAcct();show('account');$('#account').scrollTop=0;});
+$('#expBtn').addEventListener('click',exportSave);
+$('#impBtn').addEventListener('click',()=>{$('#impFile').value='';$('#impFile').click();});
+$('#impFile').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{let obj=null;try{obj=JSON.parse(rd.result);}catch(err){}previewImport(obj);};rd.onerror=()=>{$('#acctToast').textContent='No se pudo leer el archivo.';};rd.readAsText(f);});
 function renderMissions(){
   $('#misList').innerHTML=MISSIONS.map(m=>{const wid=Object.keys(WDEF).find(k=>WDEF[k].mission===m.id),W_=WDEF[wid],pr=Math.min(m.goal,m.prog()),done=pr>=m.goal;
     const ptxt=m.time?fmt(pr)+' / '+fmt(m.goal):pr.toLocaleString('es-AR')+' / '+m.goal.toLocaleString('es-AR');
