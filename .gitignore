@@ -1,0 +1,8 @@
+android/build/
+android/*.keystore
+*.apk
+*.exe
+*.idsig
+desktop/node_modules/
+desktop/dist/
+desktop/index.html

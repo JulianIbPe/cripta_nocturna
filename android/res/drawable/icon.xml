@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Luna sobre una lápida, en los colores del juego -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#140c1f" android:pathData="M54,4a50,50 0 1,0 0.1,0z" />
+    <path android:fillColor="#e9d8a6" android:pathData="M70,18a16,16 0 1,0 12,26a13,13 0 1,1 -12,-26z" />
+    <path android:fillColor="#6b5a8a" android:pathData="M32,90V54a22,22 0 0,1 44,0V90z" />
+    <path android:fillColor="#140c1f" android:pathData="M51,52h6v8h8v6h-8v14h-6V66h-8v-6h8z" />
+</vector>

@@ -1,0 +1,22 @@
+{
+  "name": "cripta-nocturna",
+  "version": "1.0.0",
+  "description": "Cripta Nocturna para PC",
+  "author": "AscenderGrey08",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win portable --publish never"
+  },
+  "build": {
+    "appId": "com.julian.criptanocturna",
+    "productName": "Cripta Nocturna",
+    "files": ["main.js", "index.html"],
+    "win": { "target": "portable", "artifactName": "CriptaNocturna.exe", "signAndEditExecutable": false }
+  },
+  "devDependencies": {
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8"
+  }
+}

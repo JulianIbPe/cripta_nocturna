@@ -203,6 +203,8 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 .acct label{font-size:14px;font-weight:600;color:var(--muted);width:100%}
 .acct input{flex:1 1 160px;min-width:0;font:inherit;font-size:18px;padding:10px 12px;border-radius:10px;border:1px solid var(--stone-2);background:#0f0d20;color:var(--ink);user-select:text;-webkit-user-select:text}
 .acct input:focus-visible{outline:2px solid var(--ember);outline-offset:1px}
+#authForm input{flex-basis:100%}
+#authForm .msg:empty{display:none}
 .acct .btn{font-size:16px;padding:11px 16px;box-shadow:0 4px 0 #a3480f}
 .acct .btn.ghost{box-shadow:none}
 .acct .msg{font-size:14px;color:var(--muted);line-height:1.35}
@@ -253,6 +255,8 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 .gemi{display:inline-block;width:14px;height:15px;flex:none;background:linear-gradient(135deg,#ffd1f3,#ff5fd2 50%,#a3248a);clip-path:polygon(50% 0,100% 36%,50% 100%,0 36%)}
 .gemline{display:flex;align-items:center;gap:6px;font-weight:700;color:#ff8be0;font-variant-numeric:tabular-nums}
 .wallet{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.updbar{display:block;width:100%;margin:6px 0;padding:10px 14px;border-radius:12px;border:1px solid var(--ember);background:var(--stone);color:var(--ink);font:inherit;font-size:15px;text-align:left;cursor:pointer}
+.updbar b{color:var(--ember)}
 .wallet .coinline,.wallet .gemline{font-size:18px}
 #hudGems{display:flex;align-items:center;gap:5px;font-weight:700;color:#ff8be0;font-variant-numeric:tabular-nums;font-size:17px}
 .char.prem{border-color:rgba(255,95,210,.35);background:linear-gradient(180deg,#2a1838,#14112a)}
@@ -321,6 +325,7 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
       <div class="wallet"><span class="coinline small"><i class="coin"></i><span id="menuCoins">0</span></span><span class="gemline"><i class="gemi"></i><span id="menuGems">0</span></span></div>
     </div>
     <h1>Cripta Nocturna</h1>
+    <button class="updbar" id="updBar" hidden>Hay una versión nueva (<b></b>). Tocá acá para descargarla.</button>
     <div class="hero">
       <button class="arrow" id="heroPrev" aria-label="Personaje anterior">‹</button>
       <canvas id="heroCv" width="300" height="300" aria-label="Personaje elegido"></canvas>
@@ -372,7 +377,7 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
       <p><b>Cumplí misiones</b> para desbloquear armas nuevas.</p>
       <p><b>En la Tienda comprás mejoras permanentes</b>: usos de Cambiar, Bloquear y Saltar en cada subida de nivel, y más gemas por partida.</p>
       <p><b>Las gemas rosas son raras</b>: casi nunca caen de enemigos comunes, cada calabaza maldita tiene la mitad de chances de soltar una y el amanecer te da 2. Con gemas desbloqueás a los 6 personajes élite.</p>
-      <p>En compu: WASD o flechas para moverte, E para la habilidad, espacio para pausar.</p>
+      <p><b>En compu:</b> WASD o flechas para moverte (o arrastrá con el mouse), E o Shift para la habilidad, espacio, P o Esc para pausar y V para la velocidad. Al subir de nivel elegís con 1, 2, 3… y usás Cambiar, Bloquear y Saltar con R, B y X. Esc vuelve atrás en los menús, Enter juega o arranca otra partida, y en el menú cambiás de personaje con las flechas.</p>
     </div>
     <button class="btn ghost backBtn">Volver</button>
   </div>
@@ -1111,13 +1116,25 @@ cv.addEventListener('pointermove',e=>{if(!joy.active||e.pointerId!==joy.id)retur
   const dx=joy.x-joy.ox,dy=joy.y-joy.oy,d=Math.hypot(dx,dy),M=60;if(d>M){joy.ox=joy.x-dx/d*M;joy.oy=joy.y-dy/d*M;}});
 const endJoy=e=>{if(e.pointerId===joy.id)joy.active=false;};
 cv.addEventListener('pointerup',endJoy);cv.addEventListener('pointercancel',endJoy);
+const visBtn=sel=>{const b=document.querySelector(sel);return b&&b.offsetParent&&!b.disabled?b:null;};
 window.addEventListener('keydown',e=>{
-  const k=e.key.toLowerCase();keys.add(k);
-  if(k===' '||k==='escape'||k==='p'){if(state==='play')pause();else if(state==='paused')resume();e.preventDefault();}
+  const k=e.key.toLowerCase(),onBtn=!!(e.target.closest&&e.target.closest('button'));
+  if(/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)&&k!=='escape')return;
+  keys.add(k);
+  if(k===' '||k==='escape'||k==='p'){
+    if(state==='play'){pause();e.preventDefault();}else if(state==='paused'){resume();e.preventDefault();}
+    else if(k==='escape'){const b=visBtn('.screen:not([hidden]) .backBtn')||visBtn('#homeBtn');if(b){b.click();e.preventDefault();}}}
   if(k==='e'||k==='shift')useAbility();
-  if(state==='menu'&&!$('#menu').hidden){if(k==='arrowleft')cycle(-1);if(k==='arrowright')cycle(1);if(k==='enter'&&!$('#playBtn').disabled)tryStartOrBuy();}
+  if(k==='v'&&state==='play'){const b=visBtn('#speedBtn');if(b)b.click();}
+  if(state==='levelup'&&!e.repeat){const n=+k;if(n>=1&&n<=9){const c=$('#cards').children[n-1];if(c)c.click();}
+    const t={r:'roll',b:'ban',x:'skip'}[k];if(t){const b=visBtn('#lu-'+t);if(b)b.click();}}
+  if(k==='enter'&&!onBtn){if(state==='menu'&&!$('#menu').hidden&&!$('#playBtn').disabled)tryStartOrBuy();else{const b=visBtn('#againBtn');if(b)b.click();}}
+  if(state==='menu'&&!$('#menu').hidden){if(k==='arrowleft')cycle(-1);if(k==='arrowright')cycle(1);}
   if(k.startsWith('arrow'))e.preventDefault();});
 window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
+// Al cambiar de ventana no quedan teclas trabadas y la partida se pausa sola
+window.addEventListener('blur',()=>{keys.clear();joy.active=false;if(state==='play')pause();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&state==='play')pause();});
 window.addEventListener('contextmenu',e=>e.preventDefault());
 function inputVec(){
   let x=0,y=0;
@@ -1570,7 +1587,6 @@ async function initOnline(){
     LB.online=!!(DB&&LB.uid);
     if(LB.online){try{const sn=await DB.doc('scores/'+LB.uid).get();if(sn.exists){const d=sn.data();LB.joined=true;LB.nick=String(d.nick||'');LB.remote=d;}}catch(e){}}
   }catch(e){}
-  if(LB.online)await pullCloud();
   LB.ready=true;renderBoardTile();renderAcctIfOpen();if(!$('#board').hidden){renderAccount();subscribeBoard();}
 }
 function renderBoardTile(){
@@ -1677,14 +1693,49 @@ function normalizeSave(sv){
   if(!CHARS[sv.sel])sv.sel='sepulturero';if(!DIFFS[sv.diff])sv.diff='facil';if(!sv.life||typeof sv.life!=='object')sv.life={runs:0,kills:0,time:0,coins:0,dawns:0};if(!sv.bestBy||typeof sv.bestBy!=='object'){sv.bestBy={};if(sv.best)sv.bestBy.facil=sv.best;}sv.coins=sv.coins|0;sv.gems=sv.gems|0;if(!sv.buffs||typeof sv.buffs!=='object')sv.buffs={};if(!sv.charLv||typeof sv.charLv!=='object')sv.charLv={};for(const k of ['roll','ban','skip','sabiduria','gemspawn','velocidad'])sv.buffs[k]=Math.max(0,sv.buffs[k]|0);if(typeof sv.life.gems!=='number')sv.life.gems=0;return sv;}
 let SAVE=loadSave();
 function persist(){SAVE.savedAt=Date.now();try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE));}catch(e){}scheduleCloud();}
-/* ---- Account: cloud save + file backup ---- */
+/* ---- Account: cloud save (Firebase, mail y contraseña por REST) + file backup ---- */
+// Config web del proyecto de Firebase (Configuración del proyecto → Tus apps → Web). Vacía = sin cuentas.
+const FB={apiKey:'',projectId:''};
+const AUTH_KEY='cripta-auth';
+let AUTH=null;try{AUTH=JSON.parse(localStorage.getItem(AUTH_KEY));}catch(e){}
+function setAuth(a){AUTH=a;try{a?localStorage.setItem(AUTH_KEY,JSON.stringify(a)):localStorage.removeItem(AUTH_KEY);}catch(e){}}
+async function fbPost(url,body,form){
+  const r=await fetch(url,{method:'POST',headers:{'Content-Type':form?'application/x-www-form-urlencoded':'application/json'},body:form?new URLSearchParams(body):JSON.stringify(body)});
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(new Error('auth'),{code:(j.error&&j.error.message)||'NETWORK'});return j;}
+const fbAuth=(a,body)=>fbPost('https://identitytoolkit.googleapis.com/v1/accounts:'+a+'?key='+FB.apiKey,body);
+async function fbLogin(email,password,signup){
+  const j=await fbAuth(signup?'signUp':'signInWithPassword',{email,password,returnSecureToken:true});
+  setAuth({uid:j.localId,email:j.email,idToken:j.idToken,refreshToken:j.refreshToken,exp:Date.now()+(+j.expiresIn-60)*1000});}
+async function fbToken(){
+  if(AUTH.exp>Date.now())return AUTH.idToken;
+  try{const j=await fbPost('https://securetoken.googleapis.com/v1/token?key='+FB.apiKey,{grant_type:'refresh_token',refresh_token:AUTH.refreshToken},true);
+    setAuth({...AUTH,idToken:j.id_token,refreshToken:j.refresh_token,exp:Date.now()+(+j.expires_in-60)*1000});}
+  catch(e){if(e.code!=='NETWORK')setAuth(null);throw e;} // sesión vencida o cuenta borrada: hay que volver a entrar
+  return AUTH.idToken;}
+function cloudRef(){
+  if(!FB.apiKey||!AUTH)return null;
+  const url='https://firestore.googleapis.com/v1/projects/'+FB.projectId+'/databases/(default)/documents/saves/'+AUTH.uid;
+  const req=async(method,body)=>{const r=await fetch(url,{method,headers:{Authorization:'Bearer '+await fbToken(),'Content-Type':'application/json'},body:body&&JSON.stringify(body)});
+    if(r.status===404)return null;if(!r.ok)throw Object.assign(new Error('db'),{code:r.status===403?'denied':'NETWORK'});return r.json();};
+  return{set:d=>req('PATCH',{fields:{at:{integerValue:String(d.at)},data:{stringValue:JSON.stringify(d.data)}}}),
+    get:async()=>{const j=await req('GET');return{exists:!!j,data:()=>({at:+j.fields.at.integerValue,data:JSON.parse(j.fields.data.stringValue)})};}};}
+const AUTH_ERR={EMAIL_EXISTS:'Ya hay una cuenta con ese mail. Iniciá sesión.',INVALID_LOGIN_CREDENTIALS:'Mail o contraseña incorrectos.',INVALID_PASSWORD:'Mail o contraseña incorrectos.',EMAIL_NOT_FOUND:'Mail o contraseña incorrectos.',INVALID_EMAIL:'Ese mail no es válido.',MISSING_PASSWORD:'Escribí tu contraseña.',WEAK_PASSWORD:'La contraseña tiene que tener al menos 6 caracteres.',TOO_MANY_ATTEMPTS_TRY_LATER:'Demasiados intentos. Probá de nuevo en unos minutos.',USER_DISABLED:'Esa cuenta está desactivada.'};
+const authMsg=e=>AUTH_ERR[String(e&&e.code||'').split(' ')[0]]||'No se pudo conectar. Revisá tu internet.';
 let cloudTimer=null,cloudState={status:'idle',at:0};
-function cloudRef(){return DB&&LB.uid?DB.collection('data/users/'+LB.uid).doc('save'):null;}
+/* ---- Aviso de actualización (APK y .exe): compara con el último Release de GitHub ---- */
+const APP_VER='dev'; // el workflow lo reemplaza por 1.0.<n> al compilar
+const RELEASES='https://github.com/JulianIbPe/cripta_nocturna/releases/latest';
+function openExt(u){if(window.CriptaApp&&window.CriptaApp.openUrl)window.CriptaApp.openUrl(u);else window.open(u,'_blank');}
+async function checkUpdate(){
+  if(APP_VER==='dev'||!(window.CriptaApp||/Electron/.test(navigator.userAgent)))return;
+  try{const r=await fetch('https://api.github.com/repos/JulianIbPe/cripta_nocturna/releases/latest');if(!r.ok)return;const j=await r.json();
+    const n=s=>+String(s).split('.').pop()||0;if(n(j.tag_name)<=n(APP_VER))return;
+    const el=$('#updBar');el.querySelector('b').textContent=j.tag_name;el.hidden=false;el.onclick=()=>openExt(RELEASES);}catch(e){}}
 function scheduleCloud(){if(!cloudRef()||cloudState.status==='denied')return;clearTimeout(cloudTimer);cloudTimer=setTimeout(pushCloud,3000);}
 async function pushCloud(){
   const ref=cloudRef();if(!ref)return;clearTimeout(cloudTimer);cloudState.status='saving';renderAcctIfOpen();
   try{await queueWrite(()=>ref.set({v:1,at:SAVE.savedAt||Date.now(),data:JSON.parse(JSON.stringify(SAVE))}));cloudState={status:'ok',at:Date.now()};}
-  catch(e){cloudState={status:e&&e.code==='invalid_argument'?'denied':'error',at:cloudState.at};}
+  catch(e){cloudState={status:e&&e.code==='denied'?'denied':'error',at:cloudState.at};}
   renderAcctIfOpen();
 }
 async function pullCloud(){
@@ -1701,27 +1752,45 @@ async function pullCloud(){
 }
 function renderAcctIfOpen(){if(!$('#account').hidden)renderAcct();renderAcctTile();}
 function renderAcctTile(){const el=$('#tAcSub');if(!el)return;
-  el.textContent=LB.online&&cloudState.status!=='denied'?'Guardado en tu cuenta':'Copia en archivo';}
+  el.textContent=AUTH&&cloudState.status!=='denied'?'Guardado en tu cuenta':FB.apiKey?'Iniciá sesión o creá tu cuenta':'Copia en archivo';}
 const ago=ms=>{const s_=Math.max(0,Math.round((Date.now()-ms)/1000));return s_<10?'recién':s_<60?'hace '+s_+' s':'hace '+Math.round(s_/60)+' min';};
 function renderAcct(){
   const el=$('#acctCloud');el.innerHTML='';
   const msg=(t,c)=>{const p_=document.createElement('p');p_.className=c||'msg';p_.textContent=t;el.appendChild(p_);};
-  if(!LB.ready){msg('Conectando con tu cuenta…');return;}
-  if(!DB){msg('El guardado en tu cuenta funciona cuando abrís el juego desde su link de Claude. Mientras tanto, usá la copia en archivo de abajo.');return;}
-  if(!LB.uid){msg('Iniciá sesión en Claude y volvé a abrir el juego para que tu progreso se guarde en tu cuenta.');return;}
-  const who=document.createElement('div');who.className='who';const img=document.createElement('img');img.alt='';img.src=LB.me?LB.me.avatarUrl:'';
-  const box=document.createElement('div');const st=document.createElement('strong');st.textContent=(LB.me&&LB.me.name)||'Tu cuenta de Claude';
-  const sm=document.createElement('small');sm.textContent='Tu progreso se guarda solo y se sincroniza entre dispositivos';box.append(st,sm);who.append(img,box);el.appendChild(who);
+  if(!FB.apiKey){msg('Las cuentas todavía no están activadas en esta versión del juego. Mientras tanto, usá la copia en archivo de abajo.');return;}
+  if(!AUTH){
+    const f=document.createElement('form');f.id='authForm';f.noValidate=true;
+    f.innerHTML='<label for="authMail">Mail</label><input id="authMail" type="email" autocomplete="email" inputmode="email" required>'+
+      '<label for="authPass">Contraseña</label><input id="authPass" type="password" autocomplete="current-password" minlength="6" required>'+
+      '<button class="btn" type="submit" id="authIn">Iniciar sesión</button><button class="btn ghost" type="button" id="authUp">Crear cuenta</button>'+
+      '<button class="btn ghost" type="button" id="authReset">Olvidé mi contraseña</button><p class="msg" id="authMsg" aria-live="polite"></p>';
+    msg('Iniciá sesión o creá una cuenta con tu mail para que tu progreso se guarde y lo puedas seguir en otro dispositivo.');el.appendChild(f);
+    const out=t=>{f.querySelector('#authMsg').textContent=t;};
+    const go=async signup=>{const em=f.authMail.value.trim(),pw=f.authPass.value;if(!em||!pw){out('Completá tu mail y tu contraseña.');return;}
+      f.querySelectorAll('button').forEach(b=>b.disabled=true);out(signup?'Creando tu cuenta…':'Entrando…');
+      try{await fbLogin(em,pw,signup);cloudState={status:'idle',at:0};renderAcctIfOpen();await pullCloud();}
+      catch(e){out(authMsg(e));f.querySelectorAll('button').forEach(b=>b.disabled=false);}};
+    f.onsubmit=e=>{e.preventDefault();go(false);};f.querySelector('#authUp').onclick=()=>go(true);
+    f.querySelector('#authReset').onclick=async()=>{const em=f.authMail.value.trim();if(!em){out('Escribí tu mail arriba y tocá de nuevo.');return;}
+      try{await fbAuth('sendOobCode',{requestType:'PASSWORD_RESET',email:em});out('Si hay una cuenta con ese mail, te mandamos un link para cambiar la contraseña.');}catch(e){out(authMsg(e));}};
+    return;}
+  const who=document.createElement('div');who.className='who';
+  const box=document.createElement('div');const st=document.createElement('strong');st.textContent=AUTH.email;
+  const sm=document.createElement('small');sm.textContent='Tu progreso se guarda solo y se sincroniza entre dispositivos';box.append(st,sm);who.append(box);el.appendChild(who);
   const S=cloudState.status;
-  if(S==='denied'){msg('Tu cuenta no tiene permiso para guardar en este juego. Pedile al dueño que te invite como editor, o usá la copia en archivo.','err');return;}
-  msg(S==='saving'?'Guardando…':S==='error'?'No se pudo sincronizar. Se vuelve a intentar con el próximo cambio.':S==='loaded'?'Cargamos el progreso guardado en tu cuenta.':cloudState.at?'Última sincronización: '+ago(cloudState.at)+'.':'Todavía no se sincronizó.',S==='error'?'err':'msg');
-  const b=document.createElement('button');b.className='btn ghost';b.id='cloudNow';b.textContent='Guardar ahora';b.disabled=S==='saving';b.onclick=()=>pushCloud();el.appendChild(b);
+  if(S==='denied')msg('Tu cuenta no tiene permiso para guardar. Revisá las reglas de Firestore del proyecto, o usá la copia en archivo.','err');
+  else msg(S==='saving'?'Guardando…':S==='error'?'No se pudo sincronizar. Se vuelve a intentar con el próximo cambio.':S==='loaded'?'Cargamos el progreso guardado en tu cuenta.':cloudState.at?'Última sincronización: '+ago(cloudState.at)+'.':'Todavía no se sincronizó.',S==='error'?'err':'msg');
+  const row=document.createElement('div');row.className='btnrow';
+  const b=document.createElement('button');b.className='btn ghost';b.id='cloudNow';b.textContent='Guardar ahora';b.disabled=S==='saving'||S==='denied';b.onclick=()=>pushCloud();
+  const lo=document.createElement('button');lo.className='btn ghost';lo.id='authOut';lo.textContent='Cerrar sesión';lo.onclick=()=>{clearTimeout(cloudTimer);setAuth(null);cloudState={status:'idle',at:0};renderAcctIfOpen();};
+  row.append(b,lo);el.appendChild(row);
 }
 function exportSave(){
   const data=JSON.stringify({app:'cripta-nocturna',v:1,exportedAt:new Date().toISOString(),save:SAVE},null,2);
   const d=new Date(),fn='cripta-nocturna-progreso-'+d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'.json';
   const toast=t=>{$('#acctToast').textContent=t;};
   const fallback=()=>{try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);toast('Listo: se descargó '+fn+'. Movelo a la carpeta que quieras.');}catch(e){toast('No se pudo crear el archivo en este navegador.');}};
+  if(window.CriptaApp){toast(window.CriptaApp.saveFile(fn,data)?'Listo: guardaste '+fn+' en Descargas.':'No se pudo guardar el archivo acá.');return;}
   if(window.claude&&typeof window.claude.use==='function'){
     window.claude.use('downloads').then(dl=>{if(!dl){fallback();return;}
       dl.save({filename:fn,data}).then(()=>toast('Listo: guardaste '+fn+'. Movelo a la carpeta que quieras.'))
@@ -2000,7 +2069,7 @@ window.addEventListener('pagehide',saveRun);
 $('#contBtn').addEventListener('click',resumeRun);
 renderBest();
 
-initOnline();
+initOnline();pullCloud();checkUpdate();
 
 /* ---------- Loop ---------- */
 let last=performance.now();
