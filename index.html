@@ -210,15 +210,15 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 .acct label{font-size:14px;font-weight:600;color:var(--muted);width:100%}
 .acct input{flex:1 1 160px;min-width:0;font:inherit;font-size:18px;padding:10px 12px;border-radius:10px;border:1px solid var(--stone-2);background:#0f0d20;color:var(--ink);user-select:text;-webkit-user-select:text}
 .acct input:focus-visible{outline:2px solid var(--ember);outline-offset:1px}
-#authForm input,#passForm input,#linkForm input{flex-basis:100%}
-#authForm .msg:empty,#passForm .msg:empty,#linkForm .msg:empty{display:none}
+#authForm input,#passForm input,#linkForm input,#nameForm input{flex-basis:100%}
+#authForm .msg:empty,#passForm .msg:empty,#linkForm .msg:empty,#nameForm .msg:empty{display:none}
 #modBody .acct{margin-bottom:12px}
 #modBody form{display:flex;gap:8px;flex-wrap:wrap}#modBody form input{flex-basis:100%}
 .modgrid{grid-template-columns:1fr auto;align-items:center}
 .modgrid input,.modgrid select{width:110px;flex:none;font:inherit;font-size:16px;padding:6px 8px;border-radius:8px;border:1px solid var(--stone-2);background:#0f0d20;color:var(--ink)}
 .modgrid .btn{padding:6px 14px}
 .modchk{display:flex;gap:8px;align-items:center;font-size:17px;color:var(--ink)}.modchk input{width:22px;height:22px;flex:none}
-#authForm .hint,#passForm .hint{margin:-2px 0 2px;width:100%;font-size:13px;color:var(--muted)}
+#authForm .hint,#passForm .hint,#nameForm .hint{margin:-2px 0 2px;width:100%;font-size:13px;color:var(--muted)}
 .acct .btn{font-size:16px;padding:11px 16px;box-shadow:0 4px 0 #a3480f}
 .acct .btn.ghost{box-shadow:none}
 .acct .msg{font-size:14px;color:var(--muted);line-height:1.35}
@@ -548,6 +548,7 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
   <div class="panel">
     <div class="eyebrow">Pausa</div>
     <h2>La noche espera</h2>
+    <button class="updbar" id="updBarPause" hidden>Hay una versión nueva (<b></b>). Tocá acá para descargarla.</button>
     <button class="btn" id="resumeBtn">Seguir</button>
     <button class="btn ghost" id="restartBtn">Reiniciar partida</button>
     <button class="btn ghost" id="modPause" hidden>Menú de pruebas</button>
@@ -1909,6 +1910,23 @@ async function fbToken(){
     setAuth({...AUTH,idToken:j.id_token,refreshToken:j.refresh_token,exp:Date.now()+(+j.expires_in-60)*1000});}
   catch(e){if(e.code!=='NETWORK')setAuth(null);throw e;} // sesión vencida o cuenta borrada: hay que volver a entrar
   return AUTH.idToken;}
+/* ---- Nombre de usuario único: usernames/<minúsculas> = uid lo reserva; users/<uid>/name es como se muestra ---- */
+const NAME_RE=/^[A-Za-z0-9_-]{3,16}$/;
+async function fbDb(method,path,body,auth){
+  const q=auth?'?auth='+encodeURIComponent(await fbToken()):'';
+  const r=await fetch(FB.dbUrl+'/'+path+'.json'+q,{method,body:body===undefined?undefined:JSON.stringify(body)});
+  if(!r.ok)throw Object.assign(new Error('db'),{code:r.status===401||r.status===403?'denied':'NETWORK'});return r.json();}
+async function loadUsername(){if(!AUTH||!FB.apiKey)return;
+  try{const n=await fbDb('GET','users/'+AUTH.uid+'/name',undefined,true);if(AUTH&&(n||null)!==(AUTH.name||null)){setAuth({...AUTH,name:n||null});renderAcctIfOpen();}}catch(e){}}
+// Reserva el nombre y libera el anterior en un solo pedido: o se aplica todo o nada
+async function setUsername(name){
+  if(!NAME_RE.test(name))throw Object.assign(new Error('name'),{code:'BAD_NAME'});
+  const key=name.toLowerCase(),old=AUTH.name&&AUTH.name.toLowerCase();
+  const owner=await fbDb('GET','usernames/'+key);
+  if(owner&&owner!==AUTH.uid)throw Object.assign(new Error('name'),{code:'NAME_TAKEN'});
+  const up={['usernames/'+key]:AUTH.uid,['users/'+AUTH.uid+'/name']:name};if(old&&old!==key)up['usernames/'+old]=null;
+  try{await fbDb('PATCH','',up,true);}catch(e){if(e.code==='denied')e.code='NAME_TAKEN';throw e;}
+  setAuth({...AUTH,name});}
 function cloudRef(){
   if(!FB.apiKey||!AUTH)return null;
   // Realtime Database: saves/<uid> = {at, data}; data va como texto porque la base borra objetos y listas vacías
@@ -1917,18 +1935,24 @@ function cloudRef(){
     if(!r.ok)throw Object.assign(new Error('db'),{code:r.status===401||r.status===403?'denied':'NETWORK'});return r.json();};
   return{set:d=>req('PUT',{at:d.at,data:JSON.stringify(d.data)}),
     get:async()=>{const j=await req('GET');return{exists:!!j,data:()=>({at:+j.at||0,data:JSON.parse(j.data)})};}};}
-const AUTH_ERR={INVALID_OOB_CODE:'Ese código no es válido o ya se usó. Tocá Reenviar mail y usá el del último mail.',EXPIRED_OOB_CODE:'Ese código venció. Tocá Reenviar mail y usá el del último mail.',MISSING_OOB_CODE:'Pegá el código o el link del mail.',UNAUTHORIZED_DOMAIN:'El acceso con link de mail todavía no está configurado en el servidor.',EMAIL_EXISTS:'Ya hay una cuenta con ese mail. Iniciá sesión.',INVALID_LOGIN_CREDENTIALS:'Mail o contraseña incorrectos.',INVALID_PASSWORD:'Mail o contraseña incorrectos.',EMAIL_NOT_FOUND:'Mail o contraseña incorrectos.',INVALID_EMAIL:'Ese mail no es válido.',MISSING_PASSWORD:'Escribí tu contraseña.',WEAK_PASSWORD:'La contraseña tiene que tener al menos 6 caracteres.',PASSWORD_DOES_NOT_MEET_REQUIREMENTS:'La contraseña no cumple los requisitos: revisá el largo y mezclá letras y números.',TOO_MANY_ATTEMPTS_TRY_LATER:'Demasiados intentos. Probá de nuevo en unos minutos.',USER_DISABLED:'Esa cuenta está desactivada.',CONFIGURATION_NOT_FOUND:'Las cuentas todavía no están habilitadas en el servidor. Probá más tarde.',OPERATION_NOT_ALLOWED:'Las cuentas todavía no están habilitadas en el servidor. Probá más tarde.'};
+const AUTH_ERR={BAD_NAME:'El nombre tiene que tener de 3 a 16 caracteres: letras sin acentos, números, guion o guion bajo.',NAME_TAKEN:'Ese nombre ya lo usa otra cuenta. Probá con otro.',INVALID_OOB_CODE:'Ese código no es válido o ya se usó. Tocá Reenviar mail y usá el del último mail.',EXPIRED_OOB_CODE:'Ese código venció. Tocá Reenviar mail y usá el del último mail.',MISSING_OOB_CODE:'Pegá el código o el link del mail.',UNAUTHORIZED_DOMAIN:'El acceso con link de mail todavía no está configurado en el servidor.',EMAIL_EXISTS:'Ya hay una cuenta con ese mail. Iniciá sesión.',INVALID_LOGIN_CREDENTIALS:'Mail o contraseña incorrectos.',INVALID_PASSWORD:'Mail o contraseña incorrectos.',EMAIL_NOT_FOUND:'Mail o contraseña incorrectos.',INVALID_EMAIL:'Ese mail no es válido.',MISSING_PASSWORD:'Escribí tu contraseña.',WEAK_PASSWORD:'La contraseña tiene que tener al menos 6 caracteres.',PASSWORD_DOES_NOT_MEET_REQUIREMENTS:'La contraseña no cumple los requisitos: revisá el largo y mezclá letras y números.',TOO_MANY_ATTEMPTS_TRY_LATER:'Demasiados intentos. Probá de nuevo en unos minutos.',USER_DISABLED:'Esa cuenta está desactivada.',CONFIGURATION_NOT_FOUND:'Las cuentas todavía no están habilitadas en el servidor. Probá más tarde.',OPERATION_NOT_ALLOWED:'Las cuentas todavía no están habilitadas en el servidor. Probá más tarde.'};
 const authMsg=e=>AUTH_ERR[String(e&&e.code||'').split(' ')[0]]||'No se pudo conectar. Revisá tu internet.';
 let cloudTimer=null,cloudState={status:'idle',at:0};
 /* ---- Aviso de actualización (APK y .exe): compara con el último Release de GitHub ---- */
 const APP_VER='dev'; // el workflow lo reemplaza por 1.0.<n> al compilar
 const RELEASES='https://github.com/JulianIbPe/cripta_nocturna/releases/latest';
 function openExt(u){if(window.CriptaApp&&window.CriptaApp.openUrl)window.CriptaApp.openUrl(u);else window.open(u,'_blank');}
+// Compara número por número, así cualquier versión vieja ve el aviso (1.0.10 > 1.0.9 y 1.1.0 > 1.0.99)
+const cmpVer=(a,b)=>{const x=String(a).replace(/^v/,'').split('.').map(Number),y=String(b).replace(/^v/,'').split('.').map(Number);
+  for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d;}return 0;};
+let updTag=null;
 async function checkUpdate(){
-  if(APP_VER==='dev'||!(window.CriptaApp||/Electron/.test(navigator.userAgent)))return;
+  if(APP_VER==='dev'||!(window.CriptaApp||/Electron/.test(navigator.userAgent))||updTag)return;
   try{const r=await fetch('https://api.github.com/repos/JulianIbPe/cripta_nocturna/releases/latest');if(!r.ok)return;const j=await r.json();
-    const n=s=>+String(s).split('.').pop()||0;if(n(j.tag_name)<=n(APP_VER))return;
-    const el=$('#updBar');el.querySelector('b').textContent=j.tag_name;el.hidden=false;el.onclick=()=>openExt(RELEASES);}catch(e){}}
+    if(!j.tag_name||cmpVer(j.tag_name,APP_VER)<=0)return;updTag=j.tag_name;
+    for(const el of document.querySelectorAll('.updbar')){el.querySelector('b').textContent=updTag;el.hidden=false;el.onclick=()=>openExt(RELEASES);}}catch(e){}}
+// Si al abrir no había internet o GitHub no respondió, se vuelve a probar
+setInterval(checkUpdate,30*60*1000);window.addEventListener('online',checkUpdate);
 function scheduleCloud(){if(!cloudRef()||cloudState.status==='denied')return;clearTimeout(cloudTimer);cloudTimer=setTimeout(pushCloud,3000);}
 let cloudSyncedAt=0; // savedAt del progreso que ya está en la nube
 const cloudDirty=()=>(SAVE.savedAt||0)>cloudSyncedAt;
@@ -1955,7 +1979,7 @@ function renderAcctIfOpen(){if(!$('#account').hidden)renderAcct();renderAcctTile
 function renderAcctTile(){const el=$('#tAcSub');if(!el)return;
   el.textContent=AUTH&&cloudState.status!=='denied'?'Guardado en tu cuenta':FB.apiKey?'Iniciá sesión o creá tu cuenta':'Copia en archivo';}
 const ago=ms=>{const s_=Math.max(0,Math.round((Date.now()-ms)/1000));return s_<10?'recién':s_<60?'hace '+s_+' s':'hace '+Math.round(s_/60)+' min';};
-let passOpen=false; // el formulario de cambiar contraseña sigue abierto aunque se redibuje la cuenta
+let passOpen=false,nameOpen=false; // el formulario de cambiar contraseña sigue abierto aunque se redibuje la cuenta
 let pendLogin=null; // {email, uid} entre la contraseña y el código del mail; solo en memoria
 function renderAcct(){
   const el=$('#acctCloud');el.innerHTML='';
@@ -1970,7 +1994,7 @@ function renderAcct(){
     const out=t=>{f.querySelector('#linkMsg').textContent=t;},btns=on=>f.querySelectorAll('button').forEach(b=>b.disabled=!on);
     f.onsubmit=async e=>{e.preventDefault();const v=f.linkCode.value;if(!v.trim()){out('Pegá el código o el link del mail.');return;}
       btns(false);out('Confirmando…');
-      try{await fbConfirmLink(pendLogin,v);pendLogin=null;cloudState={status:'idle',at:0};checkDev();renderAcctIfOpen();await pullCloud();}
+      try{await fbConfirmLink(pendLogin,v);pendLogin=null;cloudState={status:'idle',at:0};checkDev();renderAcctIfOpen();loadUsername();await pullCloud();}
       catch(er){out(authMsg(er));btns(true);}};
     f.querySelector('#linkAgain').onclick=async()=>{btns(false);try{await sendLoginLink(pendLogin.email);out('Te mandamos otro mail. Usá el código del último que llegue.');}catch(er){out(authMsg(er));}btns(true);};
     f.querySelector('#linkCancel').onclick=()=>{pendLogin=null;renderAcct();};
@@ -1994,8 +2018,8 @@ function renderAcct(){
       try{await fbAuth('sendOobCode',{requestType:'PASSWORD_RESET',email:em});out('Si hay una cuenta con ese mail, te mandamos un link para cambiar la contraseña.');}catch(e){out(authMsg(e));}};
     return;}
   const who=document.createElement('div');who.className='who';
-  const box=document.createElement('div');const st=document.createElement('strong');st.textContent=AUTH.email;
-  const sm=document.createElement('small');sm.textContent='Guardado automático cada 30 segundos y al salir. Se sincroniza entre dispositivos';box.append(st,sm);who.append(box);el.appendChild(who);
+  const box=document.createElement('div');const st=document.createElement('strong');st.textContent=AUTH.name||AUTH.email;
+  const sm=document.createElement('small');sm.textContent=(AUTH.name?AUTH.email+' · ':'')+'Guardado automático cada 30 segundos y al salir. Se sincroniza entre dispositivos';box.append(st,sm);who.append(box);el.appendChild(who);
   const S=cloudState.status;
   if(S==='denied')msg('Tu cuenta no tiene permiso para guardar. Revisá las reglas de Realtime Database del proyecto, o usá la copia en archivo.','err');
   else msg(S==='saving'?'Guardando…':S==='error'?'No se pudo sincronizar. Se vuelve a intentar solo en 30 segundos.':S==='loaded'?'Cargamos el progreso guardado en tu cuenta.':cloudState.at?'Última sincronización: '+ago(cloudState.at)+'.':'Todavía no se sincronizó.',S==='error'?'err':'msg');
@@ -2003,7 +2027,18 @@ function renderAcct(){
   const b=document.createElement('button');b.className='btn ghost';b.id='cloudNow';b.textContent='Guardar ahora';b.disabled=S==='saving'||S==='denied';b.onclick=()=>pushCloud();
   const lo=document.createElement('button');lo.className='btn ghost';lo.id='authOut';lo.textContent='Cerrar sesión';lo.onclick=()=>{clearTimeout(cloudTimer);setAuth(null);cloudState={status:'idle',at:0};checkDev();};
   const cp=document.createElement('button');cp.className='btn ghost';cp.id='passOpen';cp.textContent='Cambiar contraseña';
-  row.append(b,cp,lo);el.appendChild(row);
+  const cn=document.createElement('button');cn.className='btn ghost';cn.id='nameOpen';cn.textContent='Cambiar nombre';cn.hidden=!AUTH.name;
+  row.append(b,cn,cp,lo);el.appendChild(row);
+  const nf=document.createElement('form');nf.id='nameForm';nf.noValidate=true;nf.hidden=!!AUTH.name&&!nameOpen;
+  nf.innerHTML='<label for="nameIn">'+(AUTH.name?'Nombre de usuario nuevo':'Elegí tu nombre de usuario')+'</label><input id="nameIn" type="text" autocomplete="username" spellcheck="false" maxlength="16" aria-describedby="nameHint">'+
+    '<p class="hint" id="nameHint">De 3 a 16 caracteres: letras sin acentos, números, guion o guion bajo. Es único: nadie más puede usarlo.</p>'+
+    '<button class="btn" type="submit" id="nameSave">Guardar nombre</button><p class="msg" id="nameMsg" aria-live="polite"></p>';
+  el.appendChild(nf);
+  cn.onclick=()=>{nf.hidden=!nf.hidden;nameOpen=!nf.hidden;if(nameOpen)nf.nameIn.focus();};
+  nf.onsubmit=async e=>{e.preventDefault();const v=nf.nameIn.value.trim(),out=t=>{nf.querySelector('#nameMsg').textContent=t;};
+    if(!v){out('Escribí un nombre.');return;}if(AUTH.name&&v===AUTH.name){out('Ese ya es tu nombre.');return;}
+    const sv=nf.querySelector('#nameSave');sv.disabled=true;out('Guardando…');
+    try{await setUsername(v);nameOpen=false;renderAcct();}catch(er){out(authMsg(er));sv.disabled=false;}};
   const pf=document.createElement('form');pf.id='passForm';pf.noValidate=true;pf.hidden=!passOpen;
   pf.innerHTML='<label for="passOld">Contraseña actual</label><input id="passOld" type="password" autocomplete="current-password">'+
     '<label for="passNew">Contraseña nueva</label><input id="passNew" type="password" autocomplete="new-password" minlength="6" aria-describedby="passNewHint">'+
@@ -2382,7 +2417,7 @@ $('#modPause').addEventListener('click',openMod);
 $('#modBack').addEventListener('click',closeMod);
 renderBest();
 
-initOnline();pullCloud();checkUpdate();checkDev();
+initOnline();pullCloud();checkUpdate();checkDev();loadUsername();
 // Sin conexión se juega igual; al volver internet se sincroniza (gana el progreso más nuevo)
 window.addEventListener('online',()=>{if(cloudState.status==='error'||cloudState.status==='idle')pullCloud();});
 setInterval(()=>{if(!cloudRef()||cloudState.status==='denied'||cloudState.status==='saving')return;
