@@ -553,7 +553,7 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
     <button class="btn ghost" id="modPause" hidden>Menú de pruebas</button>
     <div class="btnrow">
       <button class="btn ghost" id="soundPause">Sonido: sí</button>
-      <button class="btn ghost" id="quitBtn">Abandonar</button>
+      <button class="btn ghost" id="quitBtn">Salir y guardar</button>
     </div>
     <div class="dtitle">Armas y objetos</div>
     <div class="inv" id="inv"></div>
@@ -2367,7 +2367,8 @@ $('#restartBtn').addEventListener('click',()=>{
   if(!restartArm){b.textContent='¿Seguro? Tocá de nuevo para reiniciar';b.style.borderColor='var(--blood)';restartArm=setTimeout(()=>{restartArm=null;b.textContent='Reiniciar partida';b.style.borderColor='';},3500);return;}
   clearTimeout(restartArm);restartArm=null;b.textContent='Reiniciar partida';b.style.borderColor='';
   start(G?G.char:SAVE.sel);});
-$('#quitBtn').addEventListener('click',()=>gameOver());
+// Salir no termina la partida: queda guardada y se retoma con Continuar partida desde el menú
+$('#quitBtn').addEventListener('click',()=>{saveRun();goMenu();});
 $('#soundMenu').addEventListener('click',()=>setMuted(!muted));
 $('#soundPause').addEventListener('click',()=>setMuted(!muted));
 document.addEventListener('visibilitychange',()=>{if(document.hidden){if(state==='play')pause();else saveRun();}});
