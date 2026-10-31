@@ -156,6 +156,7 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 .diff{grid-template-columns:repeat(4,1fr)}.diff button{font-size:15px;letter-spacing:0}
 .diff button[data-d="imposible"][aria-checked="true"]{background:#1a0610;color:#ff4d6d;box-shadow:inset 0 0 0 2px #ff4d6d}
 .diffdesc{font-size:15px;min-height:2.7em}
+#menuDiffDesc{margin:-6px 2px 0;font-size:14px;color:var(--muted);text-align:center}
 .seg{grid-template-columns:1fr 1fr}
 .seg button[aria-checked="true"]{background:var(--ember);color:#1a0d02}
 .screen:not([hidden]) .panel{animation:rise .3s ease-out both}
@@ -373,6 +374,7 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
       <button role="radio" data-d="dificil" id="md-dificil">Difícil</button>
       <button role="radio" data-d="imposible" id="md-imposible">Imposible</button>
     </div>
+    <p class="diffdesc" id="menuDiffDesc" aria-live="polite"></p>
     <button class="btn cont" id="contBtn" hidden>Continuar partida</button>
     <p class="contnote" id="contNote" hidden></p>
     <button class="btn" id="playBtn">Jugar</button>
@@ -845,9 +847,9 @@ const ICON={
 const svg=(id,col)=>`<svg viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[id]}</svg>`;
 
 const DIFFS={
-  facil:{name:'Fácil',hp:1,dmg:1,coin:1,xp:0,pts:1,desc:'La noche normal. Ideal para probar personajes. Puntos ×1.'},
-  medio:{name:'Medio',hp:1.5,dmg:1.25,coin:1.25,xp:-.05,pts:1.5,desc:'Enemigos con +50% de vida y +25% de daño. +25% de monedas, -5% de experiencia. Puntos ×1,5.'},
-  dificil:{name:'Difícil',hp:2,dmg:1.5,coin:1.5,xp:-.1,pts:2,desc:'Enemigos con +100% de vida y +50% de daño. +50% de monedas, -10% de experiencia. Puntos ×2.'},
+  facil:{name:'Fácil',hp:1,dmg:1,coin:1,xp:0,pts:1,desc:'La noche normal: enemigos, experiencia, monedas y gemas sin cambios. Ideal para probar personajes. Puntos ×1.'},
+  medio:{name:'Medio',hp:1.5,dmg:1.25,coin:1.25,xp:-.05,pts:1.5,desc:'Enemigos con +50% de vida y +25% de daño. +25% de monedas y de gemas, -5% de experiencia. Puntos ×1,5.'},
+  dificil:{name:'Difícil',hp:2,dmg:1.5,coin:1.5,xp:-.1,pts:2,desc:'Enemigos con +100% de vida y +50% de daño. +50% de monedas y de gemas, -10% de experiencia. Puntos ×2.'},
   imposible:{name:'Imposible',hp:2,dmg:2,spd:2,coin:1.5,gem:1.25,xp:-.5,pts:3,desc:'Enemigos con el doble de vida, daño y velocidad. +50% de monedas, +25% de gemas y -50% de experiencia. Puntos ×3.'},
 };
 const BUFFS={
@@ -2179,7 +2181,7 @@ function tryStartOrBuy(){
 function renderDiff(){
   document.querySelectorAll('[data-d]').forEach(b=>b.setAttribute('aria-checked',String(b.dataset.d===SAVE.diff)));
   const bb=SAVE.bestBy[SAVE.diff];
-  $('#diffDesc').textContent=DIFFS[SAVE.diff].desc+(bb?' Tu récord acá: '+fmt(bb.t)+'.':'');
+  $('#diffDesc').textContent=$('#menuDiffDesc').textContent=DIFFS[SAVE.diff].desc+(bb?' Tu récord acá: '+fmt(bb.t)+'.':'');
 }
 /* ---- Main menu ---- */
 const CH_IDS=Object.keys(CHARS);
