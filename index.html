@@ -654,7 +654,7 @@ const WDEF={
     up:['Dispara un rayo que atraviesa todo en línea recta.','+6 de daño','+1 rayo','+8 de daño','+1 rayo y +10 de daño'],
     dmg:[18,24,24,32,42],cd:[1.6,1.5,1.4,1.3,1.1],n:[1,1,2,2,3]},
   campana:{name:'Campana de difuntos',col:'#ffd27a',mission:'m_elite',
-    up:['Cada campanada suelta una onda que empuja y daña.','+4 de daño y onda más grande','Onda más grande','+6 de daño y recarga más rápida','Onda enorme y +8 de daño'],
+    up:['Cada campanada suelta una onda que empuja y daña. Cada proyectil extra suma otra onda detrás.','+4 de daño y onda más grande','Onda más grande','+6 de daño y recarga más rápida','Onda enorme y +8 de daño'],
     dmg:[12,16,16,22,30],cd:[2.5,2.3,2.2,2,1.8],R:[120,140,150,165,190]},
   linterna:{name:'Linterna maldita',col:'#ff9a3d',mission:'m_dawn',
     up:['Deja un rastro de fuego por donde caminás.','El fuego dura más y quema más','Llamas más grandes','El fuego dura más y quema más','Llamas enormes y +2 de daño'],
@@ -674,7 +674,7 @@ const WDEF={
     up:['Dispara lanzas de hielo que atraviesan y frenan a los enemigos.','+1 lanza','Atraviesan 1 más y frenan más','+1 lanza y +6 de daño','Atraviesan 1 más, frenan más y +6 de daño'],
     dmg:[12,16,16,22,28],cd:[1.1,1.05,.95,.9,.8],n:[1,2,2,3,3],pierce:[1,1,2,2,3],slow:[1.5,1.5,2,2,2.5]},
   halo:{name:'Halo sagrado',col:'#fff6d6',excl:'angel',
-    up:['Un halo de luz sale de vos seguido y empuja a los enemigos.','+4 de daño','Halo más grande y más seguido','+4 de daño y más seguido','Halo enorme y +6 de daño'],
+    up:['Un halo de luz sale de vos seguido y empuja a los enemigos. Cada proyectil extra suma otra onda detrás.','+4 de daño','Halo más grande y más seguido','+4 de daño y más seguido','Halo enorme y +6 de daño'],
     dmg:[10,14,14,18,24],cd:[1.6,1.5,1.4,1.3,1.1],R:[90,95,105,115,130]},
   grieta:{name:'Grieta sísmica',col:'#c9a27a',excl:'golem',
     up:['Abre una grieta en línea recta hacia donde mirás.','+8 de daño','Grieta más larga y ancha','+12 de daño y recarga más rápida','Grieta enorme y +14 de daño'],
@@ -689,7 +689,7 @@ const WDEF={
     up:['Suelta llamas fatuas que zigzaguean hacia los enemigos.','+1 llama','+6 de daño','+1 llama y recarga más rápida','+2 llamas y +8 de daño'],
     dmg:[14,14,20,20,28],cd:[1.1,1.05,1,.85,.8],n:[2,3,3,4,6],pierce:[1,1,1,2,2]},
   novahelada:{name:'Nova de escarcha',col:'#9ad0ff',excl:'lich',
-    up:['Una onda de escarcha sale de vos, daña y congela un instante a los enemigos.','+6 de daño','Onda más grande y congela más','+8 de daño y recarga más rápida','Onda enorme y +10 de daño'],
+    up:['Una onda de escarcha sale de vos, daña y congela un instante a los enemigos. Cada proyectil extra suma otra onda detrás.','+6 de daño','Onda más grande y congela más','+8 de daño y recarga más rápida','Onda enorme y +10 de daño'],
     dmg:[14,20,20,28,38],cd:[3,2.8,2.6,2.3,2.1],R:[130,140,160,170,200],frz:[.6,.6,1,1,1.3]},
   luzdivina:{name:'Cruz de luz',col:'#fff2b0',excl:'angel',
     up:['Rayos de luz salen de vos en cruz y atraviesan todo.','+8 de daño','Rayos más largos','+10 de daño y recarga más rápida','Ocho rayos y +12 de daño'],
@@ -1087,6 +1087,8 @@ function nearestEnemies(n){
     if(best.length<n){best.push([d,e]);best.sort((a,b)=>a[0]-b[0]);}
     else if(d<best[n-1][0]){best[n-1]=[d,e];best.sort((a,b)=>a[0]-b[0]);}}
   return best.map(b=>b[1]);}
+// Una onda por cada proyectil (1 + extras), cada una .2 s después de la anterior y desde donde esté el jugador al salir
+function pushWaves(o){for(let i=0;i<=G.st.amount;i++)G.waves.push(Object.assign({},o,{r:0,hit:new Set(),delay:i*.2}));}
 function updateWeapons(dt){
   const p=G.p,st=G.st;
   for(const w of G.weapons){
@@ -1139,7 +1141,7 @@ function updateWeapons(dt){
       for(let i=0;i<n;i++){const t=ts[i%ts.length],a=Math.atan2(t.y-p.y,t.x-p.x)+(i>=ts.length?rand(-.3,.3):0),cx=Math.cos(a),cy=Math.sin(a);
         G.beams.push({x:p.x,y:p.y,a,len,w:wd,life:.22});
         for(const e of G.enemies){if(e.dead)continue;const rx=e.x-p.x,ry=e.y-p.y,al=rx*cx+ry*cy;if(al<0||al>len+e.r)continue;if(Math.abs(rx*cy-ry*cx)<wd+e.r)hurt(e,D.dmg[L],cx*80,cy*80,'ojo');}}
-    }else if(w.id==='campana'){w.timer=D.cd[L]*st.cd;G.waves.push({x:p.x,y:p.y,r:0,max:D.R[L]*st.area,dmg:D.dmg[L],hit:new Set()});
+    }else if(w.id==='campana'){w.timer=D.cd[L]*st.cd;pushWaves({x:p.x,y:p.y,max:D.R[L]*st.area,dmg:D.dmg[L]});
     }else if(w.id==='linterna'){w.timer=.3*st.cd;G.zones.push({x:p.x,y:p.y+6,r:D.r[L]*st.area,dmg:D.dmg[L],life:D.dur[L],tick:0,src:'linterna',fire:true});
     }else if(w.id==='ballesta'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.15;continue;}w.timer=D.cd[L]*st.cd;
       for(let i=0;i<n;i++){const t=ts[i%ts.length],a=Math.atan2(t.y-p.y,t.x-p.x)+(i>=ts.length?rand(-.15,.15):0);
@@ -1155,7 +1157,7 @@ function updateWeapons(dt){
     }else if(w.id==='lanzahielo'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;
       for(let i=0;i<n;i++){const t=ts[i%ts.length],a=Math.atan2(t.y-p.y,t.x-p.x)+(i>=ts.length?rand(-.2,.2):0);
         G.shots.push({src:'lanzahielo',kind:'bolt',col:D.col,x:p.x,y:p.y,vx:Math.cos(a)*420,vy:Math.sin(a)*420,dmg:D.dmg[L],pierce:D.pierce[L],slow:D.slow[L],r:6,life:1.2,hit:new Set()});}
-    }else if(w.id==='halo'){w.timer=D.cd[L]*st.cd;G.waves.push({x:p.x,y:p.y,r:0,max:D.R[L]*st.area,dmg:D.dmg[L],hit:new Set(),col:D.col,src:'halo'});
+    }else if(w.id==='halo'){w.timer=D.cd[L]*st.cd;pushWaves({x:p.x,y:p.y,max:D.R[L]*st.area,dmg:D.dmg[L],col:D.col,src:'halo'});
     }else if(w.id==='grieta'){w.timer=D.cd[L]*st.cd;const len=D.len[L]*st.area,wd=D.w[L]*st.area,base=Math.atan2(p.fy,p.fx),n=1+st.amount;
       for(let i=0;i<n;i++){const a=base+(i-(n-1)/2)*.5,cx=Math.cos(a),cy=Math.sin(a);G.beams.push({x:p.x,y:p.y,a,len,w:wd,life:.22,col:D.col});
         for(const e of G.enemies){if(e.dead)continue;const rx=e.x-p.x,ry=e.y-p.y,al=rx*cx+ry*cy;if(al<0||al>len+e.r)continue;if(Math.abs(rx*cy-ry*cx)<wd+e.r)hurt(e,D.dmg[L],cx*140,cy*140,'grieta');}}
@@ -1170,7 +1172,7 @@ function updateWeapons(dt){
     }else if(w.id==='fuegozorro'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;
       for(let i=0;i<n;i++){const t=ts[i%ts.length],a=Math.atan2(t.y-p.y,t.x-p.x)+rand(-.35,.35);
         G.shots.push({src:'fuegozorro',kind:'bolt',col:D.col,x:p.x,y:p.y,vx:Math.cos(a)*260,vy:Math.sin(a)*260,wob:Math.random()*TAU,dmg:D.dmg[L],pierce:D.pierce[L],r:6,life:1.8,hit:new Set()});}
-    }else if(w.id==='novahelada'){w.timer=D.cd[L]*st.cd;G.waves.push({x:p.x,y:p.y,r:0,max:D.R[L]*st.area,dmg:D.dmg[L],hit:new Set(),col:D.col,src:'novahelada',frz:D.frz[L]});
+    }else if(w.id==='novahelada'){w.timer=D.cd[L]*st.cd;pushWaves({x:p.x,y:p.y,max:D.R[L]*st.area,dmg:D.dmg[L],col:D.col,src:'novahelada',frz:D.frz[L]});
     }else if(w.id==='luzdivina'){w.timer=D.cd[L]*st.cd;const n=D.dirs[L]+st.amount,len=D.len[L]*st.area,wd=7*st.area;w.ang=(w.ang||0)+.4;
       for(let i=0;i<n;i++){const a=w.ang+i/n*TAU,cx=Math.cos(a),cy=Math.sin(a);G.beams.push({x:p.x,y:p.y,a,len,w:wd,life:.22,col:D.col});
         for(const e of G.enemies){if(e.dead)continue;const rx=e.x-p.x,ry=e.y-p.y,al=rx*cx+ry*cy;if(al<0||al>len+e.r)continue;if(Math.abs(rx*cy-ry*cx)<wd+e.r)hurt(e,D.dmg[L],cx*80,cy*80,'luzdivina');}}
@@ -1363,7 +1365,7 @@ function update(dt){
   for(const z of G.zones){z.life-=dt;z.tick-=dt;if(z.tick<=0){z.tick=.3*G.st.cd;near(z.x,z.y,z.r+24,e=>{if(Math.hypot(e.x-z.x,e.y-z.y)<z.r+e.r*.5)hurt(e,z.dmg,0,0,z.src||'agua');});}}
   for(const sl of G.slashes)sl.life-=dt;
   for(const sw of G.sweeps)sw.life-=dt;for(const bm of G.beams)bm.life-=dt;
-  for(const v of G.waves){v.r+=260*dt*G.st.projSpd;near(v.x,v.y,v.r+24,e=>{if(v.hit.has(e)||e.dead)return;const d=Math.hypot(e.x-v.x,e.y-v.y)||1;if(Math.abs(d-v.r)<14+e.r){v.hit.add(e);hurt(e,v.dmg,(e.x-v.x)/d*180,(e.y-v.y)/d*180,v.src||'campana');if(v.frz&&!e.dead)e.frozen=Math.max(e.frozen||0,v.frz);}});if(v.r>=v.max)v.dead=true;}
+  for(const v of G.waves){if(v.delay>0){v.delay-=dt;if(v.delay<=0){v.x=G.p.x;v.y=G.p.y;}continue;}v.r+=260*dt*G.st.projSpd;near(v.x,v.y,v.r+24,e=>{if(v.hit.has(e)||e.dead)return;const d=Math.hypot(e.x-v.x,e.y-v.y)||1;if(Math.abs(d-v.r)<14+e.r){v.hit.add(e);hurt(e,v.dmg,(e.x-v.x)/d*180,(e.y-v.y)/d*180,v.src||'campana');if(v.frz&&!e.dead)e.frozen=Math.max(e.frozen||0,v.frz);}});if(v.r>=v.max)v.dead=true;}
   G.sweeps=G.sweeps.filter(x=>x.life>0);G.beams=G.beams.filter(x=>x.life>0);G.waves=G.waves.filter(x=>!x.dead);
   for(const m of G.meteors){m.t+=dt;if(m.t>=m.dur&&!m.dead){m.dead=true;
     near(m.x,m.y,m.R+24,e=>{const dx=e.x-m.x,dy=e.y-m.y,d=Math.hypot(dx,dy)||1;if(d<m.R+e.r)hurt(e,m.dmg,dx/d*200,dy/d*200,m.src||'meteoro');});
@@ -1618,7 +1620,7 @@ function draw(now){
       ctx.beginPath();ctx.arc(G.p.x,G.p.y,sw.R*.85,a-1.3,a);ctx.stroke();ctx.strokeStyle='rgba(200,190,255,0.25)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(G.p.x,G.p.y,sw.R,0,TAU);ctx.stroke();ctx.lineCap='butt';ctx.globalAlpha=1;}
     for(const bm of G.beams){ctx.save();ctx.translate(bm.x,bm.y);ctx.rotate(bm.a);ctx.globalAlpha=bm.life/.22;ctx.fillStyle=bm.col?hexA(bm.col,.45):'rgba(255,77,109,0.45)';ctx.fillRect(0,-bm.w,bm.len,bm.w*2);
       ctx.fillStyle='#ffe0e6';ctx.fillRect(0,-bm.w*.25,bm.len,bm.w*.5);ctx.restore();ctx.globalAlpha=1;}
-    for(const v of G.waves){ctx.globalAlpha=Math.max(0,1-v.r/v.max);ctx.strokeStyle=v.col||'#ffd27a';ctx.lineWidth=4;ctx.beginPath();ctx.arc(v.x,v.y,v.r,0,TAU);ctx.stroke();ctx.globalAlpha=1;}
+    for(const v of G.waves){if(v.delay>0)continue;ctx.globalAlpha=Math.max(0,1-v.r/v.max);ctx.strokeStyle=v.col||'#ffd27a';ctx.lineWidth=4;ctx.beginPath();ctx.arc(v.x,v.y,v.r,0,TAU);ctx.stroke();ctx.globalAlpha=1;}
     // meteors
     for(const m of G.meteors){const f=Math.min(1,m.t/m.dur);ctx.fillStyle='rgba(0,0,0,'+(0.15+f*.3)+')';ctx.beginPath();ctx.ellipse(m.x,m.y,m.R*f,m.R*f*.5,0,0,TAU);ctx.fill();
       const my=m.y-(1-f)*220,mx=m.x+(1-f)*60;
