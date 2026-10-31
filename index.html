@@ -208,9 +208,9 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 .acct label{font-size:14px;font-weight:600;color:var(--muted);width:100%}
 .acct input{flex:1 1 160px;min-width:0;font:inherit;font-size:18px;padding:10px 12px;border-radius:10px;border:1px solid var(--stone-2);background:#0f0d20;color:var(--ink);user-select:text;-webkit-user-select:text}
 .acct input:focus-visible{outline:2px solid var(--ember);outline-offset:1px}
-#authForm input{flex-basis:100%}
-#authForm .msg:empty{display:none}
-#authForm .hint{margin:-2px 0 2px;width:100%;font-size:13px;color:var(--muted)}
+#authForm input,#passForm input{flex-basis:100%}
+#authForm .msg:empty,#passForm .msg:empty{display:none}
+#authForm .hint,#passForm .hint{margin:-2px 0 2px;width:100%;font-size:13px;color:var(--muted)}
 .acct .btn{font-size:16px;padding:11px 16px;box-shadow:0 4px 0 #a3480f}
 .acct .btn.ghost{box-shadow:none}
 .acct .msg{font-size:14px;color:var(--muted);line-height:1.35}
@@ -1723,7 +1723,7 @@ let SAVE=loadSave();
 function persist(){SAVE.savedAt=Date.now();try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE));}catch(e){}scheduleCloud();}
 /* ---- Account: cloud save (Firebase, mail y contraseña por REST) + file backup ---- */
 // Config web del proyecto de Firebase (Configuración del proyecto → Tus apps → Web). Vacía = sin cuentas.
-const FB={apiKey:'',projectId:''};
+const FB={apiKey:'AIzaSyDEmPiXW7fcYZziPBFNDLII7WFUg2juaiI',dbUrl:'https://cripta-nocturna-default-rtdb.firebaseio.com'};
 const AUTH_KEY='cripta-auth';
 let AUTH=null;try{AUTH=JSON.parse(localStorage.getItem(AUTH_KEY));}catch(e){}
 function setAuth(a){AUTH=a;try{a?localStorage.setItem(AUTH_KEY,JSON.stringify(a)):localStorage.removeItem(AUTH_KEY);}catch(e){}}
@@ -1731,9 +1731,14 @@ async function fbPost(url,body,form){
   const r=await fetch(url,{method:'POST',headers:{'Content-Type':form?'application/x-www-form-urlencoded':'application/json'},body:form?new URLSearchParams(body):JSON.stringify(body)});
   const j=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(new Error('auth'),{code:(j.error&&j.error.message)||'NETWORK'});return j;}
 const fbAuth=(a,body)=>fbPost('https://identitytoolkit.googleapis.com/v1/accounts:'+a+'?key='+FB.apiKey,body);
+const toAuth=j=>({uid:j.localId,email:j.email,idToken:j.idToken,refreshToken:j.refreshToken,exp:Date.now()+(+j.expiresIn-60)*1000});
 async function fbLogin(email,password,signup){
   const j=await fbAuth(signup?'signUp':'signInWithPassword',{email,password,returnSecureToken:true});
-  setAuth({uid:j.localId,email:j.email,idToken:j.idToken,refreshToken:j.refreshToken,exp:Date.now()+(+j.expiresIn-60)*1000});}
+  // La sesión solo queda iniciada con el mail verificado; si no, se manda (o reenvía) el link de verificación
+  if(signup||!(await fbAuth('lookup',{idToken:j.idToken})).users[0].emailVerified){
+    try{await fbAuth('sendOobCode',{requestType:'VERIFY_EMAIL',idToken:j.idToken});}catch(e){}
+    throw Object.assign(new Error('verify'),{code:'EMAIL_NOT_VERIFIED',email:j.email,signup});}
+  setAuth(toAuth(j));}
 async function fbToken(){
   if(AUTH.exp>Date.now())return AUTH.idToken;
   try{const j=await fbPost('https://securetoken.googleapis.com/v1/token?key='+FB.apiKey,{grant_type:'refresh_token',refresh_token:AUTH.refreshToken},true);
@@ -1742,12 +1747,12 @@ async function fbToken(){
   return AUTH.idToken;}
 function cloudRef(){
   if(!FB.apiKey||!AUTH)return null;
-  const url='https://firestore.googleapis.com/v1/projects/'+FB.projectId+'/databases/(default)/documents/saves/'+AUTH.uid;
-  const req=async(method,body)=>{const r=await fetch(url,{method,headers:{Authorization:'Bearer '+await fbToken(),'Content-Type':'application/json'},body:body&&JSON.stringify(body)});
-    if(r.status===404)return null;if(!r.ok)throw Object.assign(new Error('db'),{code:r.status===403?'denied':'NETWORK'});return r.json();};
-  return{set:d=>req('PATCH',{fields:{at:{integerValue:String(d.at)},data:{stringValue:JSON.stringify(d.data)}}}),
-    get:async()=>{const j=await req('GET');return{exists:!!j,data:()=>({at:+j.fields.at.integerValue,data:JSON.parse(j.fields.data.stringValue)})};}};}
-const AUTH_ERR={EMAIL_EXISTS:'Ya hay una cuenta con ese mail. Iniciá sesión.',INVALID_LOGIN_CREDENTIALS:'Mail o contraseña incorrectos.',INVALID_PASSWORD:'Mail o contraseña incorrectos.',EMAIL_NOT_FOUND:'Mail o contraseña incorrectos.',INVALID_EMAIL:'Ese mail no es válido.',MISSING_PASSWORD:'Escribí tu contraseña.',WEAK_PASSWORD:'La contraseña tiene que tener al menos 6 caracteres.',PASSWORD_DOES_NOT_MEET_REQUIREMENTS:'La contraseña no cumple los requisitos: revisá el largo y mezclá letras y números.',TOO_MANY_ATTEMPTS_TRY_LATER:'Demasiados intentos. Probá de nuevo en unos minutos.',USER_DISABLED:'Esa cuenta está desactivada.'};
+  // Realtime Database: saves/<uid> = {at, data}; data va como texto porque la base borra objetos y listas vacías
+  const req=async(method,body)=>{const r=await fetch(FB.dbUrl+'/saves/'+AUTH.uid+'.json?auth='+encodeURIComponent(await fbToken()),{method,body:body&&JSON.stringify(body)});
+    if(!r.ok)throw Object.assign(new Error('db'),{code:r.status===401||r.status===403?'denied':'NETWORK'});return r.json();};
+  return{set:d=>req('PUT',{at:d.at,data:JSON.stringify(d.data)}),
+    get:async()=>{const j=await req('GET');return{exists:!!j,data:()=>({at:+j.at||0,data:JSON.parse(j.data)})};}};}
+const AUTH_ERR={EMAIL_EXISTS:'Ya hay una cuenta con ese mail. Iniciá sesión.',INVALID_LOGIN_CREDENTIALS:'Mail o contraseña incorrectos.',INVALID_PASSWORD:'Mail o contraseña incorrectos.',EMAIL_NOT_FOUND:'Mail o contraseña incorrectos.',INVALID_EMAIL:'Ese mail no es válido.',MISSING_PASSWORD:'Escribí tu contraseña.',WEAK_PASSWORD:'La contraseña tiene que tener al menos 6 caracteres.',PASSWORD_DOES_NOT_MEET_REQUIREMENTS:'La contraseña no cumple los requisitos: revisá el largo y mezclá letras y números.',TOO_MANY_ATTEMPTS_TRY_LATER:'Demasiados intentos. Probá de nuevo en unos minutos.',USER_DISABLED:'Esa cuenta está desactivada.',CONFIGURATION_NOT_FOUND:'Las cuentas todavía no están habilitadas en el servidor. Probá más tarde.',OPERATION_NOT_ALLOWED:'Las cuentas todavía no están habilitadas en el servidor. Probá más tarde.'};
 const authMsg=e=>AUTH_ERR[String(e&&e.code||'').split(' ')[0]]||'No se pudo conectar. Revisá tu internet.';
 let cloudTimer=null,cloudState={status:'idle',at:0};
 /* ---- Aviso de actualización (APK y .exe): compara con el último Release de GitHub ---- */
@@ -1782,6 +1787,7 @@ function renderAcctIfOpen(){if(!$('#account').hidden)renderAcct();renderAcctTile
 function renderAcctTile(){const el=$('#tAcSub');if(!el)return;
   el.textContent=AUTH&&cloudState.status!=='denied'?'Guardado en tu cuenta':FB.apiKey?'Iniciá sesión o creá tu cuenta':'Copia en archivo';}
 const ago=ms=>{const s_=Math.max(0,Math.round((Date.now()-ms)/1000));return s_<10?'recién':s_<60?'hace '+s_+' s':'hace '+Math.round(s_/60)+' min';};
+let passOpen=false; // el formulario de cambiar contraseña sigue abierto aunque se redibuje la cuenta
 function renderAcct(){
   const el=$('#acctCloud');el.innerHTML='';
   const msg=(t,c)=>{const p_=document.createElement('p');p_.className=c||'msg';p_.textContent=t;el.appendChild(p_);};
@@ -1799,7 +1805,8 @@ function renderAcct(){
       if(signup&&pw.length<6){out('La contraseña tiene que tener al menos 6 caracteres (tiene '+pw.length+').');return;}
       f.querySelectorAll('button').forEach(b=>b.disabled=true);out(signup?'Creando tu cuenta…':'Entrando…');
       try{await fbLogin(em,pw,signup);cloudState={status:'idle',at:0};renderAcctIfOpen();await pullCloud();}
-      catch(e){out(authMsg(e));f.querySelectorAll('button').forEach(b=>b.disabled=false);}};
+      catch(e){out(e.code!=='EMAIL_NOT_VERIFIED'?authMsg(e):e.signup?'Te mandamos un mail a '+e.email+' para verificar tu cuenta. Abrí el link (fijate también en spam) y después tocá Iniciar sesión.':'Tu mail todavía no está verificado. Te reenviamos el link a '+e.email+': abrilo y volvé a iniciar sesión.');
+        f.querySelectorAll('button').forEach(b=>b.disabled=false);}};
     f.onsubmit=e=>{e.preventDefault();go(false);};f.querySelector('#authUp').onclick=()=>go(true);
     f.querySelector('#authReset').onclick=async()=>{const em=f.authMail.value.trim();if(!em){out('Escribí tu mail arriba y tocá de nuevo.');return;}
       try{await fbAuth('sendOobCode',{requestType:'PASSWORD_RESET',email:em});out('Si hay una cuenta con ese mail, te mandamos un link para cambiar la contraseña.');}catch(e){out(authMsg(e));}};
@@ -1808,12 +1815,30 @@ function renderAcct(){
   const box=document.createElement('div');const st=document.createElement('strong');st.textContent=AUTH.email;
   const sm=document.createElement('small');sm.textContent='Tu progreso se guarda solo y se sincroniza entre dispositivos';box.append(st,sm);who.append(box);el.appendChild(who);
   const S=cloudState.status;
-  if(S==='denied')msg('Tu cuenta no tiene permiso para guardar. Revisá las reglas de Firestore del proyecto, o usá la copia en archivo.','err');
+  if(S==='denied')msg('Tu cuenta no tiene permiso para guardar. Revisá las reglas de Realtime Database del proyecto, o usá la copia en archivo.','err');
   else msg(S==='saving'?'Guardando…':S==='error'?'No se pudo sincronizar. Se vuelve a intentar con el próximo cambio.':S==='loaded'?'Cargamos el progreso guardado en tu cuenta.':cloudState.at?'Última sincronización: '+ago(cloudState.at)+'.':'Todavía no se sincronizó.',S==='error'?'err':'msg');
   const row=document.createElement('div');row.className='btnrow';
   const b=document.createElement('button');b.className='btn ghost';b.id='cloudNow';b.textContent='Guardar ahora';b.disabled=S==='saving'||S==='denied';b.onclick=()=>pushCloud();
   const lo=document.createElement('button');lo.className='btn ghost';lo.id='authOut';lo.textContent='Cerrar sesión';lo.onclick=()=>{clearTimeout(cloudTimer);setAuth(null);cloudState={status:'idle',at:0};renderAcctIfOpen();};
-  row.append(b,lo);el.appendChild(row);
+  const cp=document.createElement('button');cp.className='btn ghost';cp.id='passOpen';cp.textContent='Cambiar contraseña';
+  row.append(b,cp,lo);el.appendChild(row);
+  const pf=document.createElement('form');pf.id='passForm';pf.noValidate=true;pf.hidden=!passOpen;
+  pf.innerHTML='<label for="passOld">Contraseña actual</label><input id="passOld" type="password" autocomplete="current-password">'+
+    '<label for="passNew">Contraseña nueva</label><input id="passNew" type="password" autocomplete="new-password" minlength="6" aria-describedby="passNewHint">'+
+    '<p class="hint" id="passNewHint">Mínimo 6 caracteres. Distingue mayúsculas de minúsculas; para que sea segura, usá 10 o más mezclando letras y números.</p>'+
+    '<button class="btn" type="submit" id="passSave">Guardar contraseña</button><p class="msg" id="passMsg" aria-live="polite"></p>';
+  el.appendChild(pf);
+  cp.onclick=()=>{pf.hidden=!pf.hidden;passOpen=!pf.hidden;if(passOpen)pf.passOld.focus();};
+  pf.onsubmit=async e=>{e.preventDefault();const o=pf.passOld.value,n=pf.passNew.value,out=t=>{pf.querySelector('#passMsg').textContent=t;};
+    if(!o||!n){out('Completá la contraseña actual y la nueva.');return;}
+    if(n.length<6){out('La contraseña nueva tiene que tener al menos 6 caracteres (tiene '+n.length+').');return;}
+    if(n===o){out('La contraseña nueva tiene que ser distinta de la actual.');return;}
+    const sv=pf.querySelector('#passSave');sv.disabled=true;out('Cambiando la contraseña…');
+    try{let j;try{j=await fbAuth('signInWithPassword',{email:AUTH.email,password:o,returnSecureToken:true});}
+        catch(er){if(/^(INVALID_LOGIN_CREDENTIALS|INVALID_PASSWORD)/.test(er.code))er.code='WRONG_CURRENT';throw er;}
+      setAuth(toAuth(await fbAuth('update',{idToken:j.idToken,password:n,returnSecureToken:true})));pf.reset();out('Listo: cambiaste tu contraseña.');}
+    catch(er){out(er.code==='WRONG_CURRENT'?'La contraseña actual no es correcta.':authMsg(er));}
+    sv.disabled=false;};
 }
 function exportSave(){
   const data=JSON.stringify({app:'cripta-nocturna',v:1,exportedAt:new Date().toISOString(),save:SAVE},null,2);
