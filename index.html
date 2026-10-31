@@ -153,6 +153,8 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 .diff button[data-d="facil"][aria-checked="true"]{background:var(--soul)}
 .diff button[data-d="medio"][aria-checked="true"]{background:var(--ember)}
 .diff button[data-d="dificil"][aria-checked="true"]{background:var(--blood);color:#fff}
+.diff{grid-template-columns:repeat(4,1fr)}.diff button{font-size:15px;letter-spacing:0}
+.diff button[data-d="imposible"][aria-checked="true"]{background:#1a0610;color:#ff4d6d;box-shadow:inset 0 0 0 2px #ff4d6d}
 .diffdesc{font-size:15px;min-height:2.7em}
 .seg{grid-template-columns:1fr 1fr}
 .seg button[aria-checked="true"]{background:var(--ember);color:#1a0d02}
@@ -183,7 +185,7 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 .reclist{display:grid;gap:8px}
 .rec{display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--stone);border:1px solid var(--stone-2)}
 .rtag{font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;padding:4px 8px;border-radius:8px;text-align:center;color:#1a0d02;min-width:68px}
-.rec-facil .rtag{background:var(--soul)}.rec-medio .rtag{background:var(--ember)}.rec-dificil .rtag{background:var(--blood);color:#fff}
+.rec-facil .rtag{background:var(--soul)}.rec-medio .rtag{background:var(--ember)}.rec-dificil .rtag{background:var(--blood);color:#fff}.rec-imposible .rtag{background:#1a0610;color:#ff4d6d;box-shadow:inset 0 0 0 1px #ff4d6d}
 .rec b{font-size:26px;font-variant-numeric:tabular-nums}
 .rec .rs{color:var(--muted);font-size:14px;text-align:right;line-height:1.25}
 .alist{display:grid;gap:8px}
@@ -330,7 +332,7 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 .scorebig b{font-size:44px;line-height:1;color:#ffd27a;font-variant-numeric:tabular-nums}
 .scorebig small{color:var(--muted);font-size:14px}
 .lbrow .diffchip{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:1px 6px;border-radius:6px;margin-right:6px;color:#1a0d02}
-.diffchip.facil{background:var(--soul)}.diffchip.medio{background:var(--ember)}.diffchip.dificil{background:var(--blood);color:#fff}
+.diffchip.facil{background:var(--soul)}.diffchip.medio{background:var(--ember)}.diffchip.dificil{background:var(--blood);color:#fff}.diffchip.imposible{background:#1a0610;color:#ff4d6d}
 @media (prefers-reduced-motion:reduce){.card{animation:none}.xpbar i{transition:none}}
 </style>
 
@@ -369,6 +371,7 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
       <button role="radio" data-d="facil" id="md-facil">Fácil</button>
       <button role="radio" data-d="medio" id="md-medio">Medio</button>
       <button role="radio" data-d="dificil" id="md-dificil">Difícil</button>
+      <button role="radio" data-d="imposible" id="md-imposible">Imposible</button>
     </div>
     <button class="btn cont" id="contBtn" hidden>Continuar partida</button>
     <p class="contnote" id="contNote" hidden></p>
@@ -516,6 +519,7 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
       <button role="radio" data-d="facil" id="d-facil">Fácil</button>
       <button role="radio" data-d="medio" id="d-medio">Medio</button>
       <button role="radio" data-d="dificil" id="d-dificil">Difícil</button>
+      <button role="radio" data-d="imposible" id="d-imposible">Imposible</button>
     </div>
     <p class="diffdesc" id="diffDesc"></p>
     <div class="dtitle">Personaje</div>
@@ -713,7 +717,7 @@ const MISSIONS=[
   {id:'m_elite2',name:'Cosecha de calabazas',desc:'Derrotá 50 calabazas malditas sumando todas tus partidas',goal:50,prog:()=>SAVE.life.elites|0,reward:{coins:1500}},
   {id:'m_elite3',name:'Rey de las calabazas',desc:'Derrotá 5 calabazas malditas en una sola partida',goal:5,prog:()=>SAVE.life.bestElites|0,reward:{gems:3}},
   {id:'m_dawn2',name:'Amanecer temido',desc:'Llegá al amanecer en dificultad Medio',goal:1,prog:()=>(SAVE.life.dawnsBy||{}).medio|0,reward:{coins:2000}},
-  {id:'m_dawn3',name:'Amanecer imposible',desc:'Llegá al amanecer en dificultad Difícil',goal:1,prog:()=>(SAVE.life.dawnsBy||{}).dificil|0,reward:{gems:10}},
+  {id:'m_dawn3',name:'Amanecer de pesadilla',desc:'Llegá al amanecer en dificultad Difícil',goal:1,prog:()=>(SAVE.life.dawnsBy||{}).dificil|0,reward:{gems:10}},
   {id:'m_dawn4',name:'Veinte amaneceres',desc:'Llegá al amanecer 20 veces',goal:20,prog:()=>SAVE.life.dawns|0,reward:{gems:6}},
   {id:'m_dawnch',name:'Todos ven el sol',desc:'Llegá al amanecer con 6 personajes distintos',goal:6,prog:()=>(SAVE.life.dawnChars||[]).length,reward:{gems:8}},
   {id:'m_lvl2',name:'Leyenda',desc:'Llegá a nivel 50 en una partida',goal:50,prog:()=>SAVE.life.maxLvl|0,reward:{coins:2500}},
@@ -843,6 +847,7 @@ const DIFFS={
   facil:{name:'Fácil',hp:1,dmg:1,coin:1,xp:0,pts:1,desc:'La noche normal. Ideal para probar personajes. Puntos ×1.'},
   medio:{name:'Medio',hp:1.5,dmg:1.25,coin:1.25,xp:-.05,pts:1.5,desc:'Enemigos con +50% de vida y +25% de daño. +25% de monedas, -5% de experiencia. Puntos ×1,5.'},
   dificil:{name:'Difícil',hp:2,dmg:1.5,coin:1.5,xp:-.1,pts:2,desc:'Enemigos con +100% de vida y +50% de daño. +50% de monedas, -10% de experiencia. Puntos ×2.'},
+  imposible:{name:'Imposible',hp:2,dmg:2,spd:2,coin:1.5,gem:1.25,xp:-.5,pts:3,desc:'Enemigos con el doble de vida, daño y velocidad. +50% de monedas, +25% de gemas y -50% de experiencia. Puntos ×3.'},
 };
 const BUFFS={
   roll:{name:'Volver a tirar',short:'Cambiar',icon:'roll',coin:[100,200,350,500,750],gem:[10,20],
@@ -856,7 +861,7 @@ const BUFFS={
   velocidad:{name:'Reloj del tiempo',short:'Velocidad',icon:'reloj',gemOnly:[75,250],
     desc:'Acelera el juego. Nivel 1 desbloquea velocidad ×2 y nivel 2 desbloquea ×5. La cambiás con el botón ×1 durante la partida.'},
   gemspawn:{name:'Imán de gemas',short:'Gemas',icon:'gema',gemOnly:[20,30,45,65,90],
-    desc:'+20% de probabilidad de que caigan gemas por cada nivel.'},
+    desc:'+5% de probabilidad de que caigan gemas por cada nivel.'},
 };
 function buffNext(id){const B=BUFFS[id],lv=SAVE.buffs[id]|0;
   if(B.gemOnly)return lv<B.gemOnly.length?{gem:true,n:B.gemOnly[lv]}:null;
@@ -1030,7 +1035,7 @@ function spawnEnemy(type,x,y){
   const d=ETYPES[type],m=1+G.t/60*0.45;
   if(x===undefined){const a=Math.random()*TAU,R=spawnRadius();x=G.p.x+Math.cos(a)*R;y=G.p.y+Math.sin(a)*R;}
   const hard=1+G.st.curse*Math.min(1.5,G.t/600);let hp=d.hp*m*DIFFS[G.diff].hp*hard;if(d.elite)hp*=1+G.elites*0.6;
-  const spd=d.spd*rand(.9,1.1)*enemySpdMult(G.t);
+  const spd=d.spd*rand(.9,1.1)*enemySpdMult(G.t)*(DIFFS[G.diff].spd||1);
   const e={type,x,y,hp,max:hp,spd,dmg:d.dmg*enemyDmgMult(G.t)*DIFFS[G.diff].dmg*hard,r:d.r,xp:d.xp,kb:d.kb/(1+Math.max(0,spd-50)/120),elite:!!d.elite,kx:0,ky:0,flash:0,oh:0,mh:0,frozen:0,ph:Math.random()*TAU,dead:false};
   G.enemies.push(e);return e;}
 function spawnUpdate(dt){
@@ -1070,7 +1075,7 @@ function hurt(e,base,kx,ky,src){
     if(e.elite){for(let i=0;i<10*st.coinMul;i++)G.coinsArr.push({x:e.x+rand(-26,26),y:e.y+rand(-26,26),sp:0,fly:false});}
     else if(Math.random()<.05*st.coinMul)G.coinsArr.push({x:e.x+4,y:e.y+4,sp:0,fly:false});
     if(e.elite&&Math.random()<.5)G.crysArr.push({x:e.x,y:e.y-22,sp:0,fly:false});
-    else if(Math.random()<.0015*DIFFS[G.diff].coin*(1+.2*(SAVE.buffs.gemspawn|0)))G.crysArr.push({x:e.x-4,y:e.y-4,sp:0,fly:false});
+    else if(Math.random()<.0015*(DIFFS[G.diff].gem||DIFFS[G.diff].coin)*(1+.05*(SAVE.buffs.gemspawn|0)))G.crysArr.push({x:e.x-4,y:e.y-4,sp:0,fly:false});
     if(st.killHeal){G.killN++;if(G.killN%25===0){G.p.hp=Math.min(G.p.maxHp,G.p.hp+st.killHeal);G.texts.push({x:G.p.x,y:G.p.y-20,txt:'+'+st.killHeal,life:.8,heal:true});}}
     if(e.elite){G.elitesKilled++;G.items.push({x:e.x+14,y:e.y,kind:'heal'});G.items.push({x:e.x-14,y:e.y,kind:'vacuum'});G.shake=.35;}
     else if(Math.random()<.006)G.items.push({x:e.x,y:e.y,kind:'heal'});
@@ -1733,7 +1738,7 @@ function statsHtml(){
     ['Espinas',String(st.thorns),cls(st.thorns)],
     ['Suerte',pct(st.luck),cls(st.luck)],
     ['Dificultad',pct(st.curse),st.curse>0?'down':''],
-    ['Gemas extra','+'+((SAVE.buffs.gemspawn|0)*20)+'%',cls(SAVE.buffs.gemspawn|0)],
+    ['Gemas extra','+'+((SAVE.buffs.gemspawn|0)*5)+'%',cls(SAVE.buffs.gemspawn|0)],
     ['Usos C · B · S',G.charges.roll+' · '+G.charges.ban+' · '+G.charges.skip,''],
     ['Bloqueados',String(G.banned.size),''],
     ['Modo',DIFFS[G.diff].name,''],
