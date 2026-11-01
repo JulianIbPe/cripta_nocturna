@@ -28,6 +28,13 @@ Juego survivors para celular en un solo archivo, `index.html` (HTML + CSS + JS s
 - **Reglas de Firebase:** `firebase-rules.json` (pegarlas en Realtime Database → Reglas cuando cambien).
 - **Clasificación:** Firebase `scores/<uid>` = `{name, score, best, at}` (lectura pública; para aparecer hace falta sesión y nombre de usuario, y las reglas exigen que `name` sea el de `users/<uid>/name`). `initOnline` trae tu mejor puntaje, `submitScore` lo guarda en `SAVE.pendScore` y `flushScore` lo sube (reintenta con el guardado automático), `subscribeBoard` recarga la tabla cada 30 s.
 
+## Flujo de trabajo
+
+- GitHub (`JulianIbPe/cripta_nocturna`, rama `main`) es la fuente de verdad. Antes de cambiar algo, traé lo último de `main`.
+- Cada cambio se commitea y se pushea directo a `main`, sin ramas ni PR, salvo que el usuario pida otra cosa.
+- Cada push a `main` dispara `release.yml` y saca una versión nueva del .exe y el APK. Si el cambio no toca el juego (solo docs o notas), agregá `[skip ci]` al mensaje del commit para no publicar un Release vacío.
+- El artifact de claude.ai y la carpeta de la PC se actualizan solo si el usuario lo pide.
+
 ## Al cambiar algo
 
 - Probá en un navegador headless con viewport de celular (390×844) y revisá que no haya errores de consola.
