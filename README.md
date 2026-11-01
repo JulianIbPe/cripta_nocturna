@@ -22,6 +22,8 @@ En [Releases](https://github.com/JulianIbPe/cripta_nocturna/releases/latest) est
 - Mejoras con rareza (Común a Mítica) según la suerte, y efectos al pasarse del máximo (overcrit, sobrecarga, contraataque).
 - Tres dificultades (Fácil, Medio, Difícil) con multiplicador de puntos.
 - Tienda de mejoras permanentes (Cambiar, Bloquear, Saltar, Sabiduría, Imán de gemas, Reloj del tiempo).
+- 10 tipos de enemigos y 3 jefes (Reina Araña, El Conde y Coloso de Lápidas) que aparecen cada 5 minutos.
+- Drops de curación, imán y bomba que limpia la pantalla.
 - Partida guardada automáticamente, récords y registro del caos.
 
 ## Guardado
