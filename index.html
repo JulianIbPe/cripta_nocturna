@@ -218,6 +218,8 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 .modgrid{grid-template-columns:1fr auto;align-items:center}
 .modgrid input,.modgrid select{width:110px;flex:none;font:inherit;font-size:16px;padding:6px 8px;border-radius:8px;border:1px solid var(--stone-2);background:#0f0d20;color:var(--ink)}
 .modgrid .btn{padding:6px 14px}
+.devopt{display:grid;gap:8px;padding-top:12px;border-top:1px solid var(--stone-2)}
+.devopt .hint{margin:0}
 .modchk{display:flex;gap:8px;align-items:center;font-size:17px;color:var(--ink)}.modchk input{width:22px;height:22px;flex:none}
 #authForm .hint,#passForm .hint,#nameForm .hint{margin:-2px 0 2px;width:100%;font-size:13px;color:var(--muted)}
 .acct .btn{font-size:16px;padding:11px 16px;box-shadow:0 4px 0 #a3480f}
@@ -493,7 +495,7 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
   <div class="panel">
     <div class="eyebrow">Solo para pruebas</div>
     <h2>Menú de pruebas</h2>
-    <p>Las partidas en las que usás algo de acá no cuentan para la clasificación.</p>
+    <p>Mientras el menú de pruebas esté activado, tus partidas no cuentan para la clasificación. Lo desactivás en Cuenta.</p>
     <p class="toast" id="modToast" aria-live="polite"></p>
     <div id="modBody"></div>
     <button class="btn ghost" id="modBack">Volver</button>
@@ -853,6 +855,13 @@ const DIFFS={
   dificil:{name:'Difícil',hp:2,dmg:1.5,coin:1.5,xp:-.1,pts:2,desc:'Enemigos con +100% de vida y +50% de daño. +50% de monedas y de gemas, -10% de experiencia. Puntos ×2.'},
   imposible:{name:'Imposible',hp:2,dmg:2,spd:2,coin:1.5,gem:1.25,xp:-.5,pts:3,desc:'Enemigos con el doble de vida, daño y velocidad. +50% de monedas, +25% de gemas y -50% de experiencia. Puntos ×3.'},
 };
+// Texto corto con solo lo que cambia la dificultad: "Vida enemiga +50% · Exp -5% · Puntos ×1,5"
+function diffChanges(k){const D=DIFFS[k],out=[],pc_=v=>(v>0?'+':'')+Math.round(v*100)+'%';
+  const add=(t,v)=>{if(v&&Math.abs(v)>1e-9)out.push(t+' '+pc_(v));};
+  add('Vida enemiga',D.hp-1);add('Daño enemigo',D.dmg-1);add('Velocidad enemiga',(D.spd||1)-1);
+  add('Monedas',D.coin-1);add('Gemas',(D.gem!==undefined?D.gem:D.coin)-1);add('Exp',D.xp);
+  out.push('Puntos ×'+String(D.pts).replace('.',','));
+  return (out.length===1?'Sin cambios · ':'')+out.join(' · ');}
 const BUFFS={
   roll:{name:'Volver a tirar',short:'Cambiar',icon:'roll',coin:[100,200,350,500,750],gem:[10,20],
     desc:'Cambia las 3 mejoras en pantalla por otras. +1 uso por partida en cada nivel.'},
@@ -1018,7 +1027,7 @@ function newGame(ch,df){
   const cl=SAVE.charLv[ch]|0;G.st.dmg+=.1*cl;G.p.maxHp+=10*cl;G.p.hp+=10*cl;G.abMul=Math.max(.4,1-.08*cl);if(cl&&c.grow)c.grow.f(G,cl);
   G.wLv[c.weapon]=1;
   G.charges={roll:SAVE.buffs.roll|0,ban:SAVE.buffs.ban|0,skip:SAVE.buffs.skip|0};
-  G.mod=!!SAVE.mod;
+  G.mod=devActive();
   grid.clear();
   $('#abIcon').innerHTML=svg(c.active.icon,'#ffb36b');
   $('#abName').textContent=c.active.name;
@@ -2038,20 +2047,33 @@ function renderAcct(){
       setAuth(toAuth(await fbAuth('update',{idToken:j.idToken,password:n,returnSecureToken:true})));pf.reset();out('Listo: cambiaste tu contraseña.');}
     catch(er){out(er.code==='WRONG_CURRENT'?'La contraseña actual no es correcta.':authMsg(er));}
     sv.disabled=false;};
-  if(IS_DEV){const md=document.createElement('button');md.className='btn ghost';md.id='modOpen';md.textContent='Menú de pruebas';md.onclick=openMod;el.appendChild(md);}
+  if(IS_DEV){
+    const box=document.createElement('div');box.className='devopt';
+    const lb=document.createElement('label');lb.className='modchk';lb.htmlFor='devToggle';
+    const ck=document.createElement('input');ck.type='checkbox';ck.id='devToggle';ck.checked=!!SAVE.devOn;
+    lb.append(ck,document.createTextNode(' Menú de pruebas'));
+    const hint=document.createElement('p');hint.className='hint';
+    hint.textContent=SAVE.devOn?'Activado: tus partidas no cuentan para la clasificación. Desactivalo para volver a aparecer.':'Desactivado: tus partidas cuentan para la clasificación.';
+    box.append(lb,hint);
+    ck.onchange=()=>{SAVE.devOn=ck.checked;persist();syncDevUi();renderAcct();};
+    if(SAVE.devOn){const md=document.createElement('button');md.className='btn ghost';md.id='modOpen';md.textContent='Abrir menú de pruebas';md.onclick=openMod;box.appendChild(md);}
+    el.appendChild(box);}
 }
 /* ---- Menú de pruebas: solo para la cuenta dueña (hash SHA-256 del mail, para no publicarlo) ---- */
 // shortcut: el chequeo es del lado del cliente; alcanza para que no lo vea nadie más, no para impedir que alguien edite el juego
 const DEV_HASH='842985e128aa4f898b629990dbe6de9a9ec0236f6a085118d7b7663fa000f796';
 let IS_DEV=false;
+// El menú de pruebas es una opción de la cuenta dueña: activado, sus partidas no cuentan para la clasificación; desactivado, sí.
+const devActive=()=>IS_DEV&&!!SAVE.devOn;
+function syncDevUi(){$('#modPause').hidden=!devActive();}
 async function checkDev(){
   try{IS_DEV=!!AUTH&&[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(AUTH.email.toLowerCase())))].map(b=>b.toString(16).padStart(2,'0')).join('')===DEV_HASH;}catch(e){IS_DEV=false;}
-  $('#modPause').hidden=!IS_DEV;renderAcctIfOpen();}
+  syncDevUi();renderAcctIfOpen();}
 const ST_NAMES={dmg:'Daño ×',cd:'Enfriamiento ×',cdRaw:'Enfriamiento base ×',area:'Área ×',spd:'Velocidad ×',projSpd:'Vel. de proyectiles ×',amount:'Proyectiles extra',magnet:'Imán (px)',regen:'Regeneración',armor:'Armadura',crit:'Crítico',leech:'Robo de vida',killHeal:'Cura por baja',evade:'Esquivar',thorns:'Espinas',exec:'Ejecución',slowAura:'Aura lenta',curse:'Maldición',luck:'Suerte',xpMul:'Experiencia ×',coinMul:'Monedas ×',kb:'Empuje ×'};
 const MOD_FLAGS=[['god','Invencible (no recibís daño)'],['infHp','Vida infinita'],['maxDmg','Daño máximo (todo muere de un golpe)'],['noCd','Sin tiempo de espera (habilidad y armas)']];
 const modToast=t=>{$('#modToast').textContent=t;};
 function modMark(inRun){if(G)G.mod=true;if(!inRun)SAVE.mod=true;}
-function openMod(){if(!IS_DEV)return;modToast('');renderMod();show('mod');$('#mod').scrollTop=0;}
+function openMod(){if(!devActive())return;modToast('');renderMod();show('mod');$('#mod').scrollTop=0;}
 function closeMod(){if(G&&state==='paused'){$('#inv').innerHTML=invHtml();$('#statgrid').innerHTML=statsHtml();show('pause');}else{renderAcct();show('account');}}
 function renderMod(){
   const el=$('#modBody'),run=G&&state==='paused';
@@ -2135,8 +2157,7 @@ function renderChars(){
   CU.remove();
   $('#charCoins').textContent=SAVE.coins;$('#charGems').textContent=SAVE.gems;
   renderDiff();
-  const bb=SAVE.bestBy[SAVE.diff];
-  $('#diffDesc').textContent=DIFFS[SAVE.diff].desc+(bb?' Tu récord acá: '+fmt(bb.t)+'.':'');
+  $('#diffDesc').textContent=diffChanges(SAVE.diff);
   const box=$('#charList');box.innerHTML='';
   for(const id in CHARS){const c=CHARS[id],own=SAVE.unlocked.includes(id);
     const b=document.createElement('button');b.className='char'+(own?'':' locked')+(c.gems?' prem':'')+(id===pickSel?' sel':'');b.id='char-'+id;
@@ -2185,8 +2206,7 @@ function tryStartOrBuy(){
 }
 function renderDiff(){
   document.querySelectorAll('[data-d]').forEach(b=>b.setAttribute('aria-checked',String(b.dataset.d===SAVE.diff)));
-  const bb=SAVE.bestBy[SAVE.diff];
-  $('#diffDesc').textContent=$('#menuDiffDesc').textContent=DIFFS[SAVE.diff].desc+(bb?' Tu récord acá: '+fmt(bb.t)+'.':'');
+  $('#diffDesc').textContent=$('#menuDiffDesc').textContent=diffChanges(SAVE.diff);
 }
 /* ---- Main menu ---- */
 const CH_IDS=Object.keys(CHARS);
@@ -2343,7 +2363,7 @@ function resumeRun(){
 }
 function start(ch){clearRun();initAudio();newGame(ch,SAVE.diff);lastRunSave=0;hudCache={};state='play';show(null);last=performance.now();
   try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{});}catch(e){}}
-function pause(){if(state!=='play')return;state='paused';saveRun();endReset();if(restartArm){clearTimeout(restartArm);restartArm=null;}$('#restartBtn').textContent='Reiniciar partida';$('#restartBtn').style.borderColor='';joy.active=false;$('#inv').innerHTML=invHtml();$('#statgrid').innerHTML=statsHtml();chaosLogRender();show('pause');$('#pause').scrollTop=0;}
+function pause(){if(state!=='play')return;state='paused';syncDevUi();saveRun();endReset();if(restartArm){clearTimeout(restartArm);restartArm=null;}$('#restartBtn').textContent='Reiniciar partida';$('#restartBtn').style.borderColor='';joy.active=false;$('#inv').innerHTML=invHtml();$('#statgrid').innerHTML=statsHtml();chaosLogRender();show('pause');$('#pause').scrollTop=0;}
 function resume(){state='play';show(null);last=performance.now();}
 function gameOver(){
   state='over';clearRun();joy.active=false;
@@ -2371,7 +2391,7 @@ function gameOver(){
   if(paid.length)parts.push('Cobraste: '+paid.map(m=>m.name+' ('+rewardTxt(m.reward)+')').join(', '));
   if(parts.length){mn.textContent='¡Misión cumplida! '+parts.join('. ')+'.';mn.hidden=false;}else mn.hidden=true;
   const sub=submitScore(),ln=$('#lbNote');
-  if(sub==='mod'){ln.textContent='Partida con el menú de pruebas: no cuenta para la clasificación.';ln.hidden=false;}
+  if(sub==='mod'){ln.textContent='Partida con el menú de pruebas activado: no cuenta para la clasificación. Desactivalo en Cuenta para volver a aparecer.';ln.hidden=false;}
   else if(sub===true){ln.textContent='¡Nuevo mejor puntaje! Ya está en la clasificación.';ln.hidden=false;}
   else if(sub===null&&FB.apiKey){ln.textContent=AUTH?'Elegí tu nombre de usuario en Cuenta para que tus récords aparezcan en la clasificación.':'Iniciá sesión en Cuenta para que tus récords aparezcan en la clasificación.';ln.hidden=false;}
   else ln.hidden=true;
