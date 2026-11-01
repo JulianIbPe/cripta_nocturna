@@ -16,8 +16,8 @@ En [Releases](https://github.com/JulianIbPe/cripta_nocturna/releases/latest) est
 ## Qué tiene
 
 - 12 personajes: 6 se desbloquean con monedas y 6 élite con gemas. Cada uno tiene pasiva, habilidad activa y mejoras compradas con monedas.
-- 23 armas (5 se desbloquean con misiones y 6 son exclusivas de los personajes élite) y 20 objetos de estadísticas, hasta nivel 20.
-- 21 misiones: las primeras desbloquean armas y las difíciles dan monedas o gemas.
+- 29 armas (11 se desbloquean con misiones y 6 son exclusivas de los personajes élite) y 20 objetos de estadísticas, hasta nivel 20.
+- 30 misiones: 11 desbloquean armas y las difíciles dan monedas o gemas.
 - Mejoras de personaje hasta nivel 7 (el 6 y el 7 con gemas) que también suben su pasiva.
 - Mejoras con rareza (Común a Mítica) según la suerte, y efectos al pasarse del máximo (overcrit, sobrecarga, contraataque).
 - Tres dificultades (Fácil, Medio, Difícil) con multiplicador de puntos.

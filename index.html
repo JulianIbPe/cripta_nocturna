@@ -670,6 +670,25 @@ const WDEF={
   ballesta:{name:'Ballesta de plata',col:'#d8dbe8',mission:'m_lvl',
     up:['Dispara virotes rapidísimos al enemigo más cercano.','+2 de daño y más rápida','Atraviesa 1 más','+1 virote','+1 virote y +3 de daño'],
     dmg:[9,11,13,13,16],cd:[.55,.5,.45,.42,.38],n:[1,1,1,2,3],pierce:[2,2,3,3,4]},
+  // Armas que se desbloquean con misiones (segunda tanda)
+  tridente:{name:'Tridente infernal',col:'#ff6a3d',mission:'m_boss',
+    up:['Lanza tres puntas ardientes en abanico que atraviesan enemigos.','+6 de daño','Atraviesan 1 más y recarga más rápida','+1 punta y +8 de daño','+1 punta, atraviesan 1 más y +10 de daño'],
+    dmg:[16,22,22,30,40],cd:[1.2,1.15,1.05,1,.9],n:[3,3,3,4,5],pierce:[2,2,3,3,4]},
+  fuegofatuo:{name:'Fuego fatuo',col:'#7af0ff',mission:'m_bombs',
+    up:['Suelta llamas que persiguen solas al enemigo más cercano.','+1 llama','+4 de daño y recarga más rápida','+1 llama y +4 de daño','+1 llama y +6 de daño'],
+    dmg:[12,12,16,20,26],cd:[1.4,1.3,1.2,1.1,1],n:[1,2,2,3,4]},
+  cadenas:{name:'Cadenas del purgatorio',col:'#9ad0ff',mission:'m_arana',
+    up:['Un rayo encadenado salta de enemigo en enemigo.','Salta a 1 enemigo más','+5 de daño y salta 1 más','+6 de daño y salta 1 más','Salta a 2 más y +8 de daño'],
+    dmg:[14,14,19,25,33],cd:[1.6,1.5,1.4,1.3,1.1],jumps:[3,4,5,6,8]},
+  ataud:{name:'Ataúd giratorio',col:'#b08a6a',mission:'m_vamp',
+    up:['Un ataúd pesado gira a tu alrededor y aplasta lo que toca.','+8 de daño y gira más rápido','+1 ataúd','+10 de daño y más radio','+1 ataúd y +12 de daño'],
+    dmg:[25,33,33,43,55],n:[1,1,2,2,3],r:[72,72,80,88,96],spin:[1.8,2.1,2.1,2.3,2.5]},
+  cuervos:{name:'Bandada de cuervos',col:'#5a5f7a',mission:'m_garg',
+    up:['Cuervos cruzan la pantalla de lado a lado picoteando todo a su paso.','+1 cuervo','+5 de daño y recarga más rápida','+1 cuervo y +5 de daño','+2 cuervos y +6 de daño'],
+    dmg:[15,15,20,25,31],cd:[2.4,2.2,2,1.9,1.7],n:[2,3,3,4,6]},
+  sello:{name:'Sello rúnico',col:'#c06bff',mission:'m_imp',
+    up:['Dibuja runas en el suelo que explotan cuando un enemigo las pisa.','+10 de daño','+1 runa y explosión más grande','+15 de daño','+1 runa, explosión más grande y +20 de daño'],
+    dmg:[35,45,45,60,80],cd:[1.8,1.7,1.6,1.5,1.3],n:[1,1,2,2,3],r:[45,45,55,55,70]},
   // Exclusivas de los élite: arrancan con ella y solo a ese personaje le aparece al subir de nivel.
   // Las seis primeras son además su arma inicial, así ningún personaje repite arma.
   martillo:{name:'Martillo de trueno',col:'#8fd3ff',excl:'valkiria',
@@ -715,7 +734,16 @@ const MISSIONS=[
   {id:'m_elite',name:'Cazacalabazas',desc:'Derrotá 10 calabazas malditas sumando todas tus partidas',goal:10,prog:()=>SAVE.life.elites|0},
   {id:'m_dawn',name:'Hasta el amanecer',desc:'Llegá al amanecer (10:00) en una partida',goal:1,prog:()=>SAVE.life.dawns|0},
   {id:'m_lvl',name:'Veterano',desc:'Llegá a nivel 20 en una partida',goal:20,prog:()=>SAVE.life.maxLvl|0},
+  {id:'m_boss',name:'Matajefes',desc:'Derrotá a un jefe',goal:1,prog:()=>SAVE.life.bosses|0},
+  {id:'m_bombs',name:'Artificiero',desc:'Juntá 10 bombas sumando todas tus partidas',goal:10,prog:()=>SAVE.life.bombs|0},
+  {id:'m_arana',name:'Fumigador',desc:'Matá 500 arañas sumando todas tus partidas',goal:500,prog:()=>(SAVE.life.killsBy||{}).arana|0},
+  {id:'m_vamp',name:'Estaca y ajo',desc:'Matá 300 vampiros sumando todas tus partidas',goal:300,prog:()=>(SAVE.life.killsBy||{}).vampiro|0},
+  {id:'m_garg',name:'Picapiedras',desc:'Matá 150 gárgolas sumando todas tus partidas',goal:150,prog:()=>(SAVE.life.killsBy||{}).gargola|0},
+  {id:'m_imp',name:'Lo imposible',desc:'Sobreviví 5 minutos en dificultad Imposible',goal:300,prog:()=>Math.floor((SAVE.life.bestTBy||{}).imposible||0),time:true},
   // Difíciles: premio en monedas o gemas (se cobra una sola vez, ver payMissions)
+  {id:'m_boss2',name:'Cazador de jefes',desc:'Derrotá 10 jefes sumando todas tus partidas',goal:10,prog:()=>SAVE.life.bosses|0,reward:{gems:6}},
+  {id:'m_boss3',name:'Ronda completa',desc:'Derrotá a los 3 jefes en una sola partida',goal:3,prog:()=>SAVE.life.bestBosses|0,reward:{gems:8}},
+  {id:'m_bombs2',name:'Demolición',desc:'Juntá 50 bombas sumando todas tus partidas',goal:50,prog:()=>SAVE.life.bombs|0,reward:{coins:2000}},
   {id:'m_kills2',name:'Exterminador',desc:'Matá 10.000 enemigos sumando todas tus partidas',goal:10000,prog:()=>SAVE.life.kills|0,reward:{coins:1500}},
   {id:'m_kills3',name:'Plaga de la noche',desc:'Matá 50.000 enemigos sumando todas tus partidas',goal:50000,prog:()=>SAVE.life.kills|0,reward:{gems:5}},
   {id:'m_runk',name:'Masacre',desc:'Matá 1.000 enemigos en una sola partida',goal:1000,prog:()=>SAVE.life.bestKills|0,reward:{coins:1000}},
@@ -841,6 +869,12 @@ const ICON={
   avalancha:'<path d="M6 21V9a6 6 0 0 1 12 0v12z"/><path d="M10 13h4M12 11v6"/>',
   siegaalmas:'<path d="M4 20c6 0 12-5 14-14-5 3-10 4-14 2"/><circle cx="17" cy="17" r="3"/>',
   ballesta:'<path d="M4 20 20 4"/><path d="M14 4h6v6"/><path d="M5 9c3 0 7 4 10 10"/>',
+  tridente:'<path d="M12 22V6M6 4v5a6 6 0 0 0 12 0V4M12 2v4"/>',
+  fuegofatuo:'<path d="M12 21a5 5 0 0 0 5-5c0-4-5-6-3-12-4 2-7 6-7 12a5 5 0 0 0 5 5z"/><circle cx="12" cy="16" r="2"/>',
+  cadenas:'<rect x="3" y="9" width="8" height="6" rx="3"/><rect x="13" y="9" width="8" height="6" rx="3"/><path d="M9 12h6"/>',
+  ataud:'<path d="M9 2h6l3 6-2 14H8L6 8z"/><path d="M12 7v8M9.5 10h5"/>',
+  cuervos:'<path d="M3 12c3-1 5-4 9-4 2 0 3 1 4 2l5-1-4 3c0 3-3 5-7 5l-3 3v-4c-2 0-3-1-4-4z"/>',
+  sello:'<circle cx="12" cy="12" r="9"/><path d="M12 4l4.7 14.5L4.4 9.5h15.2L7.3 18.5z"/>',
   bomba:'<circle cx="11" cy="14" r="7"/><path d="M15 9l3-3M18 3v2M21 6h-2"/>',
   cuenta:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
   mision:'<path d="M5 21V4h11l-2 4 2 4H5"/>',
@@ -1027,7 +1061,7 @@ function newGame(ch,df){
     st:{dmg:1,cd:1,area:1,spd:1,magnet:60,regen:0,armor:0,amount:0,crit:0,leech:0,xpMul:1,coinMul:1,killHeal:0,slowAura:0,thorns:0,exec:0,evade:0,curse:0,luck:0,projSpd:1,cdRaw:1,kb:1},
     weapons:[],passives:{},
     enemies:[],shots:[],gems:[],items:[],texts:[],parts:[],bolts:[],coinsArr:[],allies:[],rings:[],
-    coins:0,crys:0,crysArr:[],timers:[],meteors:[],wLv:{},chaosLog:[],sweeps:[],beams:[],waves:[],wMult:{},elitesKilled:0,banned:new Set(),curOpts:[],banMode:false,score:0,killN:0,dawn:false,freezeFx:0,ab:{cd:3},
+    coins:0,crys:0,crysArr:[],timers:[],meteors:[],runes:[],killsBy:{},bombsUsed:0,wLv:{},chaosLog:[],sweeps:[],beams:[],waves:[],wMult:{},elitesKilled:0,banned:new Set(),curOpts:[],banMode:false,score:0,killN:0,dawn:false,freezeFx:0,ab:{cd:3},
     spawnAcc:0,nextBoss:300,bosses:0,bossCycle:0,bossesKilled:0,slams:[],nextElite:120,elites:0,nextSwarm:90,swarms:0,warned:false,
     cam:{x:0,y:0},shake:0,banner:null};
   const c=CHARS[ch];
@@ -1089,7 +1123,7 @@ function banner(txt){G.banner={txt,life:2.6};}
 /* ---------- Combat ---------- */
 // Bomba: mata a todos los enemigos comunes en pantalla y saca el 15% de la vida a los jefes y calabazas
 function bomb(){
-  const p=G.p;let n=0;
+  const p=G.p;let n=0;G.bombsUsed++;
   for(const e of G.enemies){if(e.dead||Math.abs(e.x-G.cam.x)>VW/2+30||Math.abs(e.y-G.cam.y)>VH/2+30)continue;
     if(e.elite)hurt(e,e.max*.15/Math.max(.01,G.st.dmg),0,0,'bomba');else{hurt(e,e.hp*10/Math.max(.01,G.st.dmg)+1e6,0,0,'bomba');n++;}}
   G.bombFx=.5;G.shake=.6;G.rings.push({x:p.x,y:p.y,r:Math.max(VW,VH)*.6,col:'#ffe27a',life:.45});sfx('boss');banner('¡Bomba! '+n+' enemigos eliminados');
@@ -1111,6 +1145,7 @@ function hurt(e,base,kx,ky,src){
     const c=ETYPES[e.type].col;
     for(let i=0;i<(e.elite?24:6);i++){const a=Math.random()*TAU,s=rand(30,e.elite?220:110);
       if(G.parts.length<300)G.parts.push({x:e.x,y:e.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rand(.25,.55),max:.55,col:c,sz:rand(2,4)});}
+    G.killsBy[e.type]=(G.killsBy[e.type]|0)+1;
     G.score+=ETYPES[e.type].pts*DIFFS[G.diff].pts*(1+st.curse)*timeMult(G.t);
     dropGem(e.x,e.y,e.xp);
     if(e.elite){for(let i=0;i<(e.boss?25:10)*st.coinMul;i++)G.coinsArr.push({x:e.x+rand(-26,26),y:e.y+rand(-26,26),sp:0,fly:false});}
@@ -1141,6 +1176,10 @@ function updateWeapons(dt){
     const D=WDEF[w.id],L=Math.min(w.lvl,5)-1;
     if(w.id==='incienso'){w.timer-=dt*(G.noCd?20:1);w.pulse=Math.max(0,(w.pulse||0)-dt*4);if(w.timer<=0){w.timer=D.tick[L]*st.cd*Math.max(.5,1-.03*Math.max(0,w.lvl-5));w.pulse=1;const R=D.r[L]*st.area;
       near(p.x,p.y,R+24,e=>{const dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy)||1;if(d<R+e.r)hurt(e,D.dmg[L],dx/d*40,dy/d*40,'incienso');});}continue;}
+    if(w.id==='ataud'){const n=D.n[L]+st.amount,R=D.r[L]*st.area;w.ang+=dt*D.spin[L];
+      for(let i=0;i<n;i++){const a=w.ang+i/n*TAU,ox=p.x+Math.cos(a)*R,oy=p.y+Math.sin(a)*R;
+        near(ox,oy,40,e=>{if(e.ohA>G.t||e.dead)return;const dx=e.x-ox,dy=e.y-oy;if(dx*dx+dy*dy<(e.r+14)**2){const d=Math.hypot(e.x-p.x,e.y-p.y)||1;hurt(e,D.dmg[L],(e.x-p.x)/d*420,(e.y-p.y)/d*420,'ataud');e.ohA=G.t+.6*st.cd;}});}
+      continue;}
     if(w.id==='calaveras'){const n=D.n[L]+st.amount,R=D.r[L]*st.area;w.ang+=dt*D.spin[L];
       for(let i=0;i<n;i++){const a=w.ang+i/n*TAU,ox=p.x+Math.cos(a)*R,oy=p.y+Math.sin(a)*R;
         near(ox,oy,32,e=>{if(e.oh>0||e.dead)return;const dx=e.x-ox,dy=e.y-oy;if(dx*dx+dy*dy<(e.r+9)**2){const d=Math.hypot(e.x-p.x,e.y-p.y)||1;hurt(e,D.dmg[L],(e.x-p.x)/d*220,(e.y-p.y)/d*220,'calaveras');e.oh=.45*st.cd;}});}
@@ -1189,6 +1228,22 @@ function updateWeapons(dt){
         for(const e of G.enemies){if(e.dead)continue;const rx=e.x-p.x,ry=e.y-p.y,al=rx*cx+ry*cy;if(al<0||al>len+e.r)continue;if(Math.abs(rx*cy-ry*cx)<wd+e.r)hurt(e,D.dmg[L],cx*80,cy*80,'ojo');}}
     }else if(w.id==='campana'){w.timer=D.cd[L]*st.cd;pushWaves({x:p.x,y:p.y,max:D.R[L]*st.area,dmg:D.dmg[L]});
     }else if(w.id==='linterna'){w.timer=.3*st.cd;G.zones.push({x:p.x,y:p.y+6,r:D.r[L]*st.area,dmg:D.dmg[L],life:D.dur[L],tick:0,src:'linterna',fire:true});
+    }else if(w.id==='tridente'){const ts=nearestEnemies(1);if(!ts.length){w.timer=.15;continue;}w.timer=D.cd[L]*st.cd;
+      const n=D.n[L]+st.amount,a0=Math.atan2(ts[0].y-p.y,ts[0].x-p.x);
+      for(let i=0;i<n;i++){const a=a0+(i-(n-1)/2)*.18;G.shots.push({src:'tridente',kind:'quarrel',col:'#ff6a3d',x:p.x,y:p.y,vx:Math.cos(a)*420,vy:Math.sin(a)*420,dmg:D.dmg[L],pierce:D.pierce[L],r:6,life:.9,hit:new Set()});}
+    }else if(w.id==='fuegofatuo'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount;
+      for(let i=0;i<n;i++){const a=Math.random()*TAU;G.shots.push({src:'fuegofatuo',kind:'bolt',col:'#7af0ff',home:true,x:p.x,y:p.y,vx:Math.cos(a)*200,vy:Math.sin(a)*200,dmg:D.dmg[L],pierce:0,r:6,life:3,hit:new Set()});}
+    }else if(w.id==='cadenas'){const starts=nearestEnemies(1+st.amount);if(!starts.length){w.timer=.15;continue;}w.timer=D.cd[L]*st.cd;
+      for(const s0 of starts){const hit=new Set(),pts=[[p.x,p.y]];let cur=s0;
+        for(let j=0;j<D.jumps[L]&&cur;j++){hit.add(cur);pts.push([cur.x,cur.y]);hurt(cur,D.dmg[L],0,0,'cadenas');
+          let nx=null,bd=140*140*st.area*st.area;near(cur.x,cur.y,140*st.area,o=>{if(o.dead||hit.has(o))return;const dd=(o.x-cur.x)**2+(o.y-cur.y)**2;if(dd<bd){bd=dd;nx=o;}});cur=nx;}
+        G.bolts.push({x:pts[pts.length-1][0],y:pts[pts.length-1][1],pts,R:0,life:.25,col:'#9ad0ff'});}
+      sfx('zap');
+    }else if(w.id==='cuervos'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount,dir=Math.random()<.5?1:-1;
+      for(let i=0;i<n;i++){const y=G.cam.y+rand(-VH*.42,VH*.42),x=G.cam.x-dir*(VW/2+20+i*22);
+        G.shots.push({src:'cuervos',kind:'crow',x,y,vx:dir*rand(300,360),vy:rand(-15,15),wob:Math.random()*TAU,dmg:D.dmg[L],pierce:99,r:8,life:(VW+80)/300+.4,hit:new Set()});}
+    }else if(w.id==='sello'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount;
+      for(let i=0;i<n;i++){if(G.runes.length>=24)break;const a=Math.random()*TAU,d=rand(30,130);G.runes.push({x:p.x+Math.cos(a)*d,y:p.y+Math.sin(a)*d,R:D.r[L]*st.area,dmg:D.dmg[L],life:6,arm:.4});}
     }else if(w.id==='ballesta'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.15;continue;}w.timer=D.cd[L]*st.cd;
       for(let i=0;i<n;i++){const t=ts[i%ts.length],a=Math.atan2(t.y-p.y,t.x-p.x)+(i>=ts.length?rand(-.15,.15):0);
         G.shots.push({src:'ballesta',kind:'quarrel',x:p.x,y:p.y,vx:Math.cos(a)*560,vy:Math.sin(a)*560,dmg:D.dmg[L],pierce:D.pierce[L],r:5,life:.9,hit:new Set()});}
@@ -1418,6 +1473,11 @@ function update(dt){
   for(const f of G.flasks){f.t+=dt*2.8*G.st.projSpd;if(f.t>=1){f.dead=true;G.zones.push({x:f.tx,y:f.ty,r:f.r,dmg:f.dmg,life:f.dur,tick:0});}}
   for(const z of G.zones){z.life-=dt;z.tick-=dt;if(z.tick<=0){z.tick=.3*G.st.cd;near(z.x,z.y,z.r+24,e=>{if(Math.hypot(e.x-z.x,e.y-z.y)<z.r+e.r*.5)hurt(e,z.dmg,0,0,z.src||'agua');});}}
   for(const sl of G.slashes)sl.life-=dt;
+  for(const rn of G.runes){rn.life-=dt;rn.arm-=dt;let go=rn.life<=0;
+    if(!go&&rn.arm<=0)near(rn.x,rn.y,rn.R*.5+24,e=>{if(!go&&!e.dead&&Math.hypot(e.x-rn.x,e.y-rn.y)<rn.R*.5+e.r)go=true;});
+    if(go){rn.dead=true;near(rn.x,rn.y,rn.R+24,e=>{const dx=e.x-rn.x,dy=e.y-rn.y,d=Math.hypot(dx,dy)||1;if(d<rn.R+e.r)hurt(e,rn.dmg,dx/d*180,dy/d*180,'sello');});
+      G.rings.push({x:rn.x,y:rn.y,r:rn.R,col:'#c06bff',life:.45});}}
+  G.runes=G.runes.filter(rn=>!rn.dead);
   for(const sw of G.sweeps)sw.life-=dt;for(const bm of G.beams)bm.life-=dt;
   for(const v of G.waves){if(v.delay>0){v.delay-=dt;if(v.delay<=0){v.x=G.p.x;v.y=G.p.y;}continue;}v.r+=260*dt*G.st.projSpd;near(v.x,v.y,v.r+24,e=>{if(v.hit.has(e)||e.dead)return;const d=Math.hypot(e.x-v.x,e.y-v.y)||1;if(Math.abs(d-v.r)<14+e.r){v.hit.add(e);hurt(e,v.dmg,(e.x-v.x)/d*180,(e.y-v.y)/d*180,v.src||'campana');if(v.frz&&!e.dead)e.frozen=Math.max(e.frozen||0,v.frz);}});if(v.r>=v.max)v.dead=true;}
   G.sweeps=G.sweeps.filter(x=>x.life>0);G.beams=G.beams.filter(x=>x.life>0);G.waves=G.waves.filter(x=>!x.dead);
@@ -1437,7 +1497,9 @@ function update(dt){
     if(s.grav)s.vy+=s.grav*sd;
     if(s.ax!==undefined){s.vx+=s.ax*sd;s.vy+=s.ay*sd;if(!s.flip&&s.vx*s.vx0+s.vy*s.vy0<0){s.flip=true;s.hit.clear();}}
     if(s.rot!==undefined)s.rot+=sd*14;
-    if(s.wob!==undefined){s.wob+=sd*10;const m=Math.hypot(s.vx,s.vy)||1,o=Math.cos(s.wob)*110*sd;s.x+=-s.vy/m*o;s.y+=s.vx/m*o;}
+    if(s.home){if(!s.tgt||s.tgt.dead){let bd=1e9;s.tgt=null;near(s.x,s.y,220,e=>{if(e.dead)return;const dd=(e.x-s.x)**2+(e.y-s.y)**2;if(dd<bd){bd=dd;s.tgt=e;}});}
+      if(s.tgt){const dx=s.tgt.x-s.x,dy=s.tgt.y-s.y,dd=Math.hypot(dx,dy)||1,v=260;s.vx+=(dx/dd*v-s.vx)*Math.min(1,sd*5);s.vy+=(dy/dd*v-s.vy)*Math.min(1,sd*5);}}
+    if(s.wob!==undefined&&s.kind!=='crow'){s.wob+=sd*10;const m=Math.hypot(s.vx,s.vy)||1,o=Math.cos(s.wob)*110*sd;s.x+=-s.vy/m*o;s.y+=s.vx/m*o;}
     s.x+=s.vx*sd;s.y+=s.vy*sd;s.life-=dt;if(s.life<=0){s.dead=true;continue;}
     near(s.x,s.y,s.r+24,e=>{if(s.dead||e.dead||s.hit.has(e))return;const rr=s.r+e.r;
       if((e.x-s.x)**2+(e.y-s.y)**2<rr*rr){s.hit.add(e);if(s.slow)e.slowT=Math.max(e.slowT||0,s.slow);hurt(e,s.dmg,s.vx*.35,s.vy*.35,s.src);if(--s.pierce<0)s.dead=true;}});
@@ -1655,6 +1717,9 @@ function draw(now){
         ctx.fillStyle=Math.sin(G.t*20)>0?'#ffe27a':'#ff8a3d';ctx.beginPath();ctx.arc(it.x+7.5,it.y-11+bob,2.2,0,TAU);ctx.fill();}
       else if(it.kind==='heal'){ctx.fillStyle='#e2435a';ctx.beginPath();ctx.arc(it.x,it.y+bob,6.5,0,TAU);ctx.fill();ctx.strokeStyle='#7a4a22';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(it.x,it.y-6+bob);ctx.lineTo(it.x,it.y-12+bob);ctx.stroke();}
       else{ctx.strokeStyle='#5ee6c4';ctx.lineWidth=3;ctx.beginPath();ctx.arc(it.x,it.y+bob,6,Math.PI,0,true);ctx.stroke();ctx.fillStyle='#e2435a';ctx.fillRect(it.x-7.5,it.y+bob-1,3,4);ctx.fillRect(it.x+4.5,it.y+bob-1,3,4);}}
+    // runes
+    for(const rn of G.runes){const pu=rn.arm>0?.4:.75+Math.sin(G.t*8+rn.x)*.2;ctx.globalAlpha=Math.min(1,rn.life*2)*pu;ctx.strokeStyle='#c06bff';ctx.lineWidth=2;
+      ctx.beginPath();ctx.arc(rn.x,rn.y,rn.R*.5,0,TAU);ctx.stroke();ctx.beginPath();for(let k=0;k<5;k++){const a=-Math.PI/2+k*4*Math.PI/5,q=rn.R*.4;k?ctx.lineTo(rn.x+Math.cos(a)*q,rn.y+Math.sin(a)*q):ctx.moveTo(rn.x+Math.cos(a)*q,rn.y+Math.sin(a)*q);}ctx.closePath();ctx.stroke();ctx.globalAlpha=1;}
     // boss slams
     for(const sl of G.slams){const f=Math.min(1,sl.t/sl.dur);ctx.fillStyle='rgba(226,67,90,'+(0.08+f*.18)+')';ctx.beginPath();ctx.arc(sl.x,sl.y,sl.R,0,TAU);ctx.fill();
       ctx.strokeStyle='rgba(226,67,90,0.8)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(sl.x,sl.y,sl.R*f,0,TAU);ctx.stroke();ctx.beginPath();ctx.arc(sl.x,sl.y,sl.R,0,TAU);ctx.stroke();}
@@ -1679,6 +1744,11 @@ function draw(now){
       ctx.fillStyle='#5ee6c4';ctx.fillRect(a.x-4,a.y-3+bb,2.5,2.5);ctx.fillRect(a.x+1.5,a.y-3+bb,2.5,2.5);ctx.globalAlpha=1;}
     drawPlayer();
     // orbiting skulls
+    const atd=G.weapons.find(w=>w.id==='ataud');
+    if(atd){const D=WDEF.ataud,L=Math.min(atd.lvl,5)-1,n=D.n[L]+G.st.amount,R=D.r[L]*G.st.area;
+      for(let i=0;i<n;i++){const a=atd.ang+i/n*TAU,ox=px+Math.cos(a)*R,oy=py+Math.sin(a)*R;ctx.save();ctx.translate(ox,oy);ctx.rotate(a+Math.PI/2);
+        ctx.fillStyle='#4a2f1e';ctx.beginPath();ctx.moveTo(-5,-13);ctx.lineTo(5,-13);ctx.lineTo(9,-5);ctx.lineTo(6,13);ctx.lineTo(-6,13);ctx.lineTo(-9,-5);ctx.closePath();ctx.fill();
+        ctx.strokeStyle='#b08a6a';ctx.lineWidth=1.5;ctx.stroke();ctx.strokeStyle='#e6dcc4';ctx.beginPath();ctx.moveTo(0,-7);ctx.lineTo(0,5);ctx.moveTo(-3,-3);ctx.lineTo(3,-3);ctx.stroke();ctx.restore();}}
     const cal=G.weapons.find(w=>w.id==='calaveras');
     if(cal){const D=WDEF.calaveras,L=Math.min(cal.lvl,5)-1,n=D.n[L]+G.st.amount,R=D.r[L]*G.st.area;
       for(let i=0;i<n;i++){const a=cal.ang+i/n*TAU,ox=px+Math.cos(a)*R,oy=py+Math.sin(a)*R;
@@ -1690,7 +1760,9 @@ function draw(now){
       if(s.kind==='bolt'){ctx.fillStyle=s.col?hexA(s.col,.25):'rgba(94,230,196,0.25)';ctx.beginPath();ctx.arc(s.x,s.y,8,0,TAU);ctx.fill();
         ctx.strokeStyle=s.col?hexA(s.col,.6):'rgba(94,230,196,0.6)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(s.x-s.vx*.03,s.y-s.vy*.03);ctx.stroke();
         ctx.fillStyle='#d9fff4';ctx.beginPath();ctx.arc(s.x,s.y,3.5,0,TAU);ctx.fill();}
-      else if(s.kind==='quarrel'){const a=Math.atan2(s.vy,s.vx);ctx.save();ctx.translate(s.x,s.y);ctx.rotate(a);ctx.strokeStyle='#d8dbe8';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-10,0);ctx.lineTo(6,0);ctx.stroke();
+      else if(s.kind==='crow'){const f=Math.sin(G.t*18+s.wob)*5,dx_=Math.sign(s.vx)||1;ctx.fillStyle='#22243a';ctx.beginPath();ctx.moveTo(s.x+dx_*6,s.y);ctx.lineTo(s.x-dx_*2,s.y-2-f);ctx.lineTo(s.x-dx_*9,s.y-6-f);ctx.lineTo(s.x-dx_*5,s.y+1);ctx.lineTo(s.x-dx_*9,s.y+4+f*.3);ctx.closePath();ctx.fill();
+        ctx.fillStyle='#ffd27a';ctx.fillRect(s.x+dx_*6,s.y-1,dx_*3,2);}
+      else if(s.kind==='quarrel'){const a=Math.atan2(s.vy,s.vx);ctx.save();ctx.translate(s.x,s.y);ctx.rotate(a);ctx.strokeStyle=s.col||'#d8dbe8';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-10,0);ctx.lineTo(6,0);ctx.stroke();
         ctx.fillStyle='#fff';ctx.beginPath();ctx.moveTo(9,0);ctx.lineTo(4,-3);ctx.lineTo(4,3);ctx.closePath();ctx.fill();ctx.restore();}
       else if(s.kind==='batling'){const f=Math.sin(s.wob*2)*4;ctx.fillStyle='#3a2a66';ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(s.x-8,s.y-f);ctx.lineTo(s.x-4,s.y+2);ctx.closePath();ctx.moveTo(s.x,s.y);ctx.lineTo(s.x+8,s.y-f);ctx.lineTo(s.x+4,s.y+2);ctx.closePath();ctx.fill();
         ctx.fillStyle='#a98bff';ctx.beginPath();ctx.arc(s.x,s.y,3.2,0,TAU);ctx.fill();}
@@ -2192,6 +2264,9 @@ function modAction(m){
   const unlockChars=()=>{SAVE.unlocked=CH_IDS.slice();},
     missions=()=>{const L=SAVE.life;L.kills=Math.max(L.kills|0,50000);L.bestT=Math.max(L.bestT||0,1200);L.elites=Math.max(L.elites|0,50);L.dawns=Math.max(L.dawns|0,20);L.maxLvl=Math.max(L.maxLvl|0,50);
       L.bestKills=Math.max(L.bestKills|0,2500);L.bestElites=Math.max(L.bestElites|0,5);L.dawnsBy=Object.assign({medio:1,dificil:1},L.dawnsBy);L.dawnChars=CH_IDS.slice(0,Math.max(6,(L.dawnChars||[]).length));
+      L.bosses=Math.max(L.bosses|0,10);L.bestBosses=Math.max(L.bestBosses|0,3);L.bombs=Math.max(L.bombs|0,50);
+      L.killsBy=Object.assign({},L.killsBy);for(const [k,v] of [['arana',500],['vampiro',300],['gargola',150]])L.killsBy[k]=Math.max(L.killsBy[k]|0,v);
+      L.bestTBy=Object.assign({},L.bestTBy);L.bestTBy.imposible=Math.max(L.bestTBy.imposible||0,300);
       L.runs=Math.max(L.runs|0,100);L.time=Math.max(L.time||0,36000);unlockChars();},
     shop=()=>{for(const id in BUFFS)SAVE.buffs[id]=BUFFS[id].gemOnly?BUFFS[id].gemOnly.length:7;},
     charlv=()=>{for(const id of CH_IDS)SAVE.charLv[id]=CHAR_MAX;};
@@ -2418,7 +2493,7 @@ function saveRun(){
   if(!G||state==='over'||state==='menu')return;
   try{const r={v:1,char:G.char,diff:G.diff,t:G.t,kills:G.kills,lvl:G.lvl,xp:G.xp,need:G.need,pending:G.pending,score:G.score,coins:G.coins,crys:G.crys,dawn:G.dawn,
     p:{x:G.p.x,y:G.p.y,hp:G.p.hp,maxHp:G.p.maxHp,fx:G.p.fx,fy:G.p.fy},st:G.st,weapons:G.weapons.map(w=>({id:w.id,lvl:w.lvl})),passives:G.passives,wMult:G.wMult,wLv:G.wLv,
-    banned:[...G.banned],charges:G.charges,elites:G.elites,nextBoss:G.nextBoss,bosses:G.bosses,bossCycle:G.bossCycle,bossesKilled:G.bossesKilled,nextElite:G.nextElite,nextSwarm:G.nextSwarm,swarms:G.swarms,warned:G.warned,elitesKilled:G.elitesKilled,
+    banned:[...G.banned],charges:G.charges,elites:G.elites,nextBoss:G.nextBoss,bosses:G.bosses,bossCycle:G.bossCycle,bossesKilled:G.bossesKilled,killsBy:G.killsBy,bombsUsed:G.bombsUsed,nextElite:G.nextElite,nextSwarm:G.nextSwarm,swarms:G.swarms,warned:G.warned,elitesKilled:G.elitesKilled,
     dmgBy:G.dmgBy,chaosLog:G.chaosLog,mod:!!G.mod,god:!!G.god,infHp:!!G.infHp,maxDmg:!!G.maxDmg,noCd:!!G.noCd,killN:G.killN,lastMult:G.lastMult,abcd:G.ab.cd,abMul:G.abMul,
     enemies:G.enemies.filter(e=>!e.dead).slice(0,400).map(e=>[e.type,Math.round(e.x),Math.round(e.y),Math.round(e.hp*10)/10,Math.round(e.max*10)/10,Math.round(e.spd),Math.round(e.dmg*10)/10]),
     gems:G.gems.slice(0,300).map(g=>[Math.round(g.x),Math.round(g.y),g.v]),coinsArr:G.coinsArr.map(c=>[Math.round(c.x),Math.round(c.y)]),
@@ -2430,7 +2505,7 @@ function loadRun(){try{const r=JSON.parse(localStorage.getItem(RUN_KEY)||'null')
 function resumeRun(){
   const r=loadRun();if(!r)return;initAudio();newGame(r.char,r.diff);
   Object.assign(G,{t:r.t,kills:r.kills,lvl:r.lvl,xp:r.xp,need:r.need,pending:r.pending|0,score:r.score,coins:r.coins,crys:r.crys|0,dawn:!!r.dawn,elites:r.elites|0,
-    nextBoss:r.nextBoss||Math.max(300,Math.ceil((r.t+1)/300)*300),bosses:r.bosses|0,bossCycle:r.bossCycle|0,bossesKilled:r.bossesKilled|0,nextElite:r.nextElite,nextSwarm:r.nextSwarm,swarms:r.swarms|0,warned:!!r.warned,elitesKilled:r.elitesKilled|0,dmgBy:r.dmgBy||{},killN:r.killN|0,lastMult:r.lastMult,
+    nextBoss:r.nextBoss||Math.max(300,Math.ceil((r.t+1)/300)*300),bosses:r.bosses|0,bossCycle:r.bossCycle|0,bossesKilled:r.bossesKilled|0,killsBy:r.killsBy||{},bombsUsed:r.bombsUsed|0,nextElite:r.nextElite,nextSwarm:r.nextSwarm,swarms:r.swarms|0,warned:!!r.warned,elitesKilled:r.elitesKilled|0,dmgBy:r.dmgBy||{},killN:r.killN|0,lastMult:r.lastMult,
     wMult:r.wMult||{},wLv:r.wLv||{},passives:r.passives||{},charges:r.charges||G.charges,abMul:r.abMul||G.abMul});
   Object.assign(G.p,r.p);Object.assign(G.st,r.st);G.ab.cd=r.abcd||0;G.banned=new Set(r.banned||[]);
   G.weapons=(r.weapons||[]).filter(w=>WDEF[w.id]).map(w=>({id:w.id,lvl:w.lvl,timer:.3,ang:0}));
@@ -2452,6 +2527,9 @@ function gameOver(){
   const prev=SAVE.bestBy[G.diff],record=!prev||G.t>prev.t;
   const doneBefore=MISSIONS.filter(m=>m.prog()>=m.goal).map(m=>m.id);
   const L=SAVE.life;L.elites=(L.elites|0)+G.elitesKilled;L.bestT=Math.max(L.bestT||0,G.t);L.maxLvl=Math.max(L.maxLvl|0,G.lvl);L.runs++;L.kills+=G.kills;L.time+=G.t;L.coins+=earned;if(G.dawn)L.dawns++;
+  L.bosses=(L.bosses|0)+(G.bossesKilled|0);L.bestBosses=Math.max(L.bestBosses|0,G.bossesKilled|0);L.bombs=(L.bombs|0)+(G.bombsUsed|0);
+  L.killsBy=L.killsBy||{};for(const k in G.killsBy)L.killsBy[k]=(L.killsBy[k]|0)+G.killsBy[k];
+  L.bestTBy=L.bestTBy||{};L.bestTBy[G.diff]=Math.max(L.bestTBy[G.diff]||0,G.t);
   L.bestKills=Math.max(L.bestKills|0,G.kills);L.bestElites=Math.max(L.bestElites|0,G.elitesKilled);
   if(G.dawn){L.dawnsBy=L.dawnsBy||{};L.dawnsBy[G.diff]=(L.dawnsBy[G.diff]|0)+1;L.dawnChars=L.dawnChars||[];if(!L.dawnChars.includes(G.char))L.dawnChars.push(G.char);}
   const gemsEarned=G.crys+(G.dawn?2:0);SAVE.gems+=gemsEarned;L.gems+=gemsEarned;
