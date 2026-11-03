@@ -11,7 +11,7 @@ Abrí `index.html` en el navegador (celular o compu). No necesita instalación n
 
 ## Descargar
 
-En [Releases](https://github.com/JulianIbPe/cripta_nocturna/releases/latest) está la última versión para Windows (`CriptaNocturna.exe`, no se instala: se abre directo) y para Android (`CriptaNocturna.apk`). Cada commit a `main` publica una versión nueva y las apps avisan en el menú cuando hay una.
+En [Releases](https://github.com/JulianIbPe/cripta_nocturna/releases/latest) está la última versión para Windows (`criptanocturna-<versión>.exe`, por ejemplo `criptanocturna-1.0.19.exe`; no se instala: se abre directo) y para Android (`criptanocturna-<versión>.apk`). Cada commit a `main` publica una versión nueva y las apps avisan en el menú cuando hay una.
 
 ## Qué tiene
 

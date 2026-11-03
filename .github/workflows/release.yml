@@ -65,4 +65,8 @@ jobs:
       - name: Publicar Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "v$VERSION" CriptaNocturna.exe CriptaNocturna.apk --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Cripta Nocturna v$VERSION" --generate-notes
+        run: |
+          # Los archivos del Release llevan la versión en el nombre (criptanocturna-1.0.19.apk)
+          mv CriptaNocturna.exe "criptanocturna-$VERSION.exe"
+          mv CriptaNocturna.apk "criptanocturna-$VERSION.apk"
+          gh release create "v$VERSION" "criptanocturna-$VERSION.exe" "criptanocturna-$VERSION.apk" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Cripta Nocturna v$VERSION" --generate-notes
