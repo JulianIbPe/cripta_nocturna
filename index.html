@@ -1205,6 +1205,8 @@ function spawnEnemy(type,x,y){
   const spd=d.spd*rand(.9,1.1)*enemySpdMult(G.t)*(DIFFS[G.diff].spd||1);
   const e={type,x,y,hp,max:hp,spd,dmg:d.dmg*enemyDmgMult(G.t)*DIFFS[G.diff].dmg*hard,r:d.r,xp:d.xp,kb:d.kb/(1+Math.max(0,spd-50)/120),elite:!!d.elite,boss:!!d.boss,cd:d.boss?3:0,dashT:0,kx:0,ky:0,flash:0,oh:0,mh:0,frozen:0,ph:Math.random()*TAU,dead:false};
   G.enemies.push(e);return e;}
+// Tope total de enemigos: los enjambres no lo pasan (jefes y calabazas sí, son pocos). Sin tope, en partidas largas se acumulaban miles y el juego se congelaba
+const MAX_EN=420;
 function spawnUpdate(dt){
   const t=G.t,cu=1+G.st.curse,target=Math.min(380,(12+t*0.9)*cu),rate=(1.2+t/16)*cu;
   G.spawnAcc+=dt*rate;
@@ -1212,7 +1214,7 @@ function spawnUpdate(dt){
   if(t>=G.nextBoss){G.nextBoss+=300;const k=BOSS_ORDER[G.bosses%BOSS_ORDER.length];G.bossCycle=Math.floor(G.bosses/BOSS_ORDER.length);G.bosses++;
     spawnEnemy(k);banner('¡Jefe: '+ETYPES[k].name+'!');sfx('boss');G.shake=.3;}
   if(t>=G.nextElite){G.nextElite+=120;G.elites++;spawnEnemy('pumpkin');banner('Se acerca una calabaza maldita');sfx('boss');}
-  if(t>=G.nextSwarm){G.nextSwarm+=90;G.swarms++;const n=Math.min(48,20+G.swarms*7),R=spawnRadius();
+  if(t>=G.nextSwarm){G.nextSwarm+=90;G.swarms++;const n=Math.max(0,Math.min(48,20+G.swarms*7,MAX_EN-G.enemies.length)),R=spawnRadius();
     for(let i=0;i<n;i++){const a=i/n*TAU;const e=spawnEnemy('bat',G.p.x+Math.cos(a)*R,G.p.y+Math.sin(a)*R);e.spd*=1.15;}
     banner('¡Enjambre!');}
   if(t>=540&&!G.warned){G.warned=true;banner('Falta un minuto para el amanecer');}
@@ -1271,7 +1273,7 @@ function nearestEnemies(n){
   return best.map(b=>b[1]);}
 // Una onda por cada proyectil (1 + extras), cada una .2 s después de la anterior y desde donde esté el jugador al salir
 // Lanza n proyectiles en tandas de 'per', separadas 'gap' segundos; fire(k, índice de tanda) dispara k de una vez
-function volleys(n,per,gap,fire){for(let vi=0,left=n;left>0;vi++,left-=per){const k=Math.min(per,left);if(vi===0)fire(k,0);else G.timers.push({t:vi*gap,fn:()=>{if(G&&G.p)fire(k,vi);}});}}
+function volleys(n,per,gap,fire){n=Math.min(64,n|0);for(let vi=0,left=n;left>0;vi++,left-=per){const k=Math.min(per,left);if(vi===0)fire(k,0);else G.timers.push({t:vi*gap,fn:()=>{if(G&&G.p)fire(k,vi);}});}}
 // Si queda una carga de escudo, se gasta y el golpe no hace nada
 function shieldBlock(){const p=G.p;if(!(p.shield>=1))return false;p.shield--;p.inv=.6;G.shake=Math.max(G.shake,.1);sfx('zap');
   if(G.texts.length<60)G.texts.push({x:p.x,y:p.y-18,txt:'Bloqueado',life:.7,heal:true});return true;}
@@ -1280,8 +1282,9 @@ function updateWeapons(dt){
   const p=G.p,st=G.st;
   for(const w of G.weapons){
     const D=WDEF[w.id],L=Math.min(w.lvl,5)-1;
-    if(w.id==='incienso'){w.timer-=dt*(G.noCd?20:1);w.pulse=Math.max(0,(w.pulse||0)-dt*4);if(w.timer<=0){w.timer=D.tick[L]*st.cd*Math.max(.5,1-.03*Math.max(0,w.lvl-5));w.pulse=1;const R=D.r[L]*st.area;
-      near(p.x,p.y,R+24,e=>{const dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy)||1;if(d<R+e.r)hurt(e,D.dmg[L],dx/d*40,dy/d*40,'incienso');});}continue;}
+    if(w.id==='incienso'){w.timer-=dt*(G.noCd?20:1);w.pulse=Math.max(0,(w.pulse||0)-dt*4);if(w.timer<=0){w.timer=D.tick[L]*st.cd*Math.max(.5,1-.03*Math.max(0,w.lvl-5));const R=D.r[L]*st.area;
+      // Cada proyectil extra es otra quemadura seguida
+      volleys(1+st.amount,1,.12,()=>{const p=G.p;w.pulse=1;near(p.x,p.y,R+24,e=>{const dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy)||1;if(d<R+e.r)hurt(e,D.dmg[L],dx/d*40,dy/d*40,'incienso');});});}continue;}
     if(w.id==='ataud'){const n=D.n[L]+st.amount,R=D.r[L]*st.area;w.ang+=dt*D.spin[L];
       for(let i=0;i<n;i++){const a=w.ang+i/n*TAU,ox=p.x+Math.cos(a)*R,oy=p.y+Math.sin(a)*R;
         near(ox,oy,40,e=>{if(e.ohA>G.t||e.dead)return;const dx=e.x-ox,dy=e.y-oy;if(dx*dx+dy*dy<(e.r+14)**2){const d=Math.hypot(e.x-p.x,e.y-p.y)||1;hurt(e,D.dmg[L],(e.x-p.x)/d*420,(e.y-p.y)/d*420,'ataud');e.ohA=G.t+.6*st.cd;}});}
@@ -1314,9 +1317,11 @@ function updateWeapons(dt){
     }else if(w.id==='hacha'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount;
       for(let i=0;i<n;i++){const side=(i%2?-1:1)*(p.fx>=0?1:-1);
         G.shots.push({src:'hacha',kind:'axe',x:p.x,y:p.y,vx:side*rand(50,130),vy:-rand(300,360),grav:720,rot:0,dmg:D.dmg[L],pierce:99,r:9,life:1.8,hit:new Set()});}
-    }else if(w.id==='latigo'){w.timer=D.cd[L]*st.cd;const len=D.len[L]*st.area,h=16*st.area,f=p.fx>=0?1:-1,wy=p.y-4;
-      for(const dir of (D.both[L]?[f,-f]:[f])){G.slashes.push({x:p.x,y:wy,dir,len,life:.2});
-        near(p.x+dir*len/2,wy,len/2+24,e=>{const rx=(e.x-p.x)*dir;if(rx>-e.r&&rx<len+e.r&&Math.abs(e.y-wy)<h+e.r)hurt(e,D.dmg[L],dir*160,0,'latigo');});}
+    }else if(w.id==='latigo'){w.timer=D.cd[L]*st.cd;const len=D.len[L]*st.area,h=16*st.area;
+      // Cada proyectil extra es otro latigazo seguido
+      volleys(1+st.amount,1,.18,()=>{const p=G.p,f=p.fx>=0?1:-1,wy=p.y-4;
+        for(const dir of (D.both[L]?[f,-f]:[f])){G.slashes.push({x:p.x,y:wy,dir,len,life:.2});
+          near(p.x+dir*len/2,wy,len/2+24,e=>{const rx=(e.x-p.x)*dir;if(rx>-e.r&&rx<len+e.r&&Math.abs(e.y-wy)<h+e.r)hurt(e,D.dmg[L],dir*160,0,'latigo');});}});
     }else if(w.id==='murcielagos'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount;
       for(let i=0;i<n;i++){const a=Math.random()*TAU;G.shots.push({src:'murcielagos',kind:'batling',x:p.x,y:p.y,vx:Math.cos(a)*220,vy:Math.sin(a)*220,wob:Math.random()*TAU,dmg:D.dmg[L],pierce:1,r:6,life:1.6,hit:new Set()});}
     }else if(w.id==='meteoro'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount;
@@ -1326,14 +1331,18 @@ function updateWeapons(dt){
     }else if(w.id==='telarana'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;
       for(let i=0;i<n;i++){const t=ts[i%ts.length];const a=Math.atan2(t.y-p.y,t.x-p.x)+(i>=ts.length?rand(-.3,.3):0);
         G.shots.push({src:'telarana',kind:'web',x:p.x,y:p.y,vx:Math.cos(a)*280,vy:Math.sin(a)*280,dmg:D.dmg[L],pierce:D.pierce[L],slow:D.slow[L],r:8,life:1.4,rot:0,hit:new Set()});}
-    }else if(w.id==='guadana'){w.timer=D.cd[L]*st.cd;const R=D.r[L]*st.area;G.sweeps.push({x:p.x,y:p.y,R,life:.3,a0:Math.atan2(p.fy,p.fx)});
-      near(p.x,p.y,R+24,e=>{const dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy)||1;if(d<R+e.r)hurt(e,D.dmg[L],dx/d*260,dy/d*260,'guadana');});
+    }else if(w.id==='guadana'){w.timer=D.cd[L]*st.cd;const R=D.r[L]*st.area;
+      // Cada proyectil extra es otro barrido seguido
+      volleys(1+st.amount,1,.25,()=>{const p=G.p;G.sweeps.push({x:p.x,y:p.y,R,life:.3,a0:Math.atan2(p.fy,p.fx)});
+        near(p.x,p.y,R+24,e=>{const dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy)||1;if(d<R+e.r)hurt(e,D.dmg[L],dx/d*260,dy/d*260,'guadana');});});
     }else if(w.id==='ojo'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;const len=280*st.area,wd=8*st.area;
       for(let i=0;i<n;i++){const t=ts[i%ts.length],a=Math.atan2(t.y-p.y,t.x-p.x)+(i>=ts.length?rand(-.3,.3):0),cx=Math.cos(a),cy=Math.sin(a);
         G.beams.push({x:p.x,y:p.y,a,len,w:wd,life:.22});
         for(const e of G.enemies){if(e.dead)continue;const rx=e.x-p.x,ry=e.y-p.y,al=rx*cx+ry*cy;if(al<0||al>len+e.r)continue;if(Math.abs(rx*cy-ry*cx)<wd+e.r)hurt(e,D.dmg[L],cx*80,cy*80,'ojo');}}
     }else if(w.id==='campana'){w.timer=D.cd[L]*st.cd;pushWaves({x:p.x,y:p.y,max:D.R[L]*st.area,dmg:D.dmg[L]});
-    }else if(w.id==='linterna'){w.timer=.3*st.cd;G.zones.push({x:p.x,y:p.y+6,r:D.r[L]*st.area,dmg:D.dmg[L],life:D.dur[L],tick:0,src:'linterna',fire:true});
+    }else if(w.id==='linterna'){w.timer=.3*st.cd;const r=D.r[L]*st.area,n=1+st.amount;
+      // Cada proyectil extra deja otra llama alrededor tuyo
+      for(let i=0;i<n;i++){const a=i/Math.max(1,n-1)*TAU+G.t*2,o=i?r*1.3:0;G.zones.push({x:p.x+Math.cos(a)*o,y:p.y+6+Math.sin(a)*o,r,dmg:D.dmg[L],life:D.dur[L],tick:0,src:'linterna',fire:true});}
     }else if(w.id==='tridente'){const ts=nearestEnemies(1);if(!ts.length){w.timer=.15;continue;}w.timer=D.cd[L]*st.cd;
       const n=D.n[L]+st.amount,a0=Math.atan2(ts[0].y-p.y,ts[0].x-p.x);
       for(let i=0;i<n;i++){const a=a0+(i-(n-1)/2)*.18;G.shots.push({src:'tridente',kind:'quarrel',col:'#ff6a3d',x:p.x,y:p.y,vx:Math.cos(a)*420,vy:Math.sin(a)*420,dmg:D.dmg[L],pierce:D.pierce[L],r:6,life:.9,hit:new Set()});}
@@ -1388,9 +1397,10 @@ function updateWeapons(dt){
     }else if(w.id==='avalancha'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount;
       const ts=nearestEnemies(n);
       for(let i=0;i<n;i++){const t=ts[i],a=Math.random()*TAU,r=rand(40,150);G.meteors.push({x:t?t.x+rand(-12,12):p.x+Math.cos(a)*r,y:t?t.y+rand(-12,12):p.y+Math.sin(a)*r,t:0,dur:.55+i*.1,R:D.r[L]*st.area,dmg:D.dmg[L],src:'avalancha',col:D.col});}
-    }else if(w.id==='siegaalmas'){w.timer=D.cd[L]*st.cd;const R=D.r[L]*st.area,ex=D.exe[L];G.sweeps.push({x:p.x,y:p.y,R,life:.3,a0:Math.atan2(p.fy,p.fx),col:D.col});
-      near(p.x,p.y,R+24,e=>{const dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy)||1;if(d>=R+e.r)return;hurt(e,D.dmg[L],dx/d*200,dy/d*200,'siegaalmas');
-        if(!e.dead&&!e.elite&&e.hp<e.max*ex)hurt(e,e.hp*10+1e5,0,0,'siegaalmas');});
+    }else if(w.id==='siegaalmas'){w.timer=D.cd[L]*st.cd;const R=D.r[L]*st.area,ex=D.exe[L];
+      volleys(1+st.amount,1,.25,()=>{const p=G.p;G.sweeps.push({x:p.x,y:p.y,R,life:.3,a0:Math.atan2(p.fy,p.fx),col:D.col});
+        near(p.x,p.y,R+24,e=>{const dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy)||1;if(d>=R+e.r)return;hurt(e,D.dmg[L],dx/d*200,dy/d*200,'siegaalmas');
+          if(!e.dead&&!e.elite&&e.hp<e.max*ex)hurt(e,e.hp*10+1e5,0,0,'siegaalmas');});});
     }else if(w.id==='cruz'){w.timer=D.cd[L]*st.cd;
       // Una cruz por tanda: cada proyectil extra es otra cruz que sale enseguida hacia el más cercano
       volleys(D.n[L]+st.amount,1,.14,(k,vi)=>{const p=G.p,ts=nearestEnemies(1);
@@ -1438,7 +1448,7 @@ function useAbility(){
 $('#abBtn').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();useAbility();});
 
 /* ---------- Level up ---------- */
-function gainXp(v){G.xp+=v*G.st.xpMul;while(G.xp>=G.need){G.xp-=G.need;G.lvl++;G.need=xpNeed(G.lvl);G.pending++;}}
+function gainXp(v){G.xp+=v*G.st.xpMul;if(!isFinite(G.xp))G.xp=0;while(G.xp>=G.need&&G.need>0){G.xp-=G.need;G.lvl++;G.need=xpNeed(G.lvl);G.pending++;}}
 function buildOptions(exclude){
   let pool=[];
   for(const w of G.weapons)if(w.lvl<WMAX)pool.push({k:'w',id:w.id,lvl:w.lvl+1});
