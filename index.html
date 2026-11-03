@@ -296,6 +296,13 @@ body[data-stick="der"] .stickprev i{left:calc(100% - 82px)}
 body[data-stick="der"] .stickprev b{right:auto;left:22px}
 body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px) + 18px)}
 .cfgnote{font-size:15px}
+.difftbl{overflow-x:auto}
+.difftbl table{width:100%;border-collapse:collapse;font-size:15px;font-variant-numeric:tabular-nums}
+.difftbl caption{text-align:left;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;padding-bottom:6px}
+.difftbl th,.difftbl td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--stone-2);white-space:nowrap}
+.difftbl th:first-child,.difftbl td:first-child{text-align:left;color:var(--muted)}
+.difftbl th{color:var(--muted);font-weight:600}
+.difftbl tr.dawn td{color:#ffd27a;font-weight:700}
 #stickPosBox{display:grid;gap:10px}#stickPosBox[hidden]{display:none}
 #modeSeg button{font-size:15px}
 /* Menú en PC: tiles de progreso a la izquierda, personaje y Jugar al centro, info a la derecha. En celular los contenedores no existen (display:contents). */
@@ -457,9 +464,11 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
       <p><b>Los enemigos pueden soltar</b> manzanas (curan), imanes (atraen todo) y bombas (limpian la pantalla).</p>
       <p><b>Cada 90 segundos llega un enjambre</b> y cada 2 minutos una calabaza maldita, que suelta curación, un imán de almas y muchas monedas.</p>
       <p><b>Sumás puntos matando enemigos y jefes.</b> Cada minuto que sobrevivís sube el multiplicador ×0,1 (×2 al amanecer); después del amanecer sube ×0,05 por minuto, hasta ×3. Medio da ×1,5 y Difícil ×2. La clasificación se ordena por puntaje.</p>
+      <div class="difftbl" id="diffTbl2"></div>
       <p><b>Juntá monedas</b> para desbloquear personajes nuevos. En Medio y Difícil ganás más.</p>
       <p><b>Las mejoras tienen rareza</b>: Común, Poco común, Rara, Épica y Legendaria. Cuanto más rara, más fuerte. La Herradura de plata sube tu suerte y hace que salgan más seguido las rarezas altas.</p>
-      <p><b>Cuanto más sobrevivís, más peligrosos son</b>: la vida, el daño y la velocidad de los enemigos suben cada minuto, y cada vez más rápido: al minuto 27 tienen unas 14 veces más vida y daño que al empezar (la velocidad llega hasta ×2,5). En la pausa ves cuánto van. Los más rápidos también aguantan mejor el empuje.</p>
+      <p><b>Cuanto más sobrevivís, más peligrosos son</b>: la vida, el daño y la velocidad de los enemigos suben cada minuto. Después del amanecer siguen subiendo, pero más despacio. La tabla muestra cuánto se multiplican en Fácil; las otras dificultades suman lo suyo encima.</p>
+      <div class="difftbl" id="diffTbl"></div>
       <p><b>Pasarte del máximo también sirve</b>: más de 100% de crítico da overcrit (×3, ×4…), la velocidad de ataque de más se vuelve daño (Sobrecarga), el esquivar por encima del 60% se vuelve contraataque, y más de 100% de suerte hace aparecer mejoras míticas.</p>
       <p><b>Cumplí misiones</b> para desbloquear armas nuevas.</p>
       <p><b>En la Tienda comprás mejoras permanentes</b>: usos de Cambiar, Bloquear y Saltar en cada subida de nivel, y más gemas por partida.</p>
@@ -975,6 +984,13 @@ const DIFFS={
   dificil:{name:'Difícil',hp:2,dmg:1.5,coin:1.5,gem:1.25,xp:-.1,pts:2,desc:'Enemigos con +100% de vida y +50% de daño. +50% de monedas, +25% de gemas y -10% de experiencia. Puntos ×2.'},
   imposible:{name:'Imposible',hp:2,dmg:2,spd:2,coin:1.5,gem:1.5,xp:-.5,pts:3,desc:'Enemigos con el doble de vida, daño y velocidad. +50% de monedas, +50% de gemas y -50% de experiencia. Puntos ×3.'},
 };
+// Tablas de Cómo jugar, armadas con las mismas fórmulas del juego para que nunca queden desactualizadas
+function renderDiffTables(){const f=v=>fmtMult(v>=10?Math.round(v):Math.round(v*10)/10),mins=[0,5,10,15,20,25,30,40];
+  $('#diffTbl').innerHTML='<table><caption>Enemigos según el minuto (Fácil)</caption><thead><tr><th>Min</th><th>Vida</th><th>Daño</th><th>Velocidad</th><th>Puntos</th></tr></thead><tbody>'+
+    mins.map(m=>{const t=m*60;return `<tr${m===DAWN_M?' class="dawn"':''}><td>${m}${m===DAWN_M?' ☀':''}</td><td>${f(enemyHpMult(t))}</td><td>${f(enemyDmgMult(t))}</td><td>${fmtMult(Math.round(enemySpdMult(t)*100)/100)}</td><td>${fmtMult(timeMult(t))}</td></tr>`;}).join('')+'</tbody></table>';
+  $('#diffTbl2').innerHTML='<table><caption>Lo que suma cada dificultad</caption><thead><tr><th></th>'+Object.values(DIFFS).map(D=>`<th>${D.name}</th>`).join('')+'</tr></thead><tbody>'+
+    [['Vida',D=>fmtMult(D.hp)],['Daño',D=>fmtMult(D.dmg)],['Velocidad',D=>fmtMult(D.spd||1)],['Monedas',D=>fmtMult(D.coin)],['Gemas',D=>fmtMult(D.gem!==undefined?D.gem:D.coin)],['Exp',D=>(D.xp?Math.round(D.xp*100)+'%':'—')],['Puntos',D=>fmtMult(D.pts)]]
+    .map(([n,g])=>`<tr><td>${n}</td>${Object.values(DIFFS).map(D=>`<td>${g(D)}</td>`).join('')}</tr>`).join('')+'</tbody></table>';}
 // Texto corto con solo lo que cambia la dificultad: "Vida enemiga +50% · Exp -5% · Puntos ×1,5"
 function diffChanges(k){const D=DIFFS[k],out=[],pc_=v=>(v>0?'+':'')+Math.round(v*100)+'%';
   const add=(t,v)=>{if(v&&Math.abs(v)>1e-9)out.push(t+' '+pc_(v));};
@@ -1093,8 +1109,10 @@ const BOSS_ORDER=['reina','conde','coloso'];
 // para que ninguna build aguante para siempre: la duración de la partida la marca qué tan bien se combinan
 // las armas y los objetos. Vida: +12% por minuto desde el 5. Daño: +8% por minuto desde el 8.
 // Minuto 10: vida ×8,8 y daño ×4,3 · minuto 20: ×60 y ×22 · minuto 30: ×323 y ×89. La velocidad crece hasta ×2,5.
-const enemyHpMult=t=>{const m=t/60;return (1+.3*m+.01*m*m)*Math.pow(1.12,Math.max(0,m-5));};
-const enemyDmgMult=t=>{const m=t/60;return (1+.15*m+.012*m*m)*Math.pow(1.08,Math.max(0,m-8));};
+// Antes del amanecer (minuto 10) la vida crece ×1,12 por minuto desde el 5 y el daño ×1,08 desde el 8; después del amanecer, más suave: ×1,07 y ×1,04
+const DAWN_M=10;
+const enemyHpMult=t=>{const m=t/60;return (1+.3*m+.01*m*m)*Math.pow(1.12,Math.max(0,Math.min(m,DAWN_M)-5))*Math.pow(1.07,Math.max(0,m-DAWN_M));};
+const enemyDmgMult=t=>{const m=t/60;return (1+.15*m+.012*m*m)*Math.pow(1.08,Math.max(0,Math.min(m,DAWN_M)-8))*Math.pow(1.04,Math.max(0,m-DAWN_M));};
 const enemySpdMult=t=>Math.min(2.5,1+.055*t/60);
 const xpNeed=l=>Math.round(3+l*3.5+Math.pow(l,1.7)*0.6);
 
@@ -2610,7 +2628,7 @@ function shopClick(btn){
 $('#tShop').addEventListener('click',()=>{initAudio();shopConfirm=null;$('#shopToast').textContent='';renderShop();show('shop');$('#shop').scrollTop=0;});
 $('#tArsenal').addEventListener('click',()=>{renderArsenal();show('arsenal');$('#arsenal').scrollTop=0;});
 $('#tRecords').addEventListener('click',()=>{renderRecords();show('records');$('#records').scrollTop=0;});
-$('#tHow').addEventListener('click',()=>{show('howto');$('#howto').scrollTop=0;});
+$('#tHow').addEventListener('click',()=>{renderDiffTables();show('howto');$('#howto').scrollTop=0;});
 document.querySelectorAll('.backBtn').forEach(b=>b.addEventListener('click',goMenu));
 $('#startBtn').addEventListener('click',tryStartOrBuy);
 document.querySelectorAll('[data-d]').forEach(b=>b.addEventListener('click',()=>{SAVE.diff=b.dataset.d;persist();sfx('gem');if(!$('#chars').hidden)renderChars();renderMenu();}));
