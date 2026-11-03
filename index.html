@@ -971,9 +971,9 @@ const svg=(id,col)=>`<svg viewBox="0 0 24 24" fill="none" stroke="${col}" stroke
 
 const DIFFS={
   facil:{name:'Fácil',hp:1,dmg:1,coin:1,xp:0,pts:1,desc:'La noche normal: enemigos, experiencia, monedas y gemas sin cambios. Ideal para probar personajes. Puntos ×1.'},
-  medio:{name:'Medio',hp:1.5,dmg:1.25,coin:1.25,xp:-.05,pts:1.5,desc:'Enemigos con +50% de vida y +25% de daño. +25% de monedas y de gemas, -5% de experiencia. Puntos ×1,5.'},
-  dificil:{name:'Difícil',hp:2,dmg:1.5,coin:1.5,xp:-.1,pts:2,desc:'Enemigos con +100% de vida y +50% de daño. +50% de monedas y de gemas, -10% de experiencia. Puntos ×2.'},
-  imposible:{name:'Imposible',hp:2,dmg:2,spd:2,coin:1.5,gem:1.25,xp:-.5,pts:3,desc:'Enemigos con el doble de vida, daño y velocidad. +50% de monedas, +25% de gemas y -50% de experiencia. Puntos ×3.'},
+  medio:{name:'Medio',hp:1.5,dmg:1.25,coin:1.25,gem:1.15,xp:-.05,pts:1.5,desc:'Enemigos con +50% de vida y +25% de daño. +25% de monedas, +15% de gemas y -5% de experiencia. Puntos ×1,5.'},
+  dificil:{name:'Difícil',hp:2,dmg:1.5,coin:1.5,gem:1.25,xp:-.1,pts:2,desc:'Enemigos con +100% de vida y +50% de daño. +50% de monedas, +25% de gemas y -10% de experiencia. Puntos ×2.'},
+  imposible:{name:'Imposible',hp:2,dmg:2,spd:2,coin:1.5,gem:1.5,xp:-.5,pts:3,desc:'Enemigos con el doble de vida, daño y velocidad. +50% de monedas, +50% de gemas y -50% de experiencia. Puntos ×3.'},
 };
 // Texto corto con solo lo que cambia la dificultad: "Vida enemiga +50% · Exp -5% · Puntos ×1,5"
 function diffChanges(k){const D=DIFFS[k],out=[],pc_=v=>(v>0?'+':'')+Math.round(v*100)+'%';
