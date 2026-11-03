@@ -533,15 +533,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
     <div class="eyebrow">Que no se pierda tu progreso</div>
     <h2>Cuenta</h2>
     <div class="acct" id="acctCloud"></div>
-    <div class="dtitle">Copia en archivo</div>
-    <p>Guardá tu progreso en un archivo y dejalo en la carpeta que quieras. Después lo podés cargar acá o en otro dispositivo.</p>
-    <div class="btnrow">
-      <button class="btn" id="expBtn">Guardar en archivo</button>
-      <button class="btn ghost" id="impBtn">Cargar archivo</button>
-    </div>
-    <input type="file" id="impFile" accept=".json,application/json" hidden>
     <p class="toast" id="acctToast" aria-live="polite"></p>
-    <div class="earn" id="impPreview" hidden></div>
     <button class="btn ghost backBtn">Volver</button>
   </div>
 </section>
@@ -2282,14 +2274,14 @@ async function pullCloud(){
 }
 function renderAcctIfOpen(){if(!$('#account').hidden)renderAcct();renderAcctTile();}
 function renderAcctTile(){const el=$('#tAcSub');if(!el)return;
-  el.textContent=AUTH&&cloudState.status!=='denied'?'Guardado en tu cuenta':FB.apiKey?'Iniciá sesión o creá tu cuenta':'Copia en archivo';}
+  el.textContent=AUTH&&cloudState.status!=='denied'?'Guardado en tu cuenta':FB.apiKey?'Iniciá sesión o creá tu cuenta':'Guardar tu progreso';}
 const ago=ms=>{const s_=Math.max(0,Math.round((Date.now()-ms)/1000));return s_<10?'recién':s_<60?'hace '+s_+' s':'hace '+Math.round(s_/60)+' min';};
 let passOpen=false,nameOpen=false; // el formulario de cambiar contraseña sigue abierto aunque se redibuje la cuenta
 let pendLogin=null; // {email, uid} entre la contraseña y el código del mail; solo en memoria
 function renderAcct(){
   const el=$('#acctCloud');el.innerHTML='';
   const msg=(t,c)=>{const p_=document.createElement('p');p_.className=c||'msg';p_.textContent=t;el.appendChild(p_);};
-  if(!FB.apiKey){msg('Las cuentas todavía no están activadas en esta versión del juego. Mientras tanto, usá la copia en archivo de abajo.');return;}
+  if(!FB.apiKey){msg('Las cuentas todavía no están activadas en esta versión del juego. Tu progreso queda guardado en este dispositivo.');return;}
   if(!AUTH&&pendLogin){
     const f=document.createElement('form');f.id='linkForm';f.noValidate=true;
     f.innerHTML='<label for="linkCode">Código del mail</label><input id="linkCode" type="text" autocomplete="one-time-code" spellcheck="false">'+
@@ -2326,7 +2318,7 @@ function renderAcct(){
   const box=document.createElement('div');const st=document.createElement('strong');st.textContent=AUTH.name||AUTH.email;
   const sm=document.createElement('small');sm.textContent=(AUTH.name?AUTH.email+' · ':'')+'Guardado automático cada 30 segundos y al salir. Se sincroniza entre dispositivos';box.append(st,sm);who.append(box);el.appendChild(who);
   const S=cloudState.status;
-  if(S==='denied')msg('Tu cuenta no tiene permiso para guardar. Revisá las reglas de Realtime Database del proyecto, o usá la copia en archivo.','err');
+  if(S==='denied')msg('Tu cuenta no tiene permiso para guardar. Revisá las reglas de Realtime Database del proyecto.','err');
   else msg(S==='saving'?'Guardando…':S==='error'?'No se pudo sincronizar. Se vuelve a intentar solo en 30 segundos.':S==='loaded'?'Cargamos el progreso guardado en tu cuenta.':cloudState.at?'Última sincronización: '+ago(cloudState.at)+'.':'Todavía no se sincronizó.',S==='error'?'err':'msg');
   const row=document.createElement('div');row.className='btnrow';
   const b=document.createElement('button');b.className='btn ghost';b.id='cloudNow';b.textContent='Guardar ahora';b.disabled=S==='saving'||S==='denied';b.onclick=()=>pushCloud();
@@ -2443,31 +2435,6 @@ function modAction(m){
   if(m==='min'){G.t+=60;return 'Reloj en '+fmt(G.t)+'.';}
   if(m==='kill'){let n=0;for(const e of G.enemies)if(!e.dead){hurt(e,e.hp*10+1e6,0,0);n++;}return n+' enemigos eliminados.';}
   return '';
-}
-function exportSave(){
-  const data=JSON.stringify({app:'cripta-nocturna',v:1,exportedAt:new Date().toISOString(),save:SAVE},null,2);
-  const d=new Date(),fn='cripta-nocturna-progreso-'+d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'.json';
-  const toast=t=>{$('#acctToast').textContent=t;};
-  const fallback=()=>{try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);toast('Listo: se descargó '+fn+'. Movelo a la carpeta que quieras.');}catch(e){toast('No se pudo crear el archivo en este navegador.');}};
-  if(window.CriptaApp){toast(window.CriptaApp.saveFile(fn,data)?'Listo: guardaste '+fn+' en Descargas.':'No se pudo guardar el archivo acá.');return;}
-  if(window.claude&&typeof window.claude.use==='function'){
-    window.claude.use('downloads').then(dl=>{if(!dl){fallback();return;}
-      dl.save({filename:fn,data}).then(()=>toast('Listo: guardaste '+fn+'. Movelo a la carpeta que quieras.'))
-        .catch(e=>toast(e&&e.code==='declined'?'Cancelaste la descarga.':'No se pudo guardar el archivo acá.'));}).catch(fallback);
-  }else fallback();
-}
-let pendingImport=null;
-function previewImport(obj){
-  const pv=$('#impPreview');
-  if(!obj||obj.app!=='cripta-nocturna'||!obj.save||typeof obj.save!=='object'){pendingImport=null;pv.hidden=true;$('#acctToast').textContent='Ese archivo no es un progreso de Cripta Nocturna.';return;}
-  pendingImport=normalizeSave(JSON.parse(JSON.stringify(obj.save)));const sv=pendingImport,bs=sv.bestScore;
-  pv.hidden=false;
-  pv.innerHTML=`<div><span>Monedas</span><span>${(sv.coins|0).toLocaleString('es-AR')}</span></div><div><span>Gemas</span><span>${sv.gems|0}</span></div>
-    <div><span>Personajes</span><span>${sv.unlocked.length} de ${CH_IDS.length}</span></div><div><span>Mejor puntaje</span><span>${bs?fmtPts(bs.score):'—'}</span></div>
-    <div class="tot"><span>Esto reemplaza tu progreso actual</span><span></span></div>
-    <div class="btnrow"><button class="btn" id="impOk">Cargar este progreso</button><button class="btn ghost" id="impNo">Cancelar</button></div>`;
-  $('#impOk').onclick=()=>{SAVE=pendingImport;pendingImport=null;persist();pushCloud();pickSel=SAVE.sel;pv.hidden=true;$('#acctToast').textContent='Listo: cargaste tu progreso.';sfx('level');};
-  $('#impNo').onclick=()=>{pendingImport=null;pv.hidden=true;$('#acctToast').textContent='';};
 }
 function renderBest(){renderMenu();}
 
@@ -2600,11 +2567,7 @@ function renderRecords(){
 }
 $('#tChars').addEventListener('click',()=>openChars());
 $('#tBoard').addEventListener('click',openBoard);
-$('#tAcc').addEventListener('click',()=>{initAudio();$('#acctToast').textContent='';$('#impPreview').hidden=true;renderAcct();show('account');$('#account').scrollTop=0;});
-$('#expBtn').addEventListener('click',exportSave);
-$('#impBtn').addEventListener('click',()=>{$('#impFile').value='';$('#impFile').click();});
-$('#impFile').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const rd=new FileReader();
-  rd.onload=()=>{let obj=null;try{obj=JSON.parse(rd.result);}catch(err){}previewImport(obj);};rd.onerror=()=>{$('#acctToast').textContent='No se pudo leer el archivo.';};rd.readAsText(f);});
+$('#tAcc').addEventListener('click',()=>{initAudio();$('#acctToast').textContent='';renderAcct();show('account');$('#account').scrollTop=0;});
 function renderMissions(){payMissions();
   const ftime=t=>t>=3600?fmtLong(t):fmt(t);
   $('#misList').innerHTML=MISSIONS.map(m=>{const wid=Object.keys(WDEF).find(k=>WDEF[k].mission===m.id),W_=WDEF[wid],pr=Math.min(m.goal,m.prog()),done=pr>=m.goal;

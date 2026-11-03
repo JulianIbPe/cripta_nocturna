@@ -30,7 +30,6 @@ En [Releases](https://github.com/JulianIbPe/cripta_nocturna/releases/latest) est
 
 - **En el navegador:** el progreso (monedas, gemas, personajes, récords y la partida en curso) se guarda solo en el `localStorage`.
 - **En tu cuenta:** en la pantalla Cuenta iniciás sesión o te registrás con mail y contraseña; el progreso se guarda en la nube (Firebase) y se sincroniza entre dispositivos.
-- **En un archivo:** desde la pantalla Cuenta podés guardar el progreso en un archivo `.json` y dejarlo en la carpeta que quieras (por ejemplo `saves/`). Después lo cargás con "Cargar archivo" en este u otro dispositivo.
 
 ## Clasificación online
 
