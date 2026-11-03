@@ -247,6 +247,11 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 .chaoslog .rn{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
 #speedBtn{pointer-events:auto;height:34px;min-width:44px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,95,210,.5);background:rgba(12,10,24,.75);color:#ff8be0;font-weight:700;font-size:16px;font-variant-numeric:tabular-nums}
 #speedBtn.fast{background:#ff5fd2;color:#1a0d16}
+.spdwrap{position:relative;display:flex}
+#speedMenu{position:absolute;top:calc(100% + 6px);right:0;z-index:4;pointer-events:auto;display:grid;gap:2px;padding:4px;min-width:84px;border-radius:12px;background:rgba(12,10,24,.96);border:1px solid rgba(255,95,210,.5);box-shadow:0 8px 24px rgba(0,0,0,.5)}
+#speedMenu[hidden]{display:none}
+#speedMenu button{appearance:none;border:0;border-radius:8px;padding:8px 12px;background:transparent;color:var(--ink);font-weight:700;font-size:17px;text-align:left;font-variant-numeric:tabular-nums}
+#speedMenu button[aria-selected="true"]{background:#ff5fd2;color:#1a0d16}
 .hudinv{display:grid;gap:5px;padding:7px 12px 0;justify-content:start}
 .slots{display:flex;gap:4px;align-items:center}
 .slots .lab{font-size:9px;line-height:1.1;font-weight:700;letter-spacing:.06em;color:var(--muted);width:46px;text-transform:uppercase;font-variant-numeric:tabular-nums}
@@ -291,6 +296,8 @@ body[data-stick="der"] .stickprev i{left:calc(100% - 82px)}
 body[data-stick="der"] .stickprev b{right:auto;left:22px}
 body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px) + 18px)}
 .cfgnote{font-size:15px}
+#stickPosBox{display:grid;gap:10px}#stickPosBox[hidden]{display:none}
+#modeSeg button{font-size:15px}
 /* Menú en PC: tiles de progreso a la izquierda, personaje y Jugar al centro, info a la derecha. En celular los contenedores no existen (display:contents). */
 .mcenter,.tcol{display:contents}
 @media (min-width:900px) and (min-height:600px){
@@ -383,7 +390,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
   <div class="hudrow">
     <div class="l"><span id="lvl">Nv 1</span><span id="kills">0 bajas</span></div>
     <div class="tcol"><span id="time">00:00</span><span id="rec"></span></div>
-    <div class="r"><span id="hudCoins"><i class="coin"></i><span id="hudCoinN">0</span></span><span id="hudGems" hidden><i class="gemi"></i><span id="hudGemN">0</span></span><button id="speedBtn" hidden aria-label="Velocidad del juego">×1</button><button id="pauseBtn" aria-label="Pausa"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="2" width="3.5" height="12" rx="1"/><rect x="9.5" y="2" width="3.5" height="12" rx="1"/></svg></button></div>
+    <div class="r"><span id="hudCoins"><i class="coin"></i><span id="hudCoinN">0</span></span><span id="hudGems" hidden><i class="gemi"></i><span id="hudGemN">0</span></span><span class="spdwrap"><button id="speedBtn" hidden aria-label="Velocidad del juego" aria-haspopup="listbox" aria-expanded="false">×1 ▾</button><div id="speedMenu" role="listbox" aria-label="Velocidad del juego" hidden></div></span><button id="pauseBtn" aria-label="Pausa"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="2" width="3.5" height="12" rx="1"/><rect x="9.5" y="2" width="3.5" height="12" rx="1"/></svg></button></div>
   </div>
   <div class="hudinv" id="hudInv"><div class="slots" id="slotW"></div><div class="slots" id="slotP"></div></div>
 </div>
@@ -443,7 +450,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
     <h2>Cómo jugar</h2>
     <p class="lead">Aguantá hasta el amanecer: diez minutos de murciélagos, zombis y calabazas malditas. Después, el reloj sigue.</p>
     <div class="how">
-      <p><b>Usá el joystick fijo</b> de abajo para moverte: tocá cerca de él y arrastrá. Su lugar se cambia en Configuración.</p>
+      <p><b>Usá el joystick</b> para moverte. En Configuración elegís si queda fijo abajo, si sigue a tu dedo o si aparece donde tocás.</p>
       <p><b>Tus armas atacan solas.</b> Juntá las almas que sueltan los enemigos para subir de nivel y elegir mejoras.</p>
       <p><b>Cada personaje tiene una habilidad</b>: tocá el botón de abajo a la derecha cuando esté cargada.</p>
       <p><b>Cada 5 minutos aparece un jefe</b>: la Reina Araña, que pone arañas; El Conde, que embiste; y el Coloso de Lápidas, que golpea el suelo (salí del círculo rojo). Sueltan muchas monedas, 2 gemas, curación y un imán.</p>
@@ -591,6 +598,14 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
   <div class="panel">
     <div class="eyebrow">Ajustes</div>
     <h2>Configuración</h2>
+    <div class="dtitle">Tipo de joystick</div>
+    <div class="seg three" id="modeSeg" role="radiogroup" aria-label="Tipo de joystick">
+      <button role="radio" data-m="fijo" aria-checked="true">Fijo</button>
+      <button role="radio" data-m="libre" aria-checked="false">Sigue el dedo</button>
+      <button role="radio" data-m="toque" aria-checked="false">Donde tocás</button>
+    </div>
+    <p class="cfgnote" id="modeNote"></p>
+    <div id="stickPosBox">
     <div class="dtitle">Posición del joystick</div>
     <div class="seg three" id="stickSeg" role="radiogroup" aria-label="Posición del joystick">
       <button role="radio" data-v="izq" aria-checked="true">Izquierda</button>
@@ -598,7 +613,8 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
       <button role="radio" data-v="der" aria-checked="false">Derecha</button>
     </div>
     <div class="stickprev" aria-hidden="true"><i></i><b></b></div>
-    <p class="cfgnote">El joystick queda fijo abajo. Tocá cerca de él y arrastrá para moverte. Si lo ponés a la derecha, el botón de habilidad pasa a la izquierda.</p>
+    <p class="cfgnote">Si lo ponés a la derecha, el botón de habilidad pasa a la izquierda.</p>
+    </div>
     <div class="dtitle">Sonido</div>
     <button class="btn ghost" id="soundMenu">Sonido: sí</button>
     <div id="cfgDev" hidden></div>
@@ -1137,7 +1153,7 @@ function newGame(ch,df){
   c.setup(G);
   G.st.xpMul+=DIFFS[df].xp;
   G.st.xpMul+=.05*(SAVE.buffs.sabiduria|0);
-  G.speed=[1,2,5].slice(0,1+Math.min(2,SAVE.buffs.velocidad|0)).includes(SAVE.speed)?SAVE.speed:1;
+  G.speed=speedOpts().includes(SAVE.speed)?SAVE.speed:1;
   const cl=SAVE.charLv[ch]|0;G.st.dmg+=.1*cl;G.p.maxHp+=10*cl;G.p.hp+=10*cl;G.abMul=Math.max(.4,1-.08*cl);if(cl&&c.grow)c.grow.f(G,cl);
   G.wLv[c.weapon]=1;
   G.charges={roll:SAVE.buffs.roll|0,ban:SAVE.buffs.ban|0,skip:SAVE.buffs.skip|0};
@@ -1465,18 +1481,26 @@ function pick(o){
 const keys=new Set();
 const joy={active:false,id:null,ox:0,oy:0,x:0,y:0};
 // Joystick fijo: la base queda siempre en el mismo lugar (izquierda, centro o derecha, se elige en Configuración)
-let stickPos='izq',touchSeen=matchMedia('(pointer:coarse)').matches;
-try{const v=localStorage.getItem('cripta-stick');if(v==='izq'||v==='centro'||v==='der')stickPos=v;}catch(e){}
+let stickPos='izq',stickMode='fijo',touchSeen=matchMedia('(pointer:coarse)').matches;
+try{const v=localStorage.getItem('cripta-stick');if(v==='izq'||v==='centro'||v==='der')stickPos=v;const m=localStorage.getItem('cripta-stickmode');if(m==='fijo'||m==='libre'||m==='toque')stickMode=m;}catch(e){}
 const safeProbe=document.createElement('div');safeProbe.style.cssText='position:fixed;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)';document.body.appendChild(safeProbe);
 const STICK_R=56;
 function stickBase(){const cs=getComputedStyle(safeProbe),sl=parseFloat(cs.paddingLeft)||0,sr=parseFloat(cs.paddingRight)||0,sb=parseFloat(cs.paddingBottom)||0,m=STICK_R+34;
   const x=stickPos==='izq'?sl+m:stickPos==='der'?W-sr-m:W/2;return[x,H-sb-m-(H<500?4:24)];}
-function setStickPos(v){stickPos=v;try{localStorage.setItem('cripta-stick',v);}catch(e){}document.body.dataset.stick=v;
+const MODE_NOTES={fijo:'El joystick queda siempre en el mismo lugar abajo. Tocá cerca de él y arrastrá.',
+  libre:'Tocá en cualquier parte y arrastrá. Si te alejás mucho, el joystick sigue a tu dedo.',
+  toque:'Tocá en cualquier parte: el joystick aparece ahí y queda quieto mientras no levantes el dedo.'};
+function setStickPos(v){stickPos=v;try{localStorage.setItem('cripta-stick',v);}catch(e){}document.body.dataset.stick=stickMode==='fijo'?v:'none';
   document.querySelectorAll('#stickSeg button').forEach(b=>b.setAttribute('aria-checked',String(b.dataset.v===v)));}
+function setStickMode(m){stickMode=m;joy.active=false;try{localStorage.setItem('cripta-stickmode',m);}catch(e){}
+  document.querySelectorAll('#modeSeg button').forEach(b=>b.setAttribute('aria-checked',String(b.dataset.m===m)));
+  $('#stickPosBox').hidden=m!=='fijo';$('#modeNote').textContent=MODE_NOTES[m];setStickPos(stickPos);}
 cv.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse')touchSeen=true;if(state!=='play'||joy.active)return;
-  const[bx,by]=stickBase(),near=Math.hypot(e.clientX-bx,e.clientY-by)<STICK_R*2.6,zone=e.clientY>H*.45&&Math.abs(e.clientX-bx)<Math.max(W/6,STICK_R*2.2);if(!near&&!zone)return;
-  joy.active=true;joy.id=e.pointerId;joy.ox=bx;joy.oy=by;joy.x=e.clientX;joy.y=e.clientY;try{cv.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();});
-cv.addEventListener('pointermove',e=>{if(!joy.active||e.pointerId!==joy.id)return;joy.x=e.clientX;joy.y=e.clientY;});
+  if(stickMode==='fijo'){const[bx,by]=stickBase(),near=Math.hypot(e.clientX-bx,e.clientY-by)<STICK_R*2.6,zone=e.clientY>H*.45&&Math.abs(e.clientX-bx)<Math.max(W/6,STICK_R*2.2);if(!near&&!zone)return;joy.ox=bx;joy.oy=by;}
+  else{joy.ox=e.clientX;joy.oy=e.clientY;}
+  joy.active=true;joy.id=e.pointerId;joy.x=e.clientX;joy.y=e.clientY;try{cv.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();});
+cv.addEventListener('pointermove',e=>{if(!joy.active||e.pointerId!==joy.id)return;joy.x=e.clientX;joy.y=e.clientY;
+  if(stickMode==='libre'){const dx=joy.x-joy.ox,dy=joy.y-joy.oy,d=Math.hypot(dx,dy),M=STICK_R*1.1;if(d>M){joy.ox=joy.x-dx/d*M;joy.oy=joy.y-dy/d*M;}}});
 const endJoy=e=>{if(e.pointerId===joy.id)joy.active=false;};
 cv.addEventListener('pointerup',endJoy);cv.addEventListener('pointercancel',endJoy);
 const visBtn=sel=>{const b=document.querySelector(sel);return b&&b.offsetParent&&!b.disabled?b:null;};
@@ -1490,7 +1514,7 @@ window.addEventListener('keydown',e=>{
     if(state==='play'){pause();e.preventDefault();}else if(state==='paused'){resume();e.preventDefault();}
     else if(k==='escape'){const b=visBtn('.screen:not([hidden]) .backBtn')||visBtn('#homeBtn');if(b){b.click();e.preventDefault();}}}
   if(k==='e'||k==='shift')useAbility();
-  if(k==='v'&&state==='play'){const b=visBtn('#speedBtn');if(b)b.click();}
+  if(k==='v'&&state==='play'&&G){const o=speedOpts();if(o.length>1)setSpeed(o[(o.indexOf(G.speed)+1)%o.length]);}
   if(state==='levelup'&&!e.repeat){const n=+k;if(n>=1&&n<=9){const c=$('#cards').children[n-1];if(c)c.click();}
     const t={r:'roll',b:'ban',x:'skip'}[k];if(t){const b=visBtn('#lu-'+t);if(b)b.click();}}
   if(k==='enter'&&!onBtn){if(state==='menu'&&!$('#menu').hidden&&!$('#playBtn').disabled)tryStartOrBuy();else{const b=visBtn('#againBtn');if(b)b.click();}}
@@ -1932,7 +1956,7 @@ function draw(now){
       ctx.font='400 '+Math.round(Math.min(34,W/14))+'px "Pirata One", Georgia, serif';ctx.fillStyle='#000';ctx.fillText(G.banner.txt,W/2+2,H*.26+2);
       ctx.fillStyle='#ffb36b';ctx.fillText(G.banner.txt,W/2,H*.26);ctx.globalAlpha=1;}
     // joystick fijo (en PC sin pantalla táctil no se dibuja)
-    if(state==='play'&&(touchSeen||joy.active)){const[bx,by]=stickBase(),R=STICK_R;
+    if(state==='play'&&(joy.active||(touchSeen&&stickMode==='fijo'))){const[bx,by]=stickMode==='fijo'?stickBase():[joy.ox,joy.oy],R=STICK_R;
       ctx.strokeStyle=joy.active?'rgba(236,230,255,0.4)':'rgba(236,230,255,0.2)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(bx,by,R,0,TAU);ctx.stroke();
       ctx.fillStyle=joy.active?'rgba(236,230,255,0.1)':'rgba(236,230,255,0.05)';ctx.fill();
       let kx=bx,ky=by;if(joy.active){const dx=joy.x-bx,dy=joy.y-by,d=Math.hypot(dx,dy),m=Math.min(d,R);if(d){kx=bx+dx/d*m;ky=by+dy/d*m;}}
@@ -1954,9 +1978,17 @@ function renderHudInv(){
   $('#slotW').innerHTML=row('Armas',G.weapons.map(w=>({id:w.id,col:WDEF[w.id].col,lv:w.lvl,max:WMAX,name:WDEF[w.id].name})));
   $('#slotP').innerHTML=row('Objetos',Object.keys(G.passives).map(id=>({id,col:PDEF[id].col,lv:G.passives[id],max:PDEF[id].max||PMAX,name:PDEF[id].name})));
 }
-const speedOpts=()=>[1,2,5].slice(0,1+Math.min(2,SAVE.buffs.velocidad|0));
-function renderSpeed(){const b=$('#speedBtn'),o=speedOpts();b.hidden=o.length<2;if(!G)return;if(!o.includes(G.speed))G.speed=1;b.textContent='×'+G.speed;b.classList.toggle('fast',G.speed>1);}
-$('#speedBtn').addEventListener('click',e=>{e.stopPropagation();if(!G)return;const o=speedOpts(),i=o.indexOf(G.speed);G.speed=o[(i+1)%o.length];SAVE.speed=G.speed;persist();renderSpeed();sfx('gem');});
+// Reloj del tiempo: nivel 1 deja elegir hasta ×2, nivel 2 hasta ×5, con todos los pasos intermedios
+const speedOpts=()=>{const lv=Math.min(2,SAVE.buffs.velocidad|0),mx=[1,2,5][lv],o=[];for(let i=1;i<=mx;i++)o.push(i);return o;};
+function renderSpeed(){const b=$('#speedBtn'),o=speedOpts();b.hidden=o.length<2;if(b.hidden)closeSpeedMenu();if(!G)return;if(!o.includes(G.speed))G.speed=1;b.textContent='×'+G.speed+' ▾';b.classList.toggle('fast',G.speed>1);}
+function setSpeed(v){if(!G)return;G.speed=v;SAVE.speed=v;persist();renderSpeed();sfx('gem');}
+function closeSpeedMenu(){const m=$('#speedMenu');if(m&&!m.hidden){m.hidden=true;$('#speedBtn').setAttribute('aria-expanded','false');}}
+$('#speedBtn').addEventListener('click',e=>{e.stopPropagation();if(!G)return;const m=$('#speedMenu');
+  if(!m.hidden){closeSpeedMenu();return;}
+  m.innerHTML=speedOpts().map(v=>`<button role="option" data-sp="${v}" aria-selected="${v===G.speed}">×${v}</button>`).join('');
+  m.hidden=false;$('#speedBtn').setAttribute('aria-expanded','true');});
+$('#speedMenu').addEventListener('click',e=>{e.stopPropagation();const b=e.target.closest('[data-sp]');if(b)setSpeed(+b.dataset.sp);closeSpeedMenu();});
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('.spdwrap'))closeSpeedMenu();},true);
 function updateHud(){if(!G)return;renderHudInv();if(hudCache.sp!==G.speed){hudCache.sp=G.speed;renderSpeed();}
   setText('#lvl','Nv '+G.lvl);setText('#time',fmt(G.t));setText('#kills',fmtPts(G.score)+' pts · '+fmtMult(timeMult(G.t)));setText('#hudCoinN',String(G.coins));if(hudCache.gv!==G.crys){hudCache.gv=G.crys;$('#hudGemN').textContent=G.crys;$('#hudGems').hidden=G.crys===0;}
   const bb=SAVE.bestBy[G.diff],bt=bb?bb.t:0,isNew=G.t>bt&&bt>0;
@@ -2296,7 +2328,7 @@ function renderAcct(){
 }
 /* ---- Menú de pruebas: solo para la cuenta dueña (hash SHA-256 del mail, para no publicarlo) ---- */
 // shortcut: el chequeo es del lado del cliente; alcanza para que no lo vea nadie más, no para impedir que alguien edite el juego
-const DEV_HASH='842985e128aa4f898b629990dbe6de9a9ec0236f6a085118d7b7663fa000f796';
+const DEV_HASHES=['842985e128aa4f898b629990dbe6de9a9ec0236f6a085118d7b7663fa000f796','50caa529cb02eb7ad9a8859013ade86c45443fff34e6c63c26cdb89387991f3c','629f1a623dd34afb2b6a42ea3022bb13050edabd0be0bbefbec058b08e8aeef0'];
 let IS_DEV=false;
 // El menú de pruebas es una opción de la cuenta dueña: activado, sus partidas no cuentan para la clasificación; desactivado, sí.
 const devActive=()=>IS_DEV&&!!SAVE.devOn;
@@ -2315,7 +2347,7 @@ function renderCfgDev(){const el=$('#cfgDev');if(!el)return;el.hidden=!IS_DEV;el
   if(SAVE.devOn){const md=document.createElement('button');md.className='btn ghost';md.id='modOpen';md.textContent='Abrir menú de pruebas';md.onclick=()=>{modFrom='config';openMod();};box.appendChild(md);}
   el.appendChild(box);}
 async function checkDev(){
-  try{IS_DEV=!!AUTH&&[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(AUTH.email.toLowerCase())))].map(b=>b.toString(16).padStart(2,'0')).join('')===DEV_HASH;}catch(e){IS_DEV=false;}
+  try{if(!AUTH){IS_DEV=false;syncDevUi();renderAcctIfOpen();return;}const h=([...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(AUTH.email.toLowerCase())))].map(b=>b.toString(16).padStart(2,'0')).join(''));IS_DEV=!!AUTH&&DEV_HASHES.includes(h);}catch(e){IS_DEV=false;}
   syncDevUi();renderAcctIfOpen();}
 const ST_NAMES={dmg:'Daño ×',cd:'Enfriamiento ×',cdRaw:'Enfriamiento base ×',area:'Área ×',spd:'Velocidad ×',projSpd:'Vel. de proyectiles ×',amount:'Proyectiles extra',shield:'Escudo',magnet:'Imán (px)',regen:'Regeneración',armor:'Armadura',crit:'Crítico',leech:'Robo de vida',killHeal:'Cura por baja',evade:'Esquivar',thorns:'Espinas',exec:'Ejecución',slowAura:'Aura lenta',curse:'Maldición',luck:'Suerte',xpMul:'Experiencia ×',coinMul:'Monedas ×',kb:'Empuje ×'};
 const MOD_FLAGS=[['god','Invencible (no recibís daño)'],['infHp','Vida infinita'],['maxDmg','Daño máximo (todo muere de un golpe)'],['noCd','Sin tiempo de espera (habilidad y armas)']];
@@ -2674,13 +2706,14 @@ $('#endBtn').addEventListener('click',()=>{
 $('#quitBtn').addEventListener('click',()=>{saveRun();goMenu();});
 $('#soundMenu').addEventListener('click',()=>setMuted(!muted));
 let cfgFrom='menu';
-function openCfg(from){cfgFrom=from;setStickPos(stickPos);renderCfgDev();show('config');}
+function openCfg(from){cfgFrom=from;setStickMode(stickMode);renderCfgDev();show('config');}
 function closeCfg(){show(cfgFrom);}
 $('#cfgMenu').addEventListener('click',()=>openCfg('menu'));
 $('#cfgPause').addEventListener('click',()=>openCfg('pause'));
 $('#cfgBack').addEventListener('click',closeCfg);
 $('#stickSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setStickPos(b.dataset.v);});
-setStickPos(stickPos);
+$('#modeSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setStickMode(b.dataset.m);});
+setStickMode(stickMode);
 $('#soundPause').addEventListener('click',()=>setMuted(!muted));
 document.addEventListener('visibilitychange',()=>{if(document.hidden){if(state==='play')pause();else saveRun();}});
 window.addEventListener('pagehide',saveRun);
