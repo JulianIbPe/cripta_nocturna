@@ -534,7 +534,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
   <div class="panel">
     <div class="eyebrow">Solo para pruebas</div>
     <h2>Menú de pruebas</h2>
-    <p>Mientras el menú de pruebas esté activado, tus partidas no cuentan para la clasificación. Lo desactivás en Cuenta.</p>
+    <p>Mientras el menú de pruebas esté activado, tus partidas no cuentan para la clasificación. Lo desactivás en Configuración.</p>
     <p class="toast" id="modToast" aria-live="polite"></p>
     <div id="modBody"></div>
     <button class="btn ghost" id="modBack">Volver</button>
@@ -601,6 +601,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
     <p class="cfgnote">El joystick queda fijo abajo. Tocá cerca de él y arrastrá para moverte. Si lo ponés a la derecha, el botón de habilidad pasa a la izquierda.</p>
     <div class="dtitle">Sonido</div>
     <button class="btn ghost" id="soundMenu">Sonido: sí</button>
+    <div id="cfgDev" hidden></div>
     <button class="btn ghost" id="cfgBack">Volver</button>
   </div>
 </section>
@@ -2292,17 +2293,6 @@ function renderAcct(){
       setAuth(toAuth(await fbAuth('update',{idToken:j.idToken,password:n,returnSecureToken:true})));pf.reset();out('Listo: cambiaste tu contraseña.');}
     catch(er){out(er.code==='WRONG_CURRENT'?'La contraseña actual no es correcta.':authMsg(er));}
     sv.disabled=false;};
-  if(IS_DEV){
-    const box=document.createElement('div');box.className='devopt';
-    const lb=document.createElement('label');lb.className='modchk';lb.htmlFor='devToggle';
-    const ck=document.createElement('input');ck.type='checkbox';ck.id='devToggle';ck.checked=!!SAVE.devOn;
-    lb.append(ck,document.createTextNode(' Menú de pruebas'));
-    const hint=document.createElement('p');hint.className='hint';
-    hint.textContent=SAVE.devOn?'Activado: tus partidas no cuentan para la clasificación. Desactivalo para volver a aparecer.':'Desactivado: tus partidas cuentan para la clasificación.';
-    box.append(lb,hint);
-    ck.onchange=()=>{SAVE.devOn=ck.checked;persist();syncDevUi();renderAcct();};
-    if(SAVE.devOn){const md=document.createElement('button');md.className='btn ghost';md.id='modOpen';md.textContent='Abrir menú de pruebas';md.onclick=openMod;box.appendChild(md);}
-    el.appendChild(box);}
 }
 /* ---- Menú de pruebas: solo para la cuenta dueña (hash SHA-256 del mail, para no publicarlo) ---- */
 // shortcut: el chequeo es del lado del cliente; alcanza para que no lo vea nadie más, no para impedir que alguien edite el juego
@@ -2310,7 +2300,20 @@ const DEV_HASH='842985e128aa4f898b629990dbe6de9a9ec0236f6a085118d7b7663fa000f796
 let IS_DEV=false;
 // El menú de pruebas es una opción de la cuenta dueña: activado, sus partidas no cuentan para la clasificación; desactivado, sí.
 const devActive=()=>IS_DEV&&!!SAVE.devOn;
-function syncDevUi(){$('#modPause').hidden=!devActive();}
+function syncDevUi(){$('#modPause').hidden=!devActive();renderCfgDev();}
+// Solo la cuenta dueña ve en Configuración la opción de mostrar el menú de pruebas
+function renderCfgDev(){const el=$('#cfgDev');if(!el)return;el.hidden=!IS_DEV;el.innerHTML='';if(!IS_DEV)return;
+  const box=document.createElement('div');box.className='devopt';
+  const t=document.createElement('div');t.className='dtitle';t.textContent='Solo para vos';
+  const lb=document.createElement('label');lb.className='modchk';lb.htmlFor='devToggle';
+  const ck=document.createElement('input');ck.type='checkbox';ck.id='devToggle';ck.checked=!!SAVE.devOn;
+  lb.append(ck,document.createTextNode(' Mostrar el menú de pruebas'));
+  const hint=document.createElement('p');hint.className='hint';
+  hint.textContent=SAVE.devOn?'Activado: tus partidas no cuentan para la clasificación.'+(G&&state==='paused'?' Esta partida ya no cuenta.':''):'Desactivado: tus partidas cuentan para la clasificación.'+(G&&state==='paused'&&G.mod?' Esta partida no cuenta porque empezó con el menú activado o usaste trucos; la próxima sí.':'');
+  box.append(t,lb,hint);
+  ck.onchange=()=>{SAVE.devOn=ck.checked;persist();if(SAVE.devOn&&G&&state==='paused')G.mod=true;syncDevUi();};
+  if(SAVE.devOn){const md=document.createElement('button');md.className='btn ghost';md.id='modOpen';md.textContent='Abrir menú de pruebas';md.onclick=()=>{modFrom='config';openMod();};box.appendChild(md);}
+  el.appendChild(box);}
 async function checkDev(){
   try{IS_DEV=!!AUTH&&[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(AUTH.email.toLowerCase())))].map(b=>b.toString(16).padStart(2,'0')).join('')===DEV_HASH;}catch(e){IS_DEV=false;}
   syncDevUi();renderAcctIfOpen();}
@@ -2318,8 +2321,9 @@ const ST_NAMES={dmg:'Daño ×',cd:'Enfriamiento ×',cdRaw:'Enfriamiento base ×'
 const MOD_FLAGS=[['god','Invencible (no recibís daño)'],['infHp','Vida infinita'],['maxDmg','Daño máximo (todo muere de un golpe)'],['noCd','Sin tiempo de espera (habilidad y armas)']];
 const modToast=t=>{$('#modToast').textContent=t;};
 function modMark(inRun){if(G)G.mod=true;if(!inRun)SAVE.mod=true;}
+let modFrom='pause';
 function openMod(){if(!devActive())return;modToast('');renderMod();show('mod');$('#mod').scrollTop=0;}
-function closeMod(){if(G&&state==='paused'){$('#inv').innerHTML=invHtml();$('#statgrid').innerHTML=statsHtml();show('pause');}else{renderAcct();show('account');}}
+function closeMod(){if(modFrom==='config'){modFrom='pause';renderCfgDev();show('config');return;}if(G&&state==='paused'){$('#inv').innerHTML=invHtml();$('#statgrid').innerHTML=statsHtml();show('pause');}else{renderCfgDev();show('config');}}
 function renderMod(){
   const el=$('#modBody'),run=G&&state==='paused';
   const opts=(n,v)=>Array.from({length:n+1},(_,i)=>`<option value="${i}"${i===v?' selected':''}>${i}</option>`).join('');
@@ -2670,7 +2674,7 @@ $('#endBtn').addEventListener('click',()=>{
 $('#quitBtn').addEventListener('click',()=>{saveRun();goMenu();});
 $('#soundMenu').addEventListener('click',()=>setMuted(!muted));
 let cfgFrom='menu';
-function openCfg(from){cfgFrom=from;setStickPos(stickPos);show('config');}
+function openCfg(from){cfgFrom=from;setStickPos(stickPos);renderCfgDev();show('config');}
 function closeCfg(){show(cfgFrom);}
 $('#cfgMenu').addEventListener('click',()=>openCfg('menu'));
 $('#cfgPause').addEventListener('click',()=>openCfg('pause'));
