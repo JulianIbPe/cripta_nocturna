@@ -30,6 +30,8 @@ Juego survivors para celular en un solo archivo, `index.html` (HTML + CSS + JS s
 - **Proyectiles extra (`st.amount`):** todas las armas los usan. Las de área (Incienso, Látigo, Guadaña, Siega de almas) repiten el golpe en tandas con `volleys` (que entran dentro de la recarga del arma); la Linterna deja hasta 4 llamas extra y no pasa de 120 charcos.
 - **Tope de enemigos:** `MAX_EN`=420; los enjambres no lo pasan (jefes, calabazas y arañas de la Reina tienen su propio límite). Sin tope, la Calavera maldita hacía que se acumularan miles y el juego se congelaba.
 - **Velocidad:** `#speedBtn` abre el desplegable `#speedMenu` con ×1 hasta ×2 (Reloj del tiempo nivel 1) o ×5 (nivel 2); `setSpeed` lo guarda en `SAVE.speed`. La tecla V pasa a la siguiente.
+- **AFK:** `#afkBtn` (arriba a la derecha, `toggleAfk`) pone `G.afk`: las subidas de nivel eligen solas la de mayor rareza, los cofres se abren con un cartel, cambiar de ventana no pausa y cuando sale un jefe `update` pausa con `pause('Apareció …')`. Se guarda en la partida.
+- **Varios dedos:** pausa, AFK y velocidad usan `tapBtn` (pointerdown, porque con un dedo en el joystick el celular no manda click); `tapGuard` descarta el click que llega después. Con `#speedMenu` abierto (`speedOpen()`) `frame` no corre `update`: el juego queda frenado.
 - **Teclado (PC):** un solo `keydown` en la sección Input; Esc toca el `.backBtn` visible.
 - **Bucle:** `update(dt)` + `draw(now)`; con el Reloj del tiempo, `update` corre varias veces por frame. `frame` pide el próximo cuadro primero y envuelve cada parte en try/catch, así un error no congela el juego.
 - **Subida de nivel:** sin opciones disponibles (todo al máximo o bloqueado) el nivel sube sin pantalla ni mejora; ya no existe la Manzana de relleno.

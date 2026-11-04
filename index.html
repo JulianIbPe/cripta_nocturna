@@ -107,7 +107,9 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 .tcol{display:grid;justify-items:center;line-height:1}
 #rec{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
 #rec.new{color:#ffd27a}
-.hudrow .r{gap:10px;align-items:center}
+.hudrow .r{gap:8px;align-items:center;flex-wrap:wrap;row-gap:6px}
+#afkBtn{pointer-events:auto;height:34px;min-width:46px;padding:0 10px;border-radius:999px;border:1px solid rgba(94,230,196,.45);background:rgba(12,10,24,.75);color:var(--soul);font-weight:700;font-size:15px;letter-spacing:.06em}
+#afkBtn[aria-pressed="true"]{background:var(--soul);color:#062019;box-shadow:0 0 12px rgba(94,230,196,.55)}
 #hudCoins{display:flex;align-items:center;gap:5px;font-weight:700;color:#ffd27a;font-variant-numeric:tabular-nums;font-size:17px}
 .btn:disabled{opacity:.5;box-shadow:none;cursor:default}
 .chars{display:grid;gap:10px}
@@ -306,14 +308,14 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
 #stickPosBox{display:grid;gap:10px}#stickPosBox[hidden]{display:none}
 #modeSeg button{font-size:15px}
 /* Menú en PC: tiles de progreso a la izquierda, personaje y Jugar al centro, info a la derecha. En celular los contenedores no existen (display:contents). */
-.mcenter,.tcol{display:contents}
+.mcenter,.menupanel .tcol{display:contents}
 @media (min-width:900px) and (min-height:600px){
   .menupanel{display:grid;max-width:1240px;grid-template-columns:minmax(230px,1fr) minmax(380px,440px) minmax(230px,1fr);grid-template-areas:"top top top" "l c r" "l b s";column-gap:32px;row-gap:14px;align-items:start}
   .menupanel .topline{grid-area:top}
   .mcenter{grid-area:c;display:flex;flex-direction:column;gap:16px}
   .menupanel h1{text-align:center}
   .menupanel .tiles{display:contents}
-  .tcol{display:flex;flex-direction:column;gap:12px;align-self:center}
+  .menupanel .tcol{display:flex;flex-direction:column;gap:12px;align-self:center}
   .tl{grid-area:l}.tr{grid-area:r}
   #cfgMenu{grid-area:s}
   #best{grid-area:b;text-align:center}
@@ -397,7 +399,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
   <div class="hudrow">
     <div class="l"><span id="lvl">Nv 1</span><span id="kills">0 bajas</span></div>
     <div class="tcol"><span id="time">00:00</span><span id="rec"></span></div>
-    <div class="r"><span id="hudCoins"><i class="coin"></i><span id="hudCoinN">0</span></span><span id="hudGems" hidden><i class="gemi"></i><span id="hudGemN">0</span></span><span class="spdwrap"><button id="speedBtn" hidden aria-label="Velocidad del juego" aria-haspopup="listbox" aria-expanded="false">×1 ▾</button><div id="speedMenu" role="listbox" aria-label="Velocidad del juego" hidden></div></span><button id="pauseBtn" aria-label="Pausa"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="2" width="3.5" height="12" rx="1"/><rect x="9.5" y="2" width="3.5" height="12" rx="1"/></svg></button></div>
+    <div class="r"><span id="hudCoins"><i class="coin"></i><span id="hudCoinN">0</span></span><span id="hudGems" hidden><i class="gemi"></i><span id="hudGemN">0</span></span><span class="spdwrap"><button id="speedBtn" hidden aria-label="Velocidad del juego" aria-haspopup="listbox" aria-expanded="false">×1 ▾</button><div id="speedMenu" role="listbox" aria-label="Velocidad del juego" hidden></div></span><button id="afkBtn" aria-pressed="false" aria-label="Modo AFK: la partida sigue sola y se pausa cuando aparece un jefe">AFK</button><button id="pauseBtn" aria-label="Pausa"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="2" width="3.5" height="12" rx="1"/><rect x="9.5" y="2" width="3.5" height="12" rx="1"/></svg></button></div>
   </div>
   <div class="hudinv" id="hudInv"><div class="slots" id="slotW"></div><div class="slots" id="slotP"></div></div>
 </div>
@@ -637,7 +639,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
 
 <section id="pause" class="screen" hidden>
   <div class="panel">
-    <div class="eyebrow">Pausa</div>
+    <div class="eyebrow" id="pauseEyebrow">Pausa</div>
     <h2>La noche espera</h2>
     <button class="updbar" id="updBarPause" hidden>Hay una versión nueva (<b></b>). Tocá acá para descargarla.</button>
     <button class="btn" id="resumeBtn">Seguir</button>
@@ -1336,7 +1338,7 @@ function spawnUpdate(dt){
   G.spawnAcc+=dt*rate;
   while(G.spawnAcc>=1){G.spawnAcc--;if(G.enemies.length<target)spawnEnemy(pickType(t));}
   if(t>=G.nextBoss){G.nextBoss+=300;const k=BOSS_ORDER[G.bosses%BOSS_ORDER.length];G.bossCycle=Math.floor(G.bosses/BOSS_ORDER.length);G.bosses++;
-    spawnEnemy(k);banner('¡Jefe: '+ETYPES[k].name+'!');sfx('boss');G.shake=.3;}
+    spawnEnemy(k);banner('¡Jefe: '+ETYPES[k].name+'!');sfx('boss');G.shake=.3;if(G.afk)G.afkStop=ETYPES[k].name;}
   if(t>=G.nextElite){G.nextElite+=120;G.elites++;spawnEnemy('pumpkin');banner('Se acerca una calabaza maldita');sfx('boss');}
   if(t>=G.nextSwarm){G.nextSwarm+=90;G.swarms++;const n=Math.max(0,Math.min(48,20+G.swarms*7,MAX_EN-G.enemies.length)),R=spawnRadius();
     for(let i=0;i<n;i++){const a=i/n*TAU;const e=spawnEnemy('bat',G.p.x+Math.cos(a)*R,G.p.y+Math.sin(a)*R);e.spd*=1.15;}
@@ -1564,7 +1566,7 @@ function strike(x,y,R,dmg,col){
 function ring(x,y,r,col){G.rings.push({x,y,r,col,life:.45});}
 function blast(R,dmg,kb){const p=G.p;near(p.x,p.y,R+24,e=>{const dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy)||1;if(d<R+e.r)hurt(e,dmg,dx/d*kb,dy/d*kb);});}
 function useAbility(){
-  if(state!=='play'||!G||G.ab.cd>0)return;
+  if(state!=='play'||!G||G.ab.cd>0.05||speedOpen())return;
   const p=G.p,st=G.st,c=CHARS[G.char];
   G.ab.cd=c.active.cd*st.cd*(G.abMul||1);
   switch(G.char){
@@ -1609,6 +1611,8 @@ function openLevelUp(){
   const opts=buildOptions();
   // Todo al máximo (o bloqueado): los niveles suben igual, sin pantalla ni mejora
   if(!opts.length){G.pending=0;if(state==='levelup'){state='play';show(null);last=performance.now();}if(G.texts.length<60)G.texts.push({x:G.p.x,y:G.p.y-30,txt:'Nivel '+G.lvl,life:1,heal:true});return;}
+  if(G.afk&&state==='play'){const o=opts.slice().sort((a,b)=>(b.r|0)-(a.r|0))[0];sfx('level');
+    if(G.texts.length<60)G.texts.push({x:G.p.x,y:G.p.y-30,txt:(o.k==='w'?WDEF[o.id].name:PDEF[o.id].name)+' · Nv '+o.lvl,life:1.4,heal:true});pick(o);return;}
   state='levelup';joy.active=false;sfx('level');G.banMode=false;
   G.curOpts=opts;renderLevelUp(true);show('levelup');
 }
@@ -1641,8 +1645,9 @@ function banish(idx){
 function openChest(){
   G.chestQ--;const r=rollRelicRarity(),ids=Object.keys(RELICS).filter(k=>RELICS[k].r===r),id=ids[(Math.random()*ids.length)|0],R_=RELICS[id];
   G.relics[id]=(G.relics[id]|0)+1;R_.apply();G.chestsOpened=(G.chestsOpened|0)+1;
-  state='chest';joy.active=false;sfx(r>=2?'boss':'level');
   const rr=RREL[r],n=G.relics[id];
+  if(G.afk&&state==='play'){sfx('level');banner('Cofre: '+R_.name+' ('+rr.n.toLowerCase()+')');return;}
+  state='chest';joy.active=false;sfx(r>=2?'boss':'level');
   $('#chestCard').innerHTML=`<div class="card ${rr.cls}"${r?` style="border-color:${rr.c}"`:''}><span class="ic">${svg(R_.ic,R_.col)}</span><span class="nm"><strong>${R_.name}</strong><span class="tag" style="color:${rr.c}">Reliquia ${rr.n.toLowerCase()}${n>1?' · ahora tenés '+n:''}</span></span><span class="ds">${R_.desc()}${n>1?'. Se suma a las que ya tenías':''}</span></div>`;
   $('#chestHint').textContent=G.chestQ>0?'Te queda'+(G.chestQ>1?'n '+G.chestQ+' cofres':' 1 cofre')+' por abrir.':'';
   $('#chestOk').textContent=G.chestQ>0?'Abrir el siguiente':'Seguir';
@@ -1710,7 +1715,7 @@ window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
 /* ---- Botón atrás del celular (APK: MainActivity llama a criptaBack; navegador: entrada extra en el historial) ---- */
 // Hace lo mismo que el botón Volver de la pantalla abierta. Devuelve false solo en el menú principal: ahí atrás sale de la app
 function goBack(){
-  const sm=$('#speedMenu');if(sm&&!sm.hidden){closeSpeedMenu();return true;}
+  if(state==='play'){pause();return true;}
   if(!$('#mod').hidden){closeMod();return true;}
   if(!$('#config').hidden){closeCfg();return true;}
   if(state==='play'){pause();return true;}
@@ -1727,8 +1732,7 @@ if(!window.CriptaApp&&!/Electron/.test(navigator.userAgent)&&window.history&&his
   window.addEventListener('pointerdown',arm,true);
   window.addEventListener('popstate',()=>{if(goBack())arm();});}
 // Al cambiar de ventana no quedan teclas trabadas y la partida se pausa sola
-window.addEventListener('blur',()=>{keys.clear();joy.active=false;if(state==='play')pause();});
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&state==='play')pause();});
+window.addEventListener('blur',()=>{keys.clear();joy.active=false;if(state==='play'&&!(G&&G.afk))pause();});
 window.addEventListener('contextmenu',e=>e.preventDefault());
 function inputVec(){
   let x=0,y=0;
@@ -1876,6 +1880,8 @@ function update(dt){
   G.cam.x+=(p.x-G.cam.x)*Math.min(1,dt*8);G.cam.y+=(p.y-G.cam.y)*Math.min(1,dt*8);
   if(G.t-lastRunSave>3){lastRunSave=G.t;saveRun();}
   if(G.pending>0)openLevelUp();else if(G.chestQ>0&&state==='play')openChest();
+  // AFK: apareció un jefe, se pausa para que lo enfrentes vos
+  if(G.afkStop&&state==='play'){const n=G.afkStop;G.afkStop=null;pause('Apareció '+n);}
 }
 
 /* ---------- Draw ---------- */
@@ -2199,20 +2205,24 @@ function renderHudInv(){
 const speedOpts=()=>{const lv=Math.min(2,SAVE.buffs.velocidad|0),mx=[1,2,5][lv],o=[];for(let i=1;i<=mx;i++)o.push(i);return o;};
 function renderSpeed(){const b=$('#speedBtn'),o=speedOpts();b.hidden=o.length<2;if(b.hidden)closeSpeedMenu();if(!G)return;if(!o.includes(G.speed))G.speed=1;b.textContent='×'+G.speed+' ▾';b.classList.toggle('fast',G.speed>1);}
 function setSpeed(v){if(!G)return;G.speed=v;SAVE.speed=v;persist();renderSpeed();sfx('gem');}
-function closeSpeedMenu(){const m=$('#speedMenu');if(m&&!m.hidden){m.hidden=true;$('#speedBtn').setAttribute('aria-expanded','false');}}
-$('#speedBtn').addEventListener('click',e=>{e.stopPropagation();if(!G)return;const m=$('#speedMenu');
+function closeSpeedMenu(){const m=$('#speedMenu');if(m&&!m.hidden){m.hidden=true;$('#speedBtn').setAttribute('aria-expanded','false');last=performance.now();}}
+// Mientras el desplegable de velocidad está abierto, el juego queda frenado (ver frame)
+const speedOpen=()=>{const m=$('#speedMenu');return !!m&&!m.hidden;};
+function toggleSpeedMenu(){if(!G)return;const m=$('#speedMenu');
   if(!m.hidden){closeSpeedMenu();return;}
   m.innerHTML=speedOpts().map(v=>`<button role="option" data-sp="${v}" aria-selected="${v===G.speed}">×${v}</button>`).join('');
-  m.hidden=false;$('#speedBtn').setAttribute('aria-expanded','true');});
-$('#speedMenu').addEventListener('click',e=>{e.stopPropagation();const b=e.target.closest('[data-sp]');if(b)setSpeed(+b.dataset.sp);closeSpeedMenu();});
+  m.hidden=false;$('#speedBtn').setAttribute('aria-expanded','true');joy.active=false;}
+const speedPick=e=>{e.stopPropagation();const b=e.target.closest('[data-sp]');if(!b)return;e.preventDefault();tapGuard=performance.now();setSpeed(+b.dataset.sp);closeSpeedMenu();};
+$('#speedMenu').addEventListener('pointerdown',speedPick);
+$('#speedMenu').addEventListener('click',e=>{e.stopPropagation();if(performance.now()-tapGuard>500)speedPick(e);});
 document.addEventListener('pointerdown',e=>{if(!e.target.closest('.spdwrap'))closeSpeedMenu();},true);
 function updateHud(){if(!G)return;renderHudInv();if(hudCache.sp!==G.speed){hudCache.sp=G.speed;renderSpeed();}
   setText('#lvl','Nv '+G.lvl);setText('#time',fmt(G.t));setText('#kills',fmtPts(G.score)+' pts · '+fmtMult(timeMult(G.t)));setText('#hudCoinN',String(G.coins));if(hudCache.gv!==G.crys){hudCache.gv=G.crys;$('#hudGemN').textContent=G.crys;$('#hudGems').hidden=G.crys===0;}
   const bb=SAVE.bestBy[G.diff],bt=bb?bb.t:0,isNew=G.t>bt&&bt>0;
   setText('#rec',isNew?'Nuevo récord':bt?'Récord '+fmt(bt):'Sobrevivido');
   if(hudCache.recNew!==isNew){hudCache.recNew=isNew;$('#rec').classList.toggle('new',isNew);}
-  const max=CHARS[G.char].active.cd*G.st.cd*(G.abMul||1),cd=Math.max(0,G.ab.cd),pr=(cd/max).toFixed(3),ab=$('#abBtn');
-  if(hudCache.abp!==pr){hudCache.abp=pr;ab.style.setProperty('--p',pr);$('#abCd').textContent=cd>0?Math.ceil(cd):'';ab.classList.toggle('ready',cd<=0);}
+  const max=CHARS[G.char].active.cd*G.st.cd*(G.abMul||1),cd=Math.max(0,G.ab.cd),pr=(cd/max).toFixed(3),ab=$('#abBtn'),cdTxt=cd>0.05?String(Math.ceil(cd)):'',abKey=pr+'|'+cdTxt;
+  if(hudCache.abp!==abKey){hudCache.abp=abKey;ab.style.setProperty('--p',pr);$('#abCd').textContent=cdTxt;ab.classList.toggle('ready',!cdTxt);}
   const w=Math.round(G.xp/G.need*1000)/10+'%';if(hudCache.xp!==w){hudCache.xp=w;$('#xpfill').style.width=w;}}
 function invHtml(){
   let h='';for(const w of G.weapons)h+=`<span class="chip">${svg(w.id,WDEF[w.id].col)}${WDEF[w.id].name}<em>${w.lvl}</em></span>`;
@@ -2855,7 +2865,7 @@ function saveRun(){
   try{const r={v:1,char:G.char,diff:G.diff,t:G.t,kills:G.kills,lvl:G.lvl,xp:G.xp,need:G.need,pending:G.pending,score:G.score,coins:G.coins,crys:G.crys,dawn:G.dawn,
     p:{x:G.p.x,y:G.p.y,hp:G.p.hp,maxHp:G.p.maxHp,fx:G.p.fx,fy:G.p.fy,shield:G.p.shield|0,shT:G.p.shT||0},st:G.st,weapons:G.weapons.map(w=>({id:w.id,lvl:w.lvl})),passives:G.passives,wMult:G.wMult,wLv:G.wLv,
     banned:[...G.banned],charges:G.charges,elites:G.elites,nextBoss:G.nextBoss,bosses:G.bosses,bossCycle:G.bossCycle,bossesKilled:G.bossesKilled,killsBy:G.killsBy,bombsUsed:G.bombsUsed,nextElite:G.nextElite,nextSwarm:G.nextSwarm,swarms:G.swarms,warned:G.warned,elitesKilled:G.elitesKilled,
-    dmgBy:G.dmgBy,chaosLog:G.chaosLog,relics:G.relics,chestQ:G.chestQ|0,chestsOpened:G.chestsOpened|0,mod:!!G.mod,god:!!G.god,infHp:!!G.infHp,maxDmg:!!G.maxDmg,noCd:!!G.noCd,killN:G.killN,lastMult:G.lastMult,abcd:G.ab.cd,abMul:G.abMul,
+    dmgBy:G.dmgBy,chaosLog:G.chaosLog,afk:!!G.afk,relics:G.relics,chestQ:G.chestQ|0,chestsOpened:G.chestsOpened|0,mod:!!G.mod,god:!!G.god,infHp:!!G.infHp,maxDmg:!!G.maxDmg,noCd:!!G.noCd,killN:G.killN,lastMult:G.lastMult,abcd:G.ab.cd,abMul:G.abMul,
     enemies:G.enemies.filter(e=>!e.dead).slice(0,400).map(e=>[e.type,Math.round(e.x),Math.round(e.y),Math.round(e.hp*10)/10,Math.round(e.max*10)/10,Math.round(e.spd),Math.round(e.dmg*10)/10]),
     gems:G.gems.slice(0,300).map(g=>[Math.round(g.x),Math.round(g.y),g.v]),coinsArr:G.coinsArr.map(c=>[Math.round(c.x),Math.round(c.y)]),
     crysArr:G.crysArr.map(c=>[Math.round(c.x),Math.round(c.y)]),items:G.items.map(i=>[Math.round(i.x),Math.round(i.y),i.kind])};
@@ -2875,13 +2885,15 @@ function resumeRun(){
   G.coinsArr=(r.coinsArr||[]).map(a=>({x:a[0],y:a[1],sp:0,fly:false}));G.crysArr=(r.crysArr||[]).map(a=>({x:a[0],y:a[1],sp:0,fly:false}));
   G.items=(r.items||[]).map(a=>({x:a[0],y:a[1],kind:a[2]}));
   G.cam.x=G.p.x;G.cam.y=G.p.y;lastRunSave=G.t;hudCache={};
-  G.chaosLog=r.chaosLog||[];G.relics={};for(const k in r.relics||{})if(RELICS[k])G.relics[k]=r.relics[k]|0;G.chestQ=r.chestQ|0;G.chestsOpened=r.chestsOpened|0;G.mod=G.mod||!!r.mod;G.god=!!r.god;G.infHp=!!r.infHp;G.maxDmg=!!r.maxDmg;G.noCd=!!r.noCd;
+  G.chaosLog=r.chaosLog||[];G.relics={};for(const k in r.relics||{})if(RELICS[k])G.relics[k]=r.relics[k]|0;G.chestQ=r.chestQ|0;G.chestsOpened=r.chestsOpened|0;G.afk=!!r.afk;G.mod=G.mod||!!r.mod;G.god=!!r.god;G.infHp=!!r.infHp;G.maxDmg=!!r.maxDmg;G.noCd=!!r.noCd;
   state='paused';joy.active=false;$('#inv').innerHTML=invHtml();$('#statgrid').innerHTML=statsHtml();chaosLogRender();show('pause');
 }
-function start(ch){clearRun();initAudio();newGame(ch,SAVE.diff);lastRunSave=0;hudCache={};state='play';show(null);last=performance.now();
+function start(ch){clearRun();initAudio();newGame(ch,SAVE.diff);lastRunSave=0;hudCache={};state='play';show(null);last=performance.now();renderAfk();
   try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{});}catch(e){}}
-function pause(){if(state!=='play')return;state='paused';syncDevUi();saveRun();endReset();if(restartArm){clearTimeout(restartArm);restartArm=null;}$('#restartBtn').textContent='Reiniciar partida';$('#restartBtn').style.borderColor='';joy.active=false;$('#inv').innerHTML=invHtml();$('#statgrid').innerHTML=statsHtml();chaosLogRender();show('pause');$('#pause').scrollTop=0;}
-function resume(){state='play';show(null);last=performance.now();}
+function pause(why){if(state!=='play')return;state='paused';closeSpeedMenu();$('#pauseEyebrow').textContent=typeof why==='string'?why+' · AFK sigue activo':'Pausa';syncDevUi();saveRun();endReset();if(restartArm){clearTimeout(restartArm);restartArm=null;}$('#restartBtn').textContent='Reiniciar partida';$('#restartBtn').style.borderColor='';joy.active=false;$('#inv').innerHTML=invHtml();$('#statgrid').innerHTML=statsHtml();chaosLogRender();show('pause');$('#pause').scrollTop=0;}
+function resume(){state='play';show(null);last=performance.now();renderAfk();}
+function renderAfk(){const b=$('#afkBtn');if(b&&G)b.setAttribute('aria-pressed',String(!!G.afk));}
+function toggleAfk(){if(!G||state!=='play')return;G.afk=!G.afk;renderAfk();sfx('gem');banner(G.afk?'AFK: la partida sigue sola y se pausa con cada jefe':'AFK desactivado');}
 function gameOver(){
   state='over';clearRun();joy.active=false;
   const DF=DIFFS[G.diff],timeBonus=Math.floor(G.t/30),dawnBonus=G.dawn?50:0,base=G.coins+timeBonus+dawnBonus,diffBonus=Math.round(base*(DF.coin-1)),earned=base+diffBonus;
@@ -2920,7 +2932,15 @@ $('#playBtn').addEventListener('click',tryStartOrBuy);
 $('#homeBtn').addEventListener('click',goMenu);
 $('#againBtn').addEventListener('click',()=>start(G?G.char:SAVE.sel));
 $('#menuBtn').addEventListener('click',openChars);
-$('#pauseBtn').addEventListener('click',pause);
+// Con un dedo en el joystick, el celular no manda "click" al tocar con otro: estos botones usan pointerdown.
+// tapGuard evita que el click que llega después toque lo que quedó abajo (por ejemplo un botón de la pausa)
+let tapGuard=0;
+const tapBtn=(sel,fn)=>{const b=$(sel);b.addEventListener('pointerdown',e=>{if(e.button>0)return;e.preventDefault();e.stopPropagation();tapGuard=performance.now();fn(e);});
+  b.addEventListener('click',e=>{e.stopPropagation();if(performance.now()-tapGuard>500)fn(e);});};
+document.addEventListener('click',e=>{if(performance.now()-tapGuard<350){e.stopPropagation();e.preventDefault();}},true);
+tapBtn('#pauseBtn',()=>pause());
+tapBtn('#afkBtn',toggleAfk);
+tapBtn('#speedBtn',toggleSpeedMenu);
 $('#resumeBtn').addEventListener('click',resume);
 let restartArm=null;
 $('#restartBtn').addEventListener('click',()=>{
@@ -2948,7 +2968,7 @@ $('#stickSeg').addEventListener('click',e=>{const b=e.target.closest('button');i
 $('#modeSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setStickMode(b.dataset.m);});
 setStickMode(stickMode);
 $('#soundPause').addEventListener('click',()=>setMuted(!muted));
-document.addEventListener('visibilitychange',()=>{if(document.hidden){if(state==='play')pause();else saveRun();}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){if(state==='play'&&!(G&&G.afk))pause();else saveRun();}});
 window.addEventListener('pagehide',saveRun);
 $('#contBtn').addEventListener('click',resumeRun);
 $('#modPause').addEventListener('click',openMod);
@@ -2971,7 +2991,7 @@ let frameErrs=0;
 function frame(now){
   requestAnimationFrame(frame);
   const dt=Math.min(.05,(now-last)/1000);last=now;
-  try{if(state==='play'&&G){const k=G.speed||1;for(let i=0;i<k&&state==='play'&&G;i++)update(dt);}}catch(e){if(frameErrs++<5)console.error(e);}
+  try{if(state==='play'&&G&&!speedOpen()){const k=G.speed||1;for(let i=0;i<k&&state==='play'&&G;i++)update(dt);}}catch(e){if(frameErrs++<5)console.error(e);}
   try{draw(now);}catch(e){if(frameErrs++<5)console.error(e);try{ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.filter='none';}catch(_){}}
   try{updateHud();drawMenuHero(now);}catch(e){if(frameErrs++<5)console.error(e);}
 }
