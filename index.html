@@ -634,7 +634,9 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
     <button class="btn ghost" id="soundMenu">Sonido: sí</button>
     <div class="dtitle">Gráficos</div>
     <button class="btn ghost" id="lowFxBtn" aria-pressed="false">Efectos reducidos: no</button>
-    <p class="cfgnote">Para celulares de gama baja: menos resolución, sin partículas, sin números de daño, sin temblor de pantalla y luces más simples. Se guarda en este dispositivo.</p>
+    <p class="cfgnote">Para celulares de gama baja: menos resolución, sin partículas, sin números de daño, sin temblor de pantalla y luces más simples.</p>
+    <button class="btn ghost" id="batBtn" aria-pressed="false">Ahorro de batería: no</button>
+    <p class="cfgnote">El juego se dibuja a 30 cuadros por segundo en vez de 60, y los menús y la pausa a 12. Se juega igual, un poco menos fluido. Las dos opciones se guardan en este dispositivo.</p>
     <div id="cfgDev" hidden></div>
     <button class="btn ghost" id="cfgBack">Volver</button>
   </div>
@@ -2015,12 +2017,12 @@ function drawPlayer(){
 }
 const amb=[];for(let i=0;i<12;i++){const gh=i>=8;amb.push({type:gh?'ghost':'bat',nx:Math.random(),ny:Math.random(),v:(gh?rand(10,22):rand(30,65))*(Math.random()<.5?-1:1),r:gh?12:8,ph:Math.random()*TAU,flash:0,x:0,y:0});}
 function drawAmbient(cx,cy){
-  for(const a of amb){a.nx+=a.v/60/VW;if(a.nx<-.06)a.nx=1.06;if(a.nx>1.06)a.nx=-.06;a.ph+=(a.type==='bat'?16:5)/60;
+  for(const a of amb){a.nx+=a.v*fk/60/VW;if(a.nx<-.06)a.nx=1.06;if(a.nx>1.06)a.nx=-.06;a.ph+=(a.type==='bat'?16:5)*fk/60;
     a.x=cx-VW/2+a.nx*VW;a.y=cy-VH/2+a.ny*VH+Math.sin(a.ph*.08)*12;drawEnemy(a);}}
 function draw(now){
   ctx.setTransform(DPR,0,0,DPR,0,0);
   let cx,cy,px,py;
-  if(G){cx=G.cam.x;cy=G.cam.y;px=G.p.x;py=G.p.y;}else{menuT+=1/60;cx=menuT*14;cy=menuT*6;px=cx;py=cy;}
+  if(G){cx=G.cam.x;cy=G.cam.y;px=G.p.x;py=G.p.y;}else{menuT+=fk/60;cx=menuT*14;cy=menuT*6;px=cx;py=cy;}
   let shx=0,shy=0;if(G&&G.shake>0&&!lowFx){shx=rand(-4,4)*G.shake*4;shy=rand(-4,4)*G.shake*4;}
   ctx.setTransform(DPR*S,0,0,DPR*S,DPR*(W/2-cx*S+shx),DPR*(H/2-cy*S+shy));
   ctx.fillStyle=pat;ctx.fillRect(cx-VW/2-20,cy-VH/2-20,VW+40,VH+40);
@@ -3007,10 +3009,18 @@ window.addEventListener('pagehide',flushCloud);
 
 /* ---------- Loop ---------- */
 let last=performance.now();
+// Ahorro de batería (Configuración → Gráficos, por dispositivo): saltea cuadros para dibujar a 30 por segundo en partida y a 12 en menús y pausa
+let batSave=false;try{batSave=localStorage.getItem('cripta-battery')==='1';}catch(e){}
+function setBatSave(v){batSave=v;try{localStorage.setItem('cripta-battery',v?'1':'0');}catch(e){}const b=$('#batBtn');b.textContent='Ahorro de batería: '+(v?'sí':'no');b.setAttribute('aria-pressed',String(v));}
+$('#batBtn').addEventListener('click',()=>setBatSave(!batSave));setBatSave(batSave);
+// fk: cuántos cuadros de 60 por segundo pasaron desde el último dibujo (las animaciones del menú avanzan por cuadro)
+let fk=1;
 // El próximo cuadro se pide primero: si algo falla en este, el juego sigue en vez de quedar congelado
 let frameErrs=0;
 function frame(now){
   requestAnimationFrame(frame);
+  if(batSave&&now-last<(state==='play'&&!speedOpen()?1000/30:1000/12)-3)return;
+  fk=Math.min(6,Math.max(1,(now-last)/(1000/60)));
   const dt=Math.min(.05,(now-last)/1000);last=now;
   try{if(state==='play'&&G&&!speedOpen()){const k=G.speed||1;for(let i=0;i<k&&state==='play'&&G;i++)update(dt);}}catch(e){if(frameErrs++<5)console.error(e);}
   try{draw(now);}catch(e){if(frameErrs++<5)console.error(e);try{ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.filter='none';}catch(_){}}
