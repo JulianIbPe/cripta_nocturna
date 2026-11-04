@@ -805,7 +805,7 @@ const WDEF={
     up:['Lanza un abanico de hojas filosas hacia donde mirás.','+2 de daño y atraviesan 1 enemigo','+1 hoja y recarga más rápida','+1 hoja y +3 de daño','+1 hoja, atraviesan 1 más y +3 de daño'],
     dmg:[8,10,10,13,16],cd:[.9,.85,.75,.7,.6],n:[3,3,4,5,6],pierce:[0,1,1,1,2]},
   lanzahielo:{name:'Lanzas de hielo',col:'#bfe8ff',excl:'lich',
-    up:['Dispara lanzas de hielo que atraviesan y frenan a los enemigos.','+1 lanza','Atraviesan 1 más y frenan más','+1 lanza y +6 de daño','Atraviesan 1 más, frenan más y +6 de daño'],
+    up:['Dispara lanzas de hielo que atraviesan y frenan a los enemigos. Cada golpe tiene 2% de chance de congelar 1 segundo.','+1 lanza','Atraviesan 1 más y frenan más','+1 lanza y +6 de daño','Atraviesan 1 más, frenan más y +6 de daño'],
     dmg:[12,16,16,22,28],cd:[1.1,1.05,.95,.9,.8],n:[1,2,2,3,3],pierce:[1,1,2,2,3],slow:[1.5,1.5,2,2,2.5]},
   halo:{name:'Halo sagrado',col:'#fff6d6',excl:'angel',
     up:['Un halo de luz sale de vos seguido y empuja a los enemigos. Cada proyectil extra suma otra onda detrás.','+4 de daño','Halo más grande y más seguido','+4 de daño y más seguido','Halo enorme y +6 de daño'],
@@ -823,7 +823,7 @@ const WDEF={
     up:['Suelta llamas fatuas que zigzaguean hacia los enemigos.','+1 llama','+6 de daño','+1 llama y recarga más rápida','+2 llamas y +8 de daño'],
     dmg:[14,14,20,20,28],cd:[1.1,1.05,1,.85,.8],n:[2,3,3,4,6],pierce:[1,1,1,2,2]},
   novahelada:{name:'Nova de escarcha',col:'#9ad0ff',excl:'lich',
-    up:['Una onda de escarcha sale de vos, daña y ralentiza mucho a los enemigos. Cada proyectil extra suma otra onda detrás.','+6 de daño','Onda más grande y ralentiza más','+8 de daño y recarga más rápida','Onda enorme y +10 de daño'],
+    up:['Una onda de escarcha sale de vos, daña y ralentiza mucho a los enemigos. Cada golpe tiene 2% de chance de congelar 1 segundo. Cada proyectil extra suma otra onda detrás.','+6 de daño','Onda más grande y ralentiza más','+8 de daño y recarga más rápida','Onda enorme y +10 de daño'],
     dmg:[14,20,20,28,38],cd:[3,2.8,2.6,2.3,2.1],R:[130,140,160,170,200],frz:[.6,.6,1,1,1.3]},
   luzdivina:{name:'Cruz de luz',col:'#fff2b0',excl:'angel',
     up:['Rayos de luz salen de vos en cruz y atraviesan todo.','+8 de daño','Rayos más largos','+10 de daño y recarga más rápida','Ocho rayos y +12 de daño'],
@@ -1364,6 +1364,8 @@ function bomb(){
   G.bombFx=.5;G.shake=.6;G.rings.push({x:p.x,y:p.y,r:Math.max(VW,VH)*.6,col:'#ffe27a',life:.45});sfx('boss');banner('¡Bomba! '+n+' enemigos eliminados');
 }
 const FREEZE_CHANCE=.02;
+// Solo las armas de hielo pueden congelar
+const FREEZE_SRC=new Set(['lanzahielo','novahelada']);
 function hurt(e,base,kx,ky,src){
   if(e.dead)return;
   if(src&&G.wMult[src])base*=G.wMult[src];
@@ -1373,8 +1375,8 @@ function hurt(e,base,kx,ky,src){
   const crit=tier>0,over=st.cdRaw&&st.cdRaw<.3?.3/st.cdRaw:1;
   let dmg=Math.max(1,Math.round(base*st.dmg*over*rand(.9,1.1)*(1+tier)));
   if(st.exec&&!e.elite&&Math.random()<st.exec)dmg=Math.max(dmg,Math.ceil(e.hp));
-  // Cualquier golpe tiene una chance muy baja de congelar 1 segundo (los jefes no se congelan)
-  if(!e.boss&&!(e.frozen>0)&&Math.random()<FREEZE_CHANCE)e.frozen=1;
+  // Los golpes de las armas de hielo tienen una chance baja de congelar 1 segundo (los jefes no se congelan)
+  if(FREEZE_SRC.has(src)&&!e.boss&&!(e.frozen>0)&&Math.random()<FREEZE_CHANCE)e.frozen=1;
   e.hp-=dmg;e.flash=.1;src=src||'hab';G.dmgBy[src]=(G.dmgBy[src]||0)+Math.min(dmg,Math.max(0,e.hp+dmg));e.kx+=kx*e.kb*st.kb;e.ky+=ky*e.kb*st.kb;
   if(st.leech)G.p.hp=Math.min(G.p.maxHp,G.p.hp+dmg*st.leech);
   if(src!=='bomba'&&!lowFx&&G.texts.length<60)G.texts.push({x:e.x+rand(-4,4),y:e.y-e.r,txt:tier>=2?dmg+'!'.repeat(Math.min(3,tier-1)):dmg,life:tier>=2?.8:.6,big:dmg>=40||crit,crit:tier===1,oc:tier>=2});
@@ -2269,7 +2271,7 @@ function statsHtml(){
     ['Regeneración',st.regen.toFixed(1).replace('.',',')+' /s',cls(st.regen)],
     ['Armadura',String(st.armor),cls(st.armor)],
     ['Proyectiles','+'+st.amount,cls(st.amount)],
-    ['Congelar al golpear',Math.round(FREEZE_CHANCE*100)+'%',''],
+    ['Congelar (armas de hielo)',G.weapons.some(w=>FREEZE_SRC.has(w.id))?Math.round(FREEZE_CHANCE*100)+'%':'—',''],
     ['Escudo',st.shield?(p.shield|0)+' / '+st.shield:'—',cls(st.shield||0)],
     ['Crítico',Math.round(st.crit*100)+'%'+(st.crit>1?' · overcrit':''),st.crit>1?'up':cls(st.crit)],
     ['Sobrecarga',st.cdRaw<.3?'+'+pc(.3/st.cdRaw-1):'—',st.cdRaw<.3?'up':''],
