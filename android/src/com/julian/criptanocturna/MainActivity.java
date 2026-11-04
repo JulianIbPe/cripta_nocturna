@@ -65,6 +65,14 @@ public class MainActivity extends Activity {
         web.saveState(out);
     }
 
+    // Atrás del celular: el juego cierra la pantalla abierta o pausa la partida; en el menú principal, la app va al fondo
+    @Override
+    public void onBackPressed() {
+        web.evaluateJavascript("(window.criptaBack&&window.criptaBack())?1:0", v -> {
+            if (!"1".equals(v)) moveTaskToBack(true);
+        });
+    }
+
     @Override
     protected void onPause() {
         web.onPause(); // corta el audio y el bucle al salir de la app

@@ -462,6 +462,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
       <p><b>Cada personaje tiene una habilidad</b>: tocá el botón de abajo a la derecha cuando esté cargada.</p>
       <p><b>Cada 5 minutos aparece un jefe</b>: la Reina Araña, que pone arañas; El Conde, que embiste; y el Coloso de Lápidas, que golpea el suelo (salí del círculo rojo). Sueltan muchas monedas, 2 gemas, curación y un imán.</p>
       <p><b>Los enemigos pueden soltar</b> manzanas (curan), imanes (atraen todo) y bombas (limpian la pantalla).</p>
+      <p><b>Cofres</b>: cualquier enemigo puede soltar uno con muy poca chance y los jefes siempre sueltan uno. Cada cofre trae una reliquia común, rara, épica o legendaria (la suerte mejora la rareza). Se pueden repetir y se suman. Mirá todas en Arsenal → Reliquias.</p>
       <p><b>Cada 90 segundos llega un enjambre</b> y cada 2 minutos una calabaza maldita, que suelta curación, un imán de almas y muchas monedas.</p>
       <p><b>Sumás puntos matando enemigos y jefes.</b> Cada minuto que sobrevivís sube el multiplicador ×0,1 (×2 al amanecer); después del amanecer sube ×0,05 por minuto, hasta ×3. Medio da ×1,5 y Difícil ×2. La clasificación se ordena por puntaje.</p>
       <div class="difftbl" id="diffTbl2"></div>
@@ -483,9 +484,10 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
   <div class="panel">
     <div class="eyebrow">Todo lo que podés encontrar</div>
     <h2>Arsenal</h2>
-    <div class="seg" role="radiogroup" aria-label="Categoría">
+    <div class="seg three" role="radiogroup" aria-label="Categoría">
       <button role="radio" id="arsW" aria-checked="true">Armas</button>
       <button role="radio" id="arsP" aria-checked="false">Objetos</button>
+      <button role="radio" id="arsR" aria-checked="false">Reliquias</button>
     </div>
     <div class="alist" id="arsList"></div>
     <button class="btn ghost backBtn">Volver</button>
@@ -595,6 +597,16 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
   </div>
 </section>
 
+<section id="chest" class="screen" hidden>
+  <div class="panel">
+    <div class="eyebrow">Cofre</div>
+    <h2>¡Encontraste una reliquia!</h2>
+    <div class="cards" id="chestCard"></div>
+    <p class="luhint" id="chestHint"></p>
+    <button class="btn" id="chestOk">Seguir</button>
+  </div>
+</section>
+
 <section id="config" class="screen" hidden>
   <div class="panel">
     <div class="eyebrow">Ajustes</div>
@@ -637,7 +649,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
       <button class="btn ghost" id="cfgPause">Configuración</button>
     </div>
     <button class="btn ghost" id="quitBtn">Salir y guardar</button>
-    <div class="dtitle">Armas y objetos</div>
+    <div class="dtitle">Armas, objetos y reliquias</div>
     <div class="inv" id="inv"></div>
     <div class="dtitle">Estadísticas</div>
     <div class="statgrid" id="statgrid"></div>
@@ -763,6 +775,19 @@ const WDEF={
   sello:{name:'Sello rúnico',col:'#c06bff',mission:'m_imp',
     up:['Dibuja runas en el suelo que explotan cuando un enemigo las pisa.','+10 de daño','+1 runa y explosión más grande','+15 de daño','+1 runa, explosión más grande y +20 de daño'],
     dmg:[35,45,45,60,80],cd:[1.8,1.7,1.6,1.5,1.3],n:[1,1,2,2,3],r:[45,45,55,55,70]},
+  // Tercera tanda: aparecen desde el principio
+  estacas:{name:'Estacas de fresno',col:'#c8a27a',
+    up:['Dispara estacas en todas las direcciones que atraviesan enemigos.','+2 estacas','+4 de daño y recarga más rápida','+2 estacas y atraviesan 1 más','+2 estacas y +5 de daño'],
+    dmg:[9,9,13,13,18],cd:[1.5,1.45,1.3,1.25,1.15],n:[6,8,8,10,12],pierce:[1,1,1,2,2]},
+  craneos:{name:'Cráneos explosivos',col:'#ffb36b',
+    up:['Arroja cráneos que explotan donde caen.','+10 de daño','+1 cráneo y explosión más grande','+12 de daño y recarga más rápida','+1 cráneo y +15 de daño'],
+    dmg:[28,38,38,50,65],cd:[2.2,2.1,2,1.8,1.7],n:[1,1,2,2,3],r:[36,36,44,44,50]},
+  remolino:{name:'Remolino de cenizas',col:'#a79fc4',
+    up:['Lanza un remolino lento hacia donde mirás que lastima una y otra vez a todo lo que atrapa.','+4 de daño','Remolino más grande y dura más','+1 remolino y +4 de daño','+1 remolino, más grande y +6 de daño'],
+    dmg:[8,12,12,16,22],cd:[2.6,2.5,2.4,2.2,2],n:[1,1,1,2,3],r:[20,20,26,26,32],life:[2.2,2.2,2.8,2.8,3.2]},
+  cetro:{name:'Cetro de sangre',col:'#e2435a',
+    up:['Un rayo de sangre atraviesa en línea al enemigo más cercano y te cura por cada enemigo que toca.','+6 de daño','+1 rayo','+8 de daño y recarga más rápida','+1 rayo y cura el doble'],
+    dmg:[14,20,20,28,34],cd:[1.5,1.45,1.4,1.25,1.15],n:[1,1,2,2,3],heal:[.5,.5,.5,.5,1]},
   // Exclusivas de los élite: arrancan con ella y solo a ese personaje le aparece al subir de nivel.
   // Las seis primeras son además su arma inicial, así ningún personaje repite arma.
   martillo:{name:'Martillo de trueno',col:'#8fd3ff',excl:'valkiria',
@@ -867,6 +892,10 @@ const PDEF={
   caos:{name:'Esencia del caos',col:'#ff5fd2',desc:m=>'Mejora una estadística al azar'+(m>1?' con su rareza':'')+'. Solo el caos da Escudo y proyectiles por encima del límite',apply(m){
     const ids=Object.keys(PDEF).filter(k=>k!=='caos').concat(Object.keys(CHAOS_EXTRA)),id=ids[(Math.random()*ids.length)|0],D=PDEF[id]||CHAOS_EXTRA[id];
     D.apply(m);banner('Caos: '+D.desc(m));G.chaosLog.push({t:Math.floor(G.t),id,m});}},
+  rosario:{name:'Rosario de hueso',col:'#efe6d2',desc:m=>'Recuperás '+Math.round(3*m)+' de vida cada 25 bajas',apply(m){G.st.killHeal+=Math.round(3*m);}},
+  verdugo:{name:'Capucha de verdugo',col:'#8a8fb0',desc:m=>'+'+dec(1.5*m)+'% de chance de rematar de un golpe a los enemigos comunes',apply(m){G.st.exec+=.015*m;}},
+  caliz:{name:'Cáliz de sangre',col:'#e2435a',desc:m=>'+'+pc(.08*m)+' de tu vida máxima',apply(m){const v=Math.round(G.p.maxHp*.08*m);G.p.maxHp+=v;G.p.hp+=v;}},
+  tintero:{name:'Tintero de sombras',col:'#b38cff',desc:m=>'+'+pc(.06*m)+' de daño y +'+pc(.05*m)+' de área',apply(m){G.st.dmg+=.06*m;G.st.area+=.05*m;}},
   espejo:{name:'Espejo embrujado',col:'#c9c2ff',max:3,fixed:true,desc:()=>'+1 proyectil en todas las armas',apply(){G.st.amount+=1;}},
 };
 // Mejoras que solo puede dar la Esencia del caos
@@ -877,6 +906,97 @@ const CHAOS_EXTRA={
     apply(m){const n=chaosN(m);G.st.shield=(G.st.shield||0)+n;G.p.shield=(G.p.shield||0)+n;}},
   proyectil:{name:'Proyectil del caos',col:'#ff5fd2',desc:m=>'+'+chaosN(m)+' proyectil en todas las armas, por encima del límite',apply(m){G.st.amount+=chaosN(m);}},
 };
+/* ---- Reliquias: salen de los cofres. Se pueden repetir y cada copia vuelve a sumar su efecto ---- */
+// Cofres: muy poca chance en cualquier enemigo (la suerte no la cambia) y siempre en los jefes. La suerte sí mejora la rareza
+const CHEST_CHANCE=.001;
+const RREL=[{n:'Común',c:'#b9b2d6',w:60,cls:''},{n:'Rara',c:'#5aa8ff',w:28,cls:'r2'},{n:'Épica',c:'#c06bff',w:10,cls:'r3'},{n:'Legendaria',c:'#ffb32b',w:2,cls:'r4'}];
+const RFX={
+  dmg:[v=>'+'+pc(v)+' de daño',v=>{G.st.dmg+=v;}],
+  area:[v=>'+'+pc(v)+' de área',v=>{G.st.area+=v;}],
+  spd:[v=>'+'+pc(v)+' de velocidad',v=>{G.st.spd+=v;}],
+  magnet:[v=>'+'+pc(v)+' de radio de atracción',v=>{G.st.magnet*=1+v;}],
+  regen:[v=>'+'+dec(v)+' de vida por segundo',v=>{G.st.regen+=v;}],
+  armor:[v=>'+'+v+' de armadura',v=>{G.st.armor+=v;}],
+  amount:[v=>'+'+v+' proyectil en todas las armas',v=>{G.st.amount+=v;}],
+  crit:[v=>'+'+pc(v)+' de crítico',v=>{G.st.crit+=v;}],
+  leech:[v=>'+'+dec(v*100)+'% de robo de vida',v=>{G.st.leech+=v;}],
+  xp:[v=>'+'+pc(v)+' de experiencia',v=>{G.st.xpMul+=v;}],
+  coin:[v=>'+'+pc(v)+' de monedas',v=>{G.st.coinMul+=v;}],
+  killHeal:[v=>'+'+v+' de vida cada 25 bajas',v=>{G.st.killHeal+=v;}],
+  thorns:[v=>'+'+v+' de espinas',v=>{G.st.thorns+=v;}],
+  exec:[v=>'+'+dec(v*100)+'% de chance de rematar enemigos comunes',v=>{G.st.exec+=v;}],
+  evade:[v=>'+'+pc(v)+' de esquivar',v=>{G.st.evade+=v;}],
+  luck:[v=>'+'+pc(v)+' de suerte',v=>{G.st.luck+=v;}],
+  proj:[v=>'+'+pc(v)+' de velocidad de proyectil',v=>{G.st.projSpd+=v;}],
+  kb:[v=>'+'+pc(v)+' de empuje',v=>{G.st.kb+=v;}],
+  shield:[v=>'+'+v+' de escudo (bloquea un golpe entero y se recarga cada '+SHIELD_RECHARGE+' s)',v=>{G.st.shield=(G.st.shield||0)+v;G.p.shield=(G.p.shield||0)+v;}],
+  hp:[v=>'+'+v+' de vida máxima',v=>{G.p.maxHp+=v;G.p.hp+=v;}],
+  atk:[v=>'+'+pc(1/(1-v)-1)+' de velocidad de ataque',v=>{const st=G.st;st.cdRaw=(st.cdRaw||st.cd)*(1-v);st.cd=Math.max(.3,st.cdRaw);}],
+  ab:[v=>'-'+pc(v)+' de recarga de la habilidad',v=>{G.abMul=Math.max(.25,(G.abMul||1)*(1-v));}],
+  objLv:[v=>'Todos tus objetos pueden subir '+v+' niveles más que el máximo (el Espejo embrujado, 1 más)',()=>{}],
+  armLv:[v=>'Todas tus armas pueden subir '+v+' niveles más que el máximo',()=>{}],
+};
+const RELICS={};
+[ // id, nombre, rareza (0 común, 1 rara, 2 épica, 3 legendaria), ícono, color, efectos
+  ['diente','Diente de lobo',0,'colmillo','#e6dcc4',{dmg:.04}],
+  ['ceniza','Bolsita de ceniza',0,'niebla','#a79fc4',{area:.05}],
+  ['cuerda','Cuerda de ahorcado',0,'latigo','#c8a27a',{spd:.05}],
+  ['clavo','Clavo oxidado',0,'lanza','#b07a5a',{thorns:3}],
+  ['caronte','Moneda de Caronte',0,'moneda','#f0b429',{coin:.1}],
+  ['vendas','Vendas de momia',0,'corazon','#e6dcc4',{hp:15}],
+  ['ojovidrio','Ojo de vidrio',0,'ojo','#9ad0ff',{crit:.03}],
+  ['piedraiman','Piedra imán',0,'iman','#5ee6c4',{magnet:.15}],
+  ['tiza','Tiza de exorcista',0,'pergamino','#ece6ff',{xp:.04}],
+  ['hueso','Hueso de la suerte',0,'herradura','#efe6d2',{luck:.05}],
+  ['lechuza','Pluma de lechuza',0,'pluma','#c9c2ff',{evade:.02}],
+  ['cabovela','Cabo de vela',0,'vela','#ffb36b',{regen:.2}],
+  ['eslabon','Eslabón de cota',0,'coraza','#a7b0c8',{armor:1}],
+  ['polvora','Pizca de pólvora',0,'bomba','#c8a27a',{kb:.08}],
+  ['arena','Puñado de arena',0,'reloj','#ffd27a',{atk:.03}],
+  ['sal','Sal gruesa',0,'flecha','#ece6ff',{proj:.06}],
+  ['ajo','Diente de ajo',0,'manzana','#f4f0d0',{killHeal:1}],
+  ['colarata','Cola de rata',0,'roll','#b9b2d6',{ab:.03}],
+  ['lagrima','Lágrima de viuda',0,'agua','#7ac8ff',{leech:.005}],
+  ['boton','Botón de mortaja',0,'anillo','#d8dbe8',{dmg:.02,area:.02}],
+  ['lobo','Colmillo de lobo blanco',1,'colmillo','#ece6ff',{dmg:.09}],
+  ['mapa','Mapa del cementerio',1,'pergamino','#e6dcc4',{area:.12}],
+  ['espuelas','Espuelas de plata',1,'botas','#d8dbe8',{spd:.1}],
+  ['espinas','Corona de espinas',1,'anillo','#9ae07a',{thorns:8,armor:1}],
+  ['copa','Copa dorada',1,'caliz','#f0b429',{coin:.2,xp:.05}],
+  ['piedracor','Corazón de piedra',1,'corazon','#a89a8a',{hp:35}],
+  ['ojocuervo','Ojo de cuervo',1,'ojo','#8a8fb0',{crit:.07}],
+  ['bolsillo','Reloj de bolsillo',1,'reloj','#ffd27a',{atk:.07}],
+  ['trebol4','Trébol de cuatro hojas',1,'trebol','#7dffb0',{luck:.15}],
+  ['capahumo','Capa de humo',1,'niebla','#9aa8c8',{evade:.05}],
+  ['brasero','Brasero de cripta',1,'fuego','#ff8a3d',{regen:.6}],
+  ['bronce','Placa de bronce',1,'coraza','#c8a27a',{armor:2}],
+  ['frasco','Frasco de sangre',1,'agua','#e2435a',{leech:.015}],
+  ['diario','Diario del cazador',1,'grimorio','#c8a27a',{xp:.1}],
+  ['guillotina','Hoja de guillotina',1,'hacha','#cfd6ff',{exec:.02}],
+  ['escudoplata','Escudo de plata',2,'escudo','#7fd8ff',{shield:1}],
+  ['espejoroto','Espejo roto',2,'espejo','#c9c2ff',{amount:1}],
+  ['libro','Libro de los muertos',2,'grimorio','#b38cff',{dmg:.18,area:.08}],
+  ['relojdet','Reloj detenido',2,'reloj','#c06bff',{atk:.12}],
+  ['dragon','Corazón de dragón',2,'corazon','#ff6a3d',{hp:60,regen:1}],
+  ['garra','Garra del diablo',2,'hoces','#ff4d6d',{crit:.14}],
+  ['mascara','Máscara de la peste',2,'maldicion','#9ae07a',{ab:.12,dmg:.06}],
+  ['avaro','Anillo del avaro',2,'bolsa','#ffb32b',{coin:.4,luck:.2}],
+  ['alas','Alas de murciélago',2,'murcielagos','#a98bff',{spd:.15,evade:.06}],
+  ['cristal','Calavera de cristal',2,'calaveras','#bfe8ff',{magnet:.25,xp:.15}],
+  ['coronarey','Corona del rey eterno',3,'corona','#ffb32b',{objLv:5}],
+  ['yunque','Yunque infernal',3,'yunque','#ff6a3d',{armLv:5}],
+  ['grial','Grial negro',3,'caliz','#ff4dd8',{dmg:.3,area:.2,regen:2}],
+  ['eternidad','Reloj de la eternidad',3,'reloj','#ffe27a',{atk:.2,ab:.2}],
+  ['estrella','Estrella caída',3,'juicio','#fff6d6',{amount:1,shield:1,luck:.25}],
+].forEach(([id,name,r,ic,col,fx])=>{RELICS[id]={name,r,ic,col,fx,
+  desc:()=>Object.entries(fx).map(([k,v])=>RFX[k][0](v)).join(' · '),
+  apply(){for(const k in fx)RFX[k][1](fx[k]);}};});
+const relN=id=>(G&&G.relics&&G.relics[id])|0;
+// Máximos de nivel: los legendarios Yunque infernal y Corona del rey eterno suben 5 niveles más por copia
+const wMax=()=>WMAX+5*relN('yunque');
+const pMax=id=>(PDEF[id].max||PMAX)+(PDEF[id].fixed?1:5)*relN('coronarey');
+function rollRelicRarity(){const lk=Math.max(0,G.st.luck);let tot=0;const ws=RREL.map((r,i)=>{const w=r.w*Math.pow(1+lk,i);tot+=w;return w;});
+  let x=Math.random()*tot;for(let i=0;i<ws.length;i++){x-=ws[i];if(x<=0)return i;}return 0;}
 const RAR=[
   {n:'Común',c:'#b9b2d6',m:1,wb:0,w:100},
   {n:'Poco común',c:'#5ee6c4',m:1.25,wb:.08,w:40},
@@ -967,6 +1087,18 @@ const ICON={
   skip:'<path d="M5 5l8 7-8 7z"/><path d="M16 5v14"/>',
   ban:'<circle cx="12" cy="12" r="8"/><path d="M6.5 6.5l11 11"/>',
   manzana:'<circle cx="12" cy="14" r="6.5"/><path d="M12 7.5V3M12 6c1.5-2 3.5-2 4.5-1.5"/>',
+  cofre:'<path d="M3 10h18v10H3z"/><path d="M3 10a4 4 0 0 1 4-5h10a4 4 0 0 1 4 5"/><path d="M10 12h4v3h-4z"/>',
+  corona:'<path d="M3 18 4 7l5 5 3-7 3 7 5-5 1 11z"/><path d="M4 21h16"/>',
+  yunque:'<path d="M3 8h13a5 5 0 0 0 5-3v4a4 4 0 0 1-4 4h-2l2 4H7l2-4H6A3 3 0 0 1 3 10z"/><path d="M6 21h12"/>',
+  caliz:'<path d="M6 3h12v4a6 6 0 0 1-12 0z"/><path d="M12 13v5M8 21h8"/>',
+  moneda:'<circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4"/>',
+  estacas:'<path d="M12 2v7M12 15v7M2 12h7M15 12h7"/><path d="M5 5l3 3M16 16l3 3M5 19l3-3M16 8l3-3"/>',
+  craneos:'<path d="M6 13a6 6 0 1 1 12 0v3h-2v3H8v-3H6z"/><circle cx="9.5" cy="12" r="1.3"/><circle cx="14.5" cy="12" r="1.3"/><path d="M17 3l2-1M19 6h2"/>',
+  remolino:'<path d="M4 8h12a3 3 0 1 0-3-3"/><path d="M3 13h15a3 3 0 1 1-3 3"/><path d="M6 18h5"/>',
+  cetro:'<path d="M5 21 15 11"/><circle cx="17" cy="7" r="4"/><path d="M17 5v4M15 7h4"/>',
+  rosario:'<circle cx="12" cy="5" r="2"/><circle cx="17" cy="8" r="2"/><circle cx="7" cy="8" r="2"/><circle cx="17" cy="13" r="2"/><circle cx="7" cy="13" r="2"/><path d="M12 15v7M9.5 18h5"/>',
+  verdugo:'<path d="M5 21V10a7 7 0 0 1 14 0v11z"/><path d="M8 12h3M13 12h3"/>',
+  tintero:'<path d="M7 10h10v10H7z"/><path d="M9 10V7h6v3"/><path d="M14 4l6-2"/>',
 };
 const svg=(id,col)=>`<svg viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[id]}</svg>`;
 
@@ -1154,7 +1286,7 @@ function newGame(ch,df){
     st:{dmg:1,cd:1,area:1,spd:1,magnet:60,regen:0,armor:0,amount:0,crit:0,leech:0,xpMul:1,coinMul:1,killHeal:0,slowAura:0,thorns:0,exec:0,evade:0,curse:0,luck:0,projSpd:1,cdRaw:1,kb:1,shield:0},
     weapons:[],passives:{},
     enemies:[],shots:[],gems:[],items:[],texts:[],parts:[],bolts:[],coinsArr:[],allies:[],rings:[],
-    coins:0,crys:0,crysArr:[],timers:[],meteors:[],runes:[],killsBy:{},bombsUsed:0,wLv:{},chaosLog:[],sweeps:[],beams:[],waves:[],wMult:{},elitesKilled:0,banned:new Set(),curOpts:[],banMode:false,score:0,killN:0,dawn:false,freezeFx:0,ab:{cd:3},
+    coins:0,crys:0,crysArr:[],timers:[],meteors:[],runes:[],killsBy:{},bombsUsed:0,wLv:{},chaosLog:[],sweeps:[],beams:[],waves:[],wMult:{},elitesKilled:0,relics:{},chestQ:0,chestsOpened:0,banned:new Set(),curOpts:[],banMode:false,score:0,killN:0,dawn:false,freezeFx:0,ab:{cd:3},
     spawnAcc:0,nextBoss:300,bosses:0,bossCycle:0,bossesKilled:0,slams:[],nextElite:120,elites:0,nextSwarm:90,swarms:0,warned:false,
     cam:{x:0,y:0},shake:0,banner:null};
   const c=CHARS[ch];
@@ -1252,6 +1384,8 @@ function hurt(e,base,kx,ky,src){
     else if(e.elite&&Math.random()<.5)G.crysArr.push({x:e.x,y:e.y-22,sp:0,fly:false});
     else if(Math.random()<.0015*(DIFFS[G.diff].gem||DIFFS[G.diff].coin)*(1+.05*(SAVE.buffs.gemspawn|0)))G.crysArr.push({x:e.x-4,y:e.y-4,sp:0,fly:false});
     if(st.killHeal){G.killN++;if(G.killN%25===0){G.p.hp=Math.min(G.p.maxHp,G.p.hp+st.killHeal);G.texts.push({x:G.p.x,y:G.p.y-20,txt:'+'+st.killHeal,life:.8,heal:true});}}
+    // Los jefes siempre sueltan un cofre; cualquier otro enemigo, con muy poca chance (no depende de la suerte)
+    if(e.boss)G.items.push({x:e.x,y:e.y+20,kind:'chest'});else if(Math.random()<CHEST_CHANCE)G.items.push({x:e.x,y:e.y,kind:'chest'});
     if(e.boss){G.bossesKilled++;G.items.push({x:e.x+18,y:e.y,kind:'heal'},{x:e.x-18,y:e.y,kind:'vacuum'});G.shake=.5;banner(ETYPES[e.type].name+' derrotado');}
     else if(e.elite){G.elitesKilled++;if(Math.random()<.5)G.items.push({x:e.x+14,y:e.y,kind:'heal'});G.items.push({x:e.x-14,y:e.y,kind:'vacuum'});G.shake=.35;}
     else{const r=Math.random();
@@ -1399,6 +1533,19 @@ function updateWeapons(dt){
       volleys(1+st.amount,1,.25,()=>{const p=G.p;G.sweeps.push({x:p.x,y:p.y,R,life:.3,a0:Math.atan2(p.fy,p.fx),col:D.col});
         near(p.x,p.y,R+24,e=>{const dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy)||1;if(d>=R+e.r)return;hurt(e,D.dmg[L],dx/d*200,dy/d*200,'siegaalmas');
           if(!e.dead&&!e.elite&&e.hp<e.max*ex)hurt(e,e.hp*10+1e5,0,0,'siegaalmas');});},w.timer);
+    }else if(w.id==='estacas'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount,a0=Math.random()*TAU;
+      for(let i=0;i<n;i++){const a=a0+i/n*TAU;G.shots.push({src:'estacas',kind:'stake',x:p.x,y:p.y,vx:Math.cos(a)*360,vy:Math.sin(a)*360,dmg:D.dmg[L],pierce:D.pierce[L],r:6,life:.9,hit:new Set()});}
+    }else if(w.id==='craneos'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount,ts=nearestEnemies(n);
+      for(let i=0;i<n;i++){const t=ts[i%Math.max(1,ts.length)],a=Math.random()*TAU,r=rand(50,140);
+        G.meteors.push({x:t?t.x+rand(-10,10):p.x+Math.cos(a)*r,y:t?t.y+rand(-10,10):p.y+Math.sin(a)*r,t:0,dur:.6+i*.1,R:D.r[L]*st.area,dmg:D.dmg[L],src:'craneos',col:D.col});}
+    }else if(w.id==='remolino'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount,base=Math.atan2(p.fy,p.fx),r=D.r[L]*st.area;
+      for(let i=0;i<n;i++){const a=base+(i-(n-1)/2)*.45;
+        G.shots.push({src:'remolino',kind:'whirl',x:p.x,y:p.y,vx:Math.cos(a)*85,vy:Math.sin(a)*85,dmg:D.dmg[L],pierce:1e9,r,life:D.life[L],rehit:.35,rt:.35,ang:0,hit:new Set()});}
+    }else if(w.id==='cetro'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;const len=230*st.area,wd=6*st.area;
+      for(let i=0;i<n;i++){const t=ts[i%ts.length],a=Math.atan2(t.y-p.y,t.x-p.x)+(i>=ts.length?rand(-.3,.3):0),cx=Math.cos(a),cy=Math.sin(a);let hits=0;
+        G.beams.push({x:p.x,y:p.y,a,len,w:wd,life:.22,col:D.col});
+        for(const e of G.enemies){if(e.dead)continue;const rx=e.x-p.x,ry=e.y-p.y,al=rx*cx+ry*cy;if(al<0||al>len+e.r)continue;if(Math.abs(rx*cy-ry*cx)<wd+e.r){hurt(e,D.dmg[L],cx*60,cy*60,'cetro');hits++;}}
+        if(hits)p.hp=Math.min(p.maxHp,p.hp+Math.min(8,hits)*D.heal[L]);}
     }else if(w.id==='cruz'){w.timer=D.cd[L]*st.cd;
       // Una cruz por tanda: cada proyectil extra es otra cruz que sale enseguida hacia el más cercano
       volleys(D.n[L]+st.amount,1,.14,(k,vi)=>{const p=G.p,ts=nearestEnemies(1);
@@ -1449,10 +1596,10 @@ $('#abBtn').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagat
 function gainXp(v){G.xp+=v*G.st.xpMul;if(!isFinite(G.xp))G.xp=0;while(G.xp>=G.need&&G.need>0){G.xp-=G.need;G.lvl++;G.need=xpNeed(G.lvl);G.pending++;}}
 function buildOptions(exclude){
   let pool=[];
-  for(const w of G.weapons)if(w.lvl<WMAX)pool.push({k:'w',id:w.id,lvl:w.lvl+1});
+  for(const w of G.weapons)if(w.lvl<wMax())pool.push({k:'w',id:w.id,lvl:w.lvl+1});
   if(G.weapons.length<6)for(const id in WDEF)if(!G.weapons.find(w=>w.id===id)&&weaponUnlocked(id)&&(!WDEF[id].excl||WDEF[id].excl===G.char))pool.push({k:'w',id,lvl:1});
   const own=Object.keys(G.passives);
-  for(const id of own)if(G.passives[id]<(PDEF[id].max||PMAX))pool.push({k:'p',id,lvl:G.passives[id]+1});
+  for(const id of own)if(G.passives[id]<pMax(id))pool.push({k:'p',id,lvl:G.passives[id]+1});
   if(own.length<6)for(const id in PDEF)if(!(id in G.passives))pool.push({k:'p',id,lvl:1});
   pool=pool.filter(o=>!G.banned.has(o.k+':'+o.id)&&!(exclude&&exclude.has(o.k+':'+o.id)));
   for(let i=pool.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[pool[i],pool[j]]=[pool[j],pool[i]];}
@@ -1491,6 +1638,17 @@ function banish(idx){
   if(nw)G.curOpts[idx]=nw;else G.curOpts.splice(idx,1);
   sfx('hurt');if(!G.curOpts.length){G.pending=1;luDone();return;}renderLevelUp(false);
 }
+function openChest(){
+  G.chestQ--;const r=rollRelicRarity(),ids=Object.keys(RELICS).filter(k=>RELICS[k].r===r),id=ids[(Math.random()*ids.length)|0],R_=RELICS[id];
+  G.relics[id]=(G.relics[id]|0)+1;R_.apply();G.chestsOpened=(G.chestsOpened|0)+1;
+  state='chest';joy.active=false;sfx(r>=2?'boss':'level');
+  const rr=RREL[r],n=G.relics[id];
+  $('#chestCard').innerHTML=`<div class="card ${rr.cls}"${r?` style="border-color:${rr.c}"`:''}><span class="ic">${svg(R_.ic,R_.col)}</span><span class="nm"><strong>${R_.name}</strong><span class="tag" style="color:${rr.c}">Reliquia ${rr.n.toLowerCase()}${n>1?' · ahora tenés '+n:''}</span></span><span class="ds">${R_.desc()}${n>1?'. Se suma a las que ya tenías':''}</span></div>`;
+  $('#chestHint').textContent=G.chestQ>0?'Te queda'+(G.chestQ>1?'n '+G.chestQ+' cofres':' 1 cofre')+' por abrir.':'';
+  $('#chestOk').textContent=G.chestQ>0?'Abrir el siguiente':'Seguir';
+  show('chest');setTimeout(()=>{try{$('#chestOk').focus({preventScroll:true});}catch(e){}},50);}
+function closeChest(){if(state!=='chest'||!G)return;if(G.chestQ>0){openChest();return;}state='play';show(null);last=performance.now();if(G.pending>0)openLevelUp();}
+$('#chestOk').addEventListener('click',closeChest);
 function luDone(){G.pending--;if(G.pending>0)openLevelUp();else{state='play';show(null);last=performance.now();}}
 $('#luTools').addEventListener('click',e=>{const b=e.target.closest('.lutool');if(!b||b.disabled||state!=='levelup')return;const k=b.dataset.t;
   if(k==='roll'){G.charges.roll--;G.banMode=false;G.curOpts=buildOptions();sfx('gem');if(!G.curOpts.length){luDone();return;}renderLevelUp(true);}
@@ -1535,6 +1693,7 @@ window.addEventListener('keydown',e=>{
   const k=e.key.toLowerCase(),onBtn=!!(e.target.closest&&e.target.closest('button'));
   if(/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)&&k!=='escape')return;
   keys.add(k);
+  if(state==='chest'&&(k==='enter'||k===' '||k==='escape')&&!e.repeat){closeChest();e.preventDefault();return;}
   if(k==='escape'&&!$('#mod').hidden){closeMod();e.preventDefault();return;}
   if(k==='escape'&&!$('#config').hidden){closeCfg();e.preventDefault();return;}
   if(k===' '||k==='escape'||k==='p'){
@@ -1548,6 +1707,25 @@ window.addEventListener('keydown',e=>{
   if(state==='menu'&&!$('#menu').hidden){if(k==='arrowleft')cycle(-1);if(k==='arrowright')cycle(1);}
   if(k.startsWith('arrow'))e.preventDefault();});
 window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
+/* ---- Botón atrás del celular (APK: MainActivity llama a criptaBack; navegador: entrada extra en el historial) ---- */
+// Hace lo mismo que el botón Volver de la pantalla abierta. Devuelve false solo en el menú principal: ahí atrás sale de la app
+function goBack(){
+  const sm=$('#speedMenu');if(sm&&!sm.hidden){closeSpeedMenu();return true;}
+  if(!$('#mod').hidden){closeMod();return true;}
+  if(!$('#config').hidden){closeCfg();return true;}
+  if(state==='play'){pause();return true;}
+  if(state==='paused'){resume();return true;}
+  if(state==='levelup'){if(G&&G.banMode){G.banMode=false;renderLevelUp(false);}return true;}
+  if(state==='chest'){closeChest();return true;}
+  if(state==='over'){goMenu();return true;}
+  const b=visBtn('.screen:not([hidden]) .backBtn');if(b){b.click();return true;}
+  return false;}
+window.criptaBack=()=>{try{return goBack();}catch(e){return true;}};
+if(!window.CriptaApp&&!/Electron/.test(navigator.userAgent)&&window.history&&history.pushState){
+  // La entrada se agrega con un toque (si no, Chrome la saltea) y se repone cada vez que atrás la usa
+  const arm=()=>{try{if(!(history.state&&history.state.cripta))history.pushState({cripta:1},'');}catch(e){}};
+  window.addEventListener('pointerdown',arm,true);
+  window.addEventListener('popstate',()=>{if(goBack())arm();});}
 // Al cambiar de ventana no quedan teclas trabadas y la partida se pausa sola
 window.addEventListener('blur',()=>{keys.clear();joy.active=false;if(state==='play')pause();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&state==='play')pause();});
@@ -1637,6 +1815,7 @@ function update(dt){
     if(s.grav)s.vy+=s.grav*sd;
     if(s.ax!==undefined){s.vx+=s.ax*sd;s.vy+=s.ay*sd;if(!s.flip&&s.vx*s.vx0+s.vy*s.vy0<0){s.flip=true;s.hit.clear();}}
     if(s.rot!==undefined)s.rot+=sd*14;
+    if(s.rehit){s.ang+=sd*9;s.rt-=dt;if(s.rt<=0){s.rt=s.rehit;s.hit.clear();}}
     if(s.home){if(!s.tgt||s.tgt.dead){let bd=1e9;s.tgt=null;near(s.x,s.y,220,e=>{if(e.dead)return;const dd=(e.x-s.x)**2+(e.y-s.y)**2;if(dd<bd){bd=dd;s.tgt=e;}});}
       if(s.tgt){const dx=s.tgt.x-s.x,dy=s.tgt.y-s.y,dd=Math.hypot(dx,dy)||1,v=260;s.vx+=(dx/dd*v-s.vx)*Math.min(1,sd*5);s.vy+=(dy/dd*v-s.vy)*Math.min(1,sd*5);}}
     if(s.wob!==undefined&&s.kind!=='crow'){s.wob+=sd*10;const m=Math.hypot(s.vx,s.vy)||1,o=Math.cos(s.wob)*110*sd;s.x+=-s.vy/m*o;s.y+=s.vx/m*o;}
@@ -1668,6 +1847,7 @@ function update(dt){
     if(d<p.r+12){it.dead=true;
       if(it.kind==='heal'){p.hp=Math.min(p.maxHp,p.hp+30);sfx('heal');G.texts.push({x:p.x,y:p.y-20,txt:'+30',life:.9,heal:true});}
       else if(it.kind==='bomb'){bomb();}
+      else if(it.kind==='chest'){G.chestQ=(G.chestQ|0)+1;}
       else{for(const g of G.gems)g.fly=true;for(const c of G.coinsArr)c.fly=true;for(const c of G.crysArr)c.fly=true;sfx('level');}}}
 
   for(const q of G.parts){q.x+=q.vx*dt;q.y+=q.vy*dt;q.vx*=.92;q.vy*=.92;q.life-=dt;}
@@ -1695,7 +1875,7 @@ function update(dt){
   spawnUpdate(dt);
   G.cam.x+=(p.x-G.cam.x)*Math.min(1,dt*8);G.cam.y+=(p.y-G.cam.y)*Math.min(1,dt*8);
   if(G.t-lastRunSave>3){lastRunSave=G.t;saveRun();}
-  if(G.pending>0)openLevelUp();
+  if(G.pending>0)openLevelUp();else if(G.chestQ>0&&state==='play')openChest();
 }
 
 /* ---------- Draw ---------- */
@@ -1857,6 +2037,9 @@ function draw(now){
       if(it.kind==='bomb'){ctx.fillStyle='#1a1530';ctx.strokeStyle='#ffe27a';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(it.x,it.y+bob,7,0,TAU);ctx.fill();ctx.stroke();
         ctx.strokeStyle='#c8a27a';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(it.x+4,it.y-5+bob);ctx.lineTo(it.x+7,it.y-10+bob);ctx.stroke();
         ctx.fillStyle=Math.sin(G.t*20)>0?'#ffe27a':'#ff8a3d';ctx.beginPath();ctx.arc(it.x+7.5,it.y-11+bob,2.2,0,TAU);ctx.fill();}
+      else if(it.kind==='chest'){const y=it.y+bob;ctx.fillStyle='rgba(255,210,122,'+(0.16+Math.sin(G.t*5)*.08)+')';ctx.beginPath();ctx.arc(it.x,y,17,0,TAU);ctx.fill();
+        ctx.fillStyle='#6b4a2a';ctx.fillRect(it.x-10,y-4,20,11);ctx.fillStyle='#8a5f36';ctx.beginPath();ctx.moveTo(it.x-10,y-4);ctx.lineTo(it.x-10,y-8);ctx.quadraticCurveTo(it.x,y-14,it.x+10,y-8);ctx.lineTo(it.x+10,y-4);ctx.closePath();ctx.fill();
+        ctx.fillStyle='#ffd27a';ctx.fillRect(it.x-10,y-5,20,2);ctx.fillRect(it.x-2,y-6,4,6);ctx.fillRect(it.x-10,y+5,20,2);}
       else if(it.kind==='heal'){ctx.fillStyle='#e2435a';ctx.beginPath();ctx.arc(it.x,it.y+bob,6.5,0,TAU);ctx.fill();ctx.strokeStyle='#7a4a22';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(it.x,it.y-6+bob);ctx.lineTo(it.x,it.y-12+bob);ctx.stroke();}
       else{ctx.strokeStyle='#5ee6c4';ctx.lineWidth=3;ctx.beginPath();ctx.arc(it.x,it.y+bob,6,Math.PI,0,true);ctx.stroke();ctx.fillStyle='#e2435a';ctx.fillRect(it.x-7.5,it.y+bob-1,3,4);ctx.fillRect(it.x+4.5,it.y+bob-1,3,4);}}
     // runes
@@ -1902,6 +2085,11 @@ function draw(now){
       if(s.kind==='bolt'){ctx.fillStyle=s.col?hexA(s.col,.25):'rgba(94,230,196,0.25)';ctx.beginPath();ctx.arc(s.x,s.y,8,0,TAU);ctx.fill();
         ctx.strokeStyle=s.col?hexA(s.col,.6):'rgba(94,230,196,0.6)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(s.x-s.vx*.03,s.y-s.vy*.03);ctx.stroke();
         ctx.fillStyle='#d9fff4';ctx.beginPath();ctx.arc(s.x,s.y,3.5,0,TAU);ctx.fill();}
+      else if(s.kind==='stake'){const a=Math.atan2(s.vy,s.vx);ctx.save();ctx.translate(s.x,s.y);ctx.rotate(a);ctx.fillStyle='#c8a27a';ctx.fillRect(-9,-1.8,14,3.6);
+        ctx.fillStyle='#f4e2c4';ctx.beginPath();ctx.moveTo(10,0);ctx.lineTo(5,-2.5);ctx.lineTo(5,2.5);ctx.closePath();ctx.fill();ctx.restore();}
+      else if(s.kind==='whirl'){ctx.save();ctx.translate(s.x,s.y);ctx.rotate(s.ang);ctx.globalAlpha=Math.min(1,s.life*2);
+        ctx.fillStyle='rgba(167,159,196,0.18)';ctx.beginPath();ctx.arc(0,0,s.r,0,TAU);ctx.fill();ctx.strokeStyle='rgba(220,214,240,0.7)';ctx.lineWidth=2;
+        for(let k=0;k<3;k++){ctx.beginPath();ctx.arc(0,0,s.r*(.35+k*.25),k*2.1,k*2.1+3.6);ctx.stroke();}ctx.globalAlpha=1;ctx.restore();}
       else if(s.kind==='crow'){const f=Math.sin(G.t*18+s.wob)*5,dx_=Math.sign(s.vx)||1;ctx.fillStyle='#22243a';ctx.beginPath();ctx.moveTo(s.x+dx_*6,s.y);ctx.lineTo(s.x-dx_*2,s.y-2-f);ctx.lineTo(s.x-dx_*9,s.y-6-f);ctx.lineTo(s.x-dx_*5,s.y+1);ctx.lineTo(s.x-dx_*9,s.y+4+f*.3);ctx.closePath();ctx.fill();
         ctx.fillStyle='#ffd27a';ctx.fillRect(s.x+dx_*6,s.y-1,dx_*3,2);}
       else if(s.kind==='quarrel'){const a=Math.atan2(s.vy,s.vx);ctx.save();ctx.translate(s.x,s.y);ctx.rotate(a);ctx.strokeStyle=s.col||'#d8dbe8';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-10,0);ctx.lineTo(6,0);ctx.stroke();
@@ -1926,6 +2114,8 @@ function draw(now){
     // meteors
     for(const m of G.meteors){const f=Math.min(1,m.t/m.dur);ctx.fillStyle='rgba(0,0,0,'+(0.15+f*.3)+')';ctx.beginPath();ctx.ellipse(m.x,m.y,m.R*f,m.R*f*.5,0,0,TAU);ctx.fill();
       const my=m.y-(1-f)*220,mx=m.x+(1-f)*60;
+      if(m.src==='craneos'){ctx.fillStyle='#efe6d2';ctx.beginPath();ctx.arc(mx,my-1,6,0,TAU);ctx.fill();ctx.fillRect(mx-3.5,my+2,7,4);
+        ctx.fillStyle='#14112a';ctx.beginPath();ctx.arc(mx-2.2,my-1,1.5,0,TAU);ctx.arc(mx+2.2,my-1,1.5,0,TAU);ctx.fill();ctx.fillStyle=Math.sin(G.t*24)>0?'#ffe27a':'#ff8a3d';ctx.beginPath();ctx.arc(mx+5,my-7,2,0,TAU);ctx.fill();continue;}
       if(m.src==='avalancha'){ctx.fillStyle='#8a7f74';ctx.fillRect(mx-7,my-10,14,18);ctx.fillStyle='#5f564d';ctx.fillRect(mx-3,my-6,6,2);ctx.fillRect(mx-1,my-8,2,7);continue;}
       ctx.strokeStyle='rgba(255,106,61,0.5)';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(mx,my);ctx.lineTo(mx+18,my-30);ctx.stroke();
       ctx.fillStyle='#ffb36b';ctx.beginPath();ctx.arc(mx,my,7,0,TAU);ctx.fill();ctx.fillStyle='#6b2f1a';ctx.beginPath();ctx.arc(mx+1,my+1,4,0,TAU);ctx.fill();}
@@ -1996,14 +2186,14 @@ let hudCache={};
 function setText(id,v){if(hudCache[id]!==v){hudCache[id]=v;$(id).textContent=v;}}
 const SLOTS=6;
 function renderHudInv(){
-  const sig=G.weapons.map(w=>w.id+w.lvl).join()+'|'+Object.entries(G.passives).map(e=>e.join('')).join();
+  const sig=G.weapons.map(w=>w.id+w.lvl).join()+'|'+Object.entries(G.passives).map(e=>e.join('')).join()+'|'+wMax()+relN('coronarey');
   if(hudCache.inv===sig)return;hudCache.inv=sig;
   const row=(lab,items,max)=>{let h=`<span class="lab">${lab}<br>${items.length}/${SLOTS}</span>`;
     for(let i=0;i<SLOTS;i++){const it=items[i];
       h+=it?`<span class="slot${it.lv>=it.max?' max':''}" title="${it.name} · Nv ${it.lv}">${svg(it.id,it.col)}<b>${it.lv}</b></span>`:'<span class="slot empty"></span>';}
     return h;};
-  $('#slotW').innerHTML=row('Armas',G.weapons.map(w=>({id:w.id,col:WDEF[w.id].col,lv:w.lvl,max:WMAX,name:WDEF[w.id].name})));
-  $('#slotP').innerHTML=row('Objetos',Object.keys(G.passives).map(id=>({id,col:PDEF[id].col,lv:G.passives[id],max:PDEF[id].max||PMAX,name:PDEF[id].name})));
+  $('#slotW').innerHTML=row('Armas',G.weapons.map(w=>({id:w.id,col:WDEF[w.id].col,lv:w.lvl,max:wMax(),name:WDEF[w.id].name})));
+  $('#slotP').innerHTML=row('Objetos',Object.keys(G.passives).map(id=>({id,col:PDEF[id].col,lv:G.passives[id],max:pMax(id),name:PDEF[id].name})));
 }
 // Reloj del tiempo: nivel 1 deja elegir hasta ×2, nivel 2 hasta ×5, con todos los pasos intermedios
 const speedOpts=()=>{const lv=Math.min(2,SAVE.buffs.velocidad|0),mx=[1,2,5][lv],o=[];for(let i=1;i<=mx;i++)o.push(i);return o;};
@@ -2026,7 +2216,10 @@ function updateHud(){if(!G)return;renderHudInv();if(hudCache.sp!==G.speed){hudCa
   const w=Math.round(G.xp/G.need*1000)/10+'%';if(hudCache.xp!==w){hudCache.xp=w;$('#xpfill').style.width=w;}}
 function invHtml(){
   let h='';for(const w of G.weapons)h+=`<span class="chip">${svg(w.id,WDEF[w.id].col)}${WDEF[w.id].name}<em>${w.lvl}</em></span>`;
-  for(const id in G.passives)h+=`<span class="chip">${svg(id,PDEF[id].col)}${PDEF[id].name}<em>${G.passives[id]}</em></span>`;return h;}
+  for(const id in G.passives)h+=`<span class="chip">${svg(id,PDEF[id].col)}${PDEF[id].name}<em>${G.passives[id]}</em></span>`;
+  for(const id of Object.keys(G.relics||{}).filter(k=>RELICS[k]).sort((a,b)=>RELICS[b].r-RELICS[a].r)){const R_=RELICS[id];
+    h+=`<span class="chip relic" style="border-color:${RREL[R_.r].c}" title="${R_.desc()}">${svg(R_.ic,R_.col)}${R_.name}<em>×${G.relics[id]}</em></span>`;}
+  return h;}
 
 function chaosLogRender(){
   const L=G.chaosLog||[];$('#chaosTitle').hidden=!L.length;$('#chaosLog').hidden=!L.length;
@@ -2061,6 +2254,7 @@ function statsHtml(){
     ['Esquivar',Math.round(Math.min(.6,st.evade)*100)+'%'+(st.evade>.6?' (máx.)':''),cls(st.evade)],
     ['Espinas',String(st.thorns),cls(st.thorns)],
     ['Suerte',pct(st.luck),cls(st.luck)],
+    ['Cofres abiertos',String(G.chestsOpened|0),''],
     ['Dificultad',pct(st.curse),st.curse>0?'down':''],
     ['Gemas extra','+'+((SAVE.buffs.gemspawn|0)*5)+'%',cls(SAVE.buffs.gemspawn|0)],
     ['Usos C · B · S',G.charges.roll+' · '+G.charges.ban+' · '+G.charges.skip,''],
@@ -2160,8 +2354,8 @@ function renderBoardList(){
 }
 
 /* ---------- Screens ---------- */
-const screens=['menu','config','chars','howto','arsenal','records','board','shop','missions','account','levelup','pause','over','mod'];
-function show(name){for(const sc of screens)$('#'+sc).hidden=sc!==name;const h=!(G&&(state==='play'||state==='levelup'||state==='paused'));$('#hud').hidden=h;$('#abBtn').hidden=h||state!=='play';}
+const screens=['menu','config','chars','howto','arsenal','records','board','shop','missions','account','levelup','chest','pause','over','mod'];
+function show(name){for(const sc of screens)$('#'+sc).hidden=sc!==name;const h=!(G&&(state==='play'||state==='levelup'||state==='chest'||state==='paused'));$('#hud').hidden=h;$('#abBtn').hidden=h||state!=='play';}
 const SAVE_KEY='cripta-save';
 function loadSave(){let sv=null;try{sv=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');}catch(e){}return normalizeSave(sv);}
 function normalizeSave(sv){
@@ -2176,9 +2370,16 @@ const FB={apiKey:'AIzaSyDEmPiXW7fcYZziPBFNDLII7WFUg2juaiI',dbUrl:'https://cripta
 const AUTH_KEY='cripta-auth';
 let AUTH=null;try{AUTH=JSON.parse(localStorage.getItem(AUTH_KEY));}catch(e){}
 function setAuth(a){AUTH=a;try{a?localStorage.setItem(AUTH_KEY,JSON.stringify(a)):localStorage.removeItem(AUTH_KEY);}catch(e){}}
+// fetch con tiempo límite y un reintento: un corte de red momentáneo no tiene que terminar en "sin internet".
+// El código de error distingue sin conexión (OFFLINE), servidor que no responde (TIMEOUT) y pedido bloqueado o caído (NETWORK)
+async function netFetch(url,opt){let last=null;
+  for(let i=0;i<2;i++){const ac=typeof AbortController!=='undefined'?new AbortController():null,tm=ac&&setTimeout(()=>ac.abort(),20000);
+    try{return await fetch(url,ac?Object.assign({},opt,{signal:ac.signal}):opt);}catch(e){last=e;}finally{if(tm)clearTimeout(tm);}
+    if(navigator.onLine===false)break;if(i===0)await new Promise(r=>setTimeout(r,1200));}
+  throw Object.assign(new Error('net'),{code:navigator.onLine===false?'OFFLINE':last&&last.name==='AbortError'?'TIMEOUT':'NETWORK'});}
 async function fbPost(url,body,form){
-  const r=await fetch(url,{method:'POST',headers:{'Content-Type':form?'application/x-www-form-urlencoded':'application/json'},body:form?new URLSearchParams(body):JSON.stringify(body)});
-  const j=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(new Error('auth'),{code:(j.error&&j.error.message)||'NETWORK'});return j;}
+  const r=await netFetch(url,{method:'POST',headers:{'Content-Type':form?'application/x-www-form-urlencoded':'application/json'},body:form?new URLSearchParams(body):JSON.stringify(body)});
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(new Error('auth'),{code:(j.error&&j.error.message)||(r.status>=500?'SERVER_ERROR':'HTTP_'+r.status)});return j;}
 const fbAuth=(a,body)=>fbPost('https://identitytoolkit.googleapis.com/v1/accounts:'+a+'?key='+FB.apiKey,body);
 const toAuth=j=>({uid:j.localId,email:j.email,idToken:j.idToken,refreshToken:j.refreshToken,exp:Date.now()+(+j.expiresIn-60)*1000});
 // Entrar es en dos pasos: mail y contraseña, y después el código del link que llega al mail.
@@ -2186,7 +2387,14 @@ const toAuth=j=>({uid:j.localId,email:j.email,idToken:j.idToken,refreshToken:j.r
 const LINK_PAGE='https://julianibpe.github.io/cripta_nocturna/verificar.html';
 async function fbLogin(email,password,signup){
   const j=await fbAuth(signup?'signUp':'signInWithPassword',{email,password,returnSecureToken:true});
-  await sendLoginLink(j.email);
+  try{await sendLoginLink(j.email);}
+  catch(e){
+    // Firebase tiene un límite diario de mails de acceso: si se llegó y el mail de la cuenta ya está verificado,
+    // se entra con la contraseña sola (devuelve null) en vez de dejar a la persona afuera
+    if(!signup&&/^(QUOTA_EXCEEDED|TOO_MANY_ATTEMPTS_TRY_LATER|RESET_PASSWORD_EXCEED_LIMIT)/.test(e.code||'')){
+      const u=await fbAuth('lookup',{idToken:j.idToken}).catch(()=>null),us=u&&u.users&&u.users[0];
+      if(us&&us.emailVerified){setAuth(toAuth(j));return null;}}
+    throw e;}
   return{email:j.email,uid:j.localId};}
 async function sendLoginLink(email){
   // Si la página de verificación todavía no está autorizada en Firebase, el link va al dominio del proyecto
@@ -2204,14 +2412,14 @@ async function fbToken(){
   if(AUTH.exp>Date.now())return AUTH.idToken;
   try{const j=await fbPost('https://securetoken.googleapis.com/v1/token?key='+FB.apiKey,{grant_type:'refresh_token',refresh_token:AUTH.refreshToken},true);
     setAuth({...AUTH,idToken:j.id_token,refreshToken:j.refresh_token,exp:Date.now()+(+j.expires_in-60)*1000});}
-  catch(e){if(e.code!=='NETWORK')setAuth(null);throw e;} // sesión vencida o cuenta borrada: hay que volver a entrar
+  catch(e){if(!/^(NETWORK|OFFLINE|TIMEOUT|SERVER_ERROR)$/.test(e.code))setAuth(null);throw e;} // sesión vencida o cuenta borrada: hay que volver a entrar
   return AUTH.idToken;}
 /* ---- Nombre de usuario único: usernames/<minúsculas> = uid lo reserva; users/<uid>/name es como se muestra ---- */
 const NAME_RE=/^[A-Za-z0-9_-]{3,16}$/;
 async function fbDb(method,path,body,auth){
   const q=auth?'?auth='+encodeURIComponent(await fbToken()):'';
-  const r=await fetch(FB.dbUrl+'/'+path+'.json'+q,{method,body:body===undefined?undefined:JSON.stringify(body)});
-  if(!r.ok)throw Object.assign(new Error('db'),{code:r.status===401||r.status===403?'denied':'NETWORK'});return r.json();}
+  const r=await netFetch(FB.dbUrl+'/'+path+'.json'+q,{method,body:body===undefined?undefined:JSON.stringify(body)});
+  if(!r.ok)throw Object.assign(new Error('db'),{code:r.status===401||r.status===403?'denied':'SERVER_ERROR'});return r.json();}
 async function loadUsername(){if(!AUTH||!FB.apiKey)return;
   try{const n=await fbDb('GET','users/'+AUTH.uid+'/name',undefined,true);if(AUTH&&(n||null)!==(AUTH.name||null)){setAuth({...AUTH,name:n||null});renderAcctIfOpen();}}catch(e){}renderBoardTile();flushScore();}
 // Reserva el nombre y libera el anterior en un solo pedido: o se aplica todo o nada
@@ -2233,7 +2441,25 @@ function cloudRef(){
   return{set:d=>req('PUT',{at:d.at,data:JSON.stringify(d.data)}),
     get:async()=>{const j=await req('GET');return{exists:!!j,data:()=>({at:+j.at||0,data:JSON.parse(j.data)})};}};}
 const AUTH_ERR={BAD_NAME:'El nombre tiene que tener de 3 a 16 caracteres: letras sin acentos, números, guion o guion bajo.',NAME_TAKEN:'Ese nombre ya lo usa otra cuenta (las mayúsculas no cuentan). Probá con otro.',NAME_RULES:'El servidor todavía no permite elegir nombres de usuario. Probá más tarde.',NAME_FAILED:'No se pudo reservar ese nombre. Probá de nuevo o elegí otro.',INVALID_OOB_CODE:'Ese código no es válido o ya se usó. Tocá Reenviar mail y usá el del último mail.',EXPIRED_OOB_CODE:'Ese código venció. Tocá Reenviar mail y usá el del último mail.',MISSING_OOB_CODE:'Pegá el código o el link del mail.',UNAUTHORIZED_DOMAIN:'El acceso con link de mail todavía no está configurado en el servidor.',EMAIL_EXISTS:'Ya hay una cuenta con ese mail. Iniciá sesión.',INVALID_LOGIN_CREDENTIALS:'Mail o contraseña incorrectos.',INVALID_PASSWORD:'Mail o contraseña incorrectos.',EMAIL_NOT_FOUND:'Mail o contraseña incorrectos.',INVALID_EMAIL:'Ese mail no es válido.',MISSING_PASSWORD:'Escribí tu contraseña.',WEAK_PASSWORD:'La contraseña tiene que tener al menos 6 caracteres.',PASSWORD_DOES_NOT_MEET_REQUIREMENTS:'La contraseña no cumple los requisitos: revisá el largo y mezclá letras y números.',TOO_MANY_ATTEMPTS_TRY_LATER:'Demasiados intentos. Probá de nuevo en unos minutos.',USER_DISABLED:'Esa cuenta está desactivada.',CONFIGURATION_NOT_FOUND:'Las cuentas todavía no están habilitadas en el servidor. Probá más tarde.',OPERATION_NOT_ALLOWED:'Las cuentas todavía no están habilitadas en el servidor. Probá más tarde.'};
-const authMsg=e=>AUTH_ERR[String(e&&e.code||'').split(' ')[0]]||'No se pudo conectar. Revisá tu internet.';
+Object.assign(AUTH_ERR,{
+  OFFLINE:'Tu dispositivo no tiene conexión a internet. Conectate y probá de nuevo.',
+  NETWORK:'No se pudo llegar al servidor de cuentas aunque tengas internet. Si usás un bloqueador de anuncios, VPN, DNS privado o el wifi de una escuela o trabajo, probá sin eso o con datos móviles.',
+  TIMEOUT:'El servidor tardó demasiado en responder. Probá de nuevo en un rato.',
+  SERVER_ERROR:'El servidor de cuentas tuvo un problema. Probá de nuevo en unos minutos.',
+  QUOTA_EXCEEDED:'Por hoy se llegó al límite de mails que puede mandar el servidor y tu mail todavía no está verificado. Probá de nuevo mañana.',
+  RESET_PASSWORD_EXCEED_LIMIT:'Pediste demasiados mails para cambiar la contraseña. Probá de nuevo mañana.',
+  USER_NOT_FOUND:'Esa cuenta ya no existe. Creá una nueva.',
+  TOKEN_EXPIRED:'Tu sesión venció. Volvé a iniciar sesión.',
+  INVALID_ID_TOKEN:'Tu sesión venció. Volvé a iniciar sesión.',
+  INVALID_REFRESH_TOKEN:'Tu sesión venció. Volvé a iniciar sesión.',
+  CREDENTIAL_TOO_OLD_LOGIN_AGAIN:'Por seguridad, cerrá sesión y volvé a entrar antes de cambiar la contraseña.',
+  INVALID_REQ_TYPE:'El servidor rechazó el pedido. Actualizá el juego a la última versión.',
+  MISSING_EMAIL:'Escribí tu mail.',
+  denied:'El servidor no dejó hacer eso con tu cuenta.'});
+// Cualquier otro error del servidor se muestra con su código, así no parece un problema de internet
+const authMsg=e=>{const c=String(e&&e.code||'');if(AUTH_ERR[c.split(' ')[0]])return AUTH_ERR[c.split(' ')[0]];
+  if(/API.?key|API_KEY|referer|blocked/i.test(c))return 'El servidor bloqueó el pedido de esta versión del juego ('+c.slice(0,60)+'). Avisale al creador del juego.';
+  return c?'El servidor respondió con un error ('+c.slice(0,60)+'). Probá de nuevo en un rato.':AUTH_ERR.NETWORK;};
 let cloudTimer=null,cloudState={status:'idle',at:0};
 /* ---- Aviso de actualización (APK y .exe): compara con el último Release de GitHub ---- */
 const APP_VER='dev'; // el workflow lo reemplaza por 1.0.<n> al compilar
@@ -2272,6 +2498,7 @@ async function pullCloud(){
   }catch(e){cloudState.status='error';}
   renderAcctIfOpen();
 }
+async function afterLogin(){pendLogin=null;cloudState={status:'idle',at:0};checkDev();renderAcctIfOpen();loadUsername();initOnline();await pullCloud();}
 function renderAcctIfOpen(){if(!$('#account').hidden)renderAcct();renderAcctTile();}
 function renderAcctTile(){const el=$('#tAcSub');if(!el)return;
   el.textContent=AUTH&&cloudState.status!=='denied'?'Guardado en tu cuenta':FB.apiKey?'Iniciá sesión o creá tu cuenta':'Guardar tu progreso';}
@@ -2291,7 +2518,7 @@ function renderAcct(){
     const out=t=>{f.querySelector('#linkMsg').textContent=t;},btns=on=>f.querySelectorAll('button').forEach(b=>b.disabled=!on);
     f.onsubmit=async e=>{e.preventDefault();const v=f.linkCode.value;if(!v.trim()){out('Pegá el código o el link del mail.');return;}
       btns(false);out('Confirmando…');
-      try{await fbConfirmLink(pendLogin,v);pendLogin=null;cloudState={status:'idle',at:0};checkDev();renderAcctIfOpen();loadUsername();initOnline();await pullCloud();}
+      try{await fbConfirmLink(pendLogin,v);afterLogin();}
       catch(er){out(authMsg(er));btns(true);}};
     f.querySelector('#linkAgain').onclick=async()=>{btns(false);try{await sendLoginLink(pendLogin.email);out('Te mandamos otro mail. Usá el código del último que llegue.');}catch(er){out(authMsg(er));}btns(true);};
     f.querySelector('#linkCancel').onclick=()=>{pendLogin=null;renderAcct();};
@@ -2308,7 +2535,7 @@ function renderAcct(){
     const go=async signup=>{const em=f.authMail.value.trim(),pw=f.authPass.value;if(!em||!pw){out('Completá tu mail y tu contraseña.');return;}
       if(signup&&pw.length<6){out('La contraseña tiene que tener al menos 6 caracteres (tiene '+pw.length+').');return;}
       f.querySelectorAll('button').forEach(b=>b.disabled=true);out(signup?'Creando tu cuenta…':'Entrando…');
-      try{pendLogin=await fbLogin(em,pw,signup);renderAcct();}
+      try{pendLogin=await fbLogin(em,pw,signup);if(!pendLogin&&AUTH){afterLogin();return;}renderAcct();}
       catch(e){out(authMsg(e));f.querySelectorAll('button').forEach(b=>b.disabled=false);}};
     f.onsubmit=e=>{e.preventDefault();go(false);};f.querySelector('#authUp').onclick=()=>go(true);
     f.querySelector('#authReset').onclick=async()=>{const em=f.authMail.value.trim();if(!em){out('Escribí tu mail arriba y tocá de nuevo.');return;}
@@ -2395,10 +2622,10 @@ function renderMod(){
   else{
     h+=`<div class="dtitle">Partida</div><div class="acct">`+MOD_FLAGS.map(([f,t])=>`<label class="modchk"><input type="checkbox" data-f="${f}"${G[f]?' checked':''}> ${t}</label>`).join('')+
       `<div class="btnrow"><button class="btn ghost" data-m="heal">Curar</button><button class="btn ghost" data-m="lvl1">+1 nivel</button><button class="btn ghost" data-m="lvl5">+5 niveles</button>`+
-      `<button class="btn ghost" data-m="min">+1 minuto</button><button class="btn ghost" data-m="kill">Matar enemigos</button></div></div>`;
+      `<button class="btn ghost" data-m="min">+1 minuto</button><button class="btn ghost" data-m="kill">Matar enemigos</button><button class="btn ghost" data-m="chest">+1 cofre</button></div></div>`;
     h+=`<div class="dtitle">Armas</div><div class="acct modgrid">`+Object.keys(WDEF).map(id=>{const w=G.weapons.find(x=>x.id===id);
-      return `<label for="mw-${id}">${WDEF[id].name}</label><select id="mw-${id}" data-w="${id}">${opts(WMAX,w?w.lvl:0)}</select>`;}).join('')+`</div>`;
-    h+=`<div class="dtitle">Objetos</div><div class="acct modgrid">`+Object.keys(PDEF).map(id=>`<span>${PDEF[id].name} · Nv ${G.passives[id]|0}</span><button class="btn ghost" data-p="${id}"${(G.passives[id]|0)>=PMAX?' disabled':''}>+1</button>`).join('')+`</div>`;
+      return `<label for="mw-${id}">${WDEF[id].name}</label><select id="mw-${id}" data-w="${id}">${opts(wMax(),w?w.lvl:0)}</select>`;}).join('')+`</div>`;
+    h+=`<div class="dtitle">Objetos</div><div class="acct modgrid">`+Object.keys(PDEF).map(id=>`<span>${PDEF[id].name} · Nv ${G.passives[id]|0}</span><button class="btn ghost" data-p="${id}"${(G.passives[id]|0)>=pMax(id)?' disabled':''}>+1</button>`).join('')+`</div>`;
     h+=`<div class="dtitle">Estadísticas</div><div class="acct modgrid"><label for="ms-maxHp">Vida máxima</label><input id="ms-maxHp" type="number" step="10" value="${G.p.maxHp}">`+
       Object.keys(G.st).map(k=>`<label for="ms-${k}">${ST_NAMES[k]||k}</label><input id="ms-${k}" type="number" step="${G.st[k]>=10?1:0.05}" value="${Math.round(G.st[k]*1000)/1000}" data-s="${k}">`).join('')+`</div>`;
   }
@@ -2410,7 +2637,7 @@ function renderMod(){
   el.querySelectorAll('[data-w]').forEach(s=>s.onchange=()=>{const id=s.dataset.w,n=+s.value,w=G.weapons.find(x=>x.id===id);
     if(!n)G.weapons=G.weapons.filter(x=>x.id!==id);else if(w)w.lvl=n;else G.weapons.push({id,lvl:n,timer:.2,ang:0});
     if(n)G.wLv[id]=n;else delete G.wLv[id];modMark(true);modToast(WDEF[id].name+(n?' en nivel '+n+'.':' quitada.'));});
-  el.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const id=b.dataset.p;if((G.passives[id]|0)>=PMAX)return;
+  el.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const id=b.dataset.p;if((G.passives[id]|0)>=pMax(id))return;
     G.passives[id]=(G.passives[id]|0)+1;PDEF[id].apply(1);modMark(true);renderMod();modToast(PDEF[id].name+' en nivel '+G.passives[id]+'.');});
   el.querySelector('#ms-maxHp').onchange=e=>{const v=Math.max(1,+e.target.value||1);G.p.maxHp=v;G.p.hp=Math.min(G.p.hp,v);modMark(true);modToast('Vida máxima: '+v);};
   el.querySelectorAll('[data-s]').forEach(i=>i.onchange=()=>{const v=+i.value;if(!isFinite(v))return;G.st[i.dataset.s]=v;modMark(true);modToast((ST_NAMES[i.dataset.s]||i.dataset.s)+': '+v);});
@@ -2433,6 +2660,7 @@ function modAction(m){
   if(m==='heal'){G.p.hp=G.p.maxHp;return 'Vida al máximo.';}
   if(m==='lvl1'||m==='lvl5'){const n=m==='lvl1'?1:5;G.lvl+=n;G.pending+=n;G.xp=0;G.need=xpNeed(G.lvl);return '+'+n+(n>1?' niveles: elegís las mejoras al seguir.':' nivel: elegís la mejora al seguir.');}
   if(m==='min'){G.t+=60;return 'Reloj en '+fmt(G.t)+'.';}
+  if(m==='chest'){G.chestQ=(G.chestQ|0)+1;return 'Cofre agregado: se abre al seguir.';}
   if(m==='kill'){let n=0;for(const e of G.enemies)if(!e.dead){hurt(e,e.hp*10+1e6,0,0);n++;}return n+' enemigos eliminados.';}
   return '';
 }
@@ -2544,17 +2772,23 @@ function drawMenuHero(now){
 /* ---- Arsenal ---- */
 let arsTab='w';
 function renderArsenal(){
-  $('#arsW').setAttribute('aria-checked',String(arsTab==='w'));$('#arsP').setAttribute('aria-checked',String(arsTab==='p'));
+  $('#arsW').setAttribute('aria-checked',String(arsTab==='w'));$('#arsP').setAttribute('aria-checked',String(arsTab==='p'));$('#arsR').setAttribute('aria-checked',String(arsTab==='r'));
   let h='';
   if(arsTab==='w'){for(const id in WDEF){const D=WDEF[id],st=Object.values(CHARS).find(c=>c.weapon===id);
     const lk=!weaponUnlocked(id),ms=D.mission&&MISSIONS.find(m=>m.id===D.mission);
-    h+=`<div class="aitem${lk?' lockd':''}"><span class="ic">${svg(lk?'candado':id,lk?'#6b6390':D.col)}</span><div><strong>${D.name}</strong><p>${D.up[0]}</p><small>${lk?'Bloqueada · misión '+ms.name+': '+ms.desc:st?'Arma inicial de '+st.short:ms?'Desbloqueada con la misión '+ms.name:D.excl?'Exclusiva de '+CHARS[D.excl].short+': arranca con ella':'Aparece al subir de nivel'} · hasta nivel ${WMAX}</small></div></div>`;}}
+    h+=`<div class="aitem${lk?' lockd':''}"><span class="ic">${svg(lk?'candado':id,lk?'#6b6390':D.col)}</span><div><strong>${D.name}</strong><p>${D.up[0]}</p><small>${lk?'Bloqueada · misión '+ms.name+': '+ms.desc:st?'Arma inicial de '+st.short:ms?'Desbloqueada con la misión '+ms.name:D.excl?'Exclusiva de '+CHARS[D.excl].short+': arranca con ella':'Aparece al subir de nivel'} · hasta nivel ${WMAX} (más con el Yunque infernal)</small></div></div>`;}}
+  else if(arsTab==='r'){
+    h+=`<p class="msg">Salen de los cofres: cualquier enemigo puede soltar uno con muy poca chance y los jefes siempre sueltan uno. La suerte no cambia cuántos cofres caen, pero sí la rareza de lo que traen. Se pueden repetir y cada copia suma otra vez su efecto.</p>`;
+    for(let r=RREL.length-1;r>=0;r--){const ids=Object.keys(RELICS).filter(k=>RELICS[k].r===r);
+      h+=`<div class="dtitle" style="color:${RREL[r].c}">${RREL[r].n}s · ${ids.length}</div>`;
+      for(const id of ids){const D=RELICS[id];h+=`<div class="aitem"><span class="ic">${svg(D.ic,D.col)}</span><div><strong>${D.name}</strong><p>${D.desc()}.</p><small style="color:${RREL[r].c}">Reliquia ${RREL[r].n.toLowerCase()}</small></div></div>`;}}}
   else{for(const id in PDEF){const D=PDEF[id];
     h+=`<div class="aitem"><span class="ic">${svg(id,D.col)}</span><div><strong>${D.name}</strong><p>${D.desc(1)}${D.fixed?'':' (común)'}.</p><small>Hasta nivel ${D.max||PMAX}</small></div></div>`;}}
   $('#arsList').innerHTML=h;
 }
 $('#arsW').addEventListener('click',()=>{arsTab='w';renderArsenal();});
 $('#arsP').addEventListener('click',()=>{arsTab='p';renderArsenal();});
+$('#arsR').addEventListener('click',()=>{arsTab='r';renderArsenal();});
 /* ---- Records ---- */
 const fmtLong=t=>{t=Math.floor(t);const h=Math.floor(t/3600),m=Math.floor(t%3600/60);return h?h+' h '+m+' min':m+' min '+(t%60)+' s';};
 function renderRecords(){
@@ -2621,7 +2855,7 @@ function saveRun(){
   try{const r={v:1,char:G.char,diff:G.diff,t:G.t,kills:G.kills,lvl:G.lvl,xp:G.xp,need:G.need,pending:G.pending,score:G.score,coins:G.coins,crys:G.crys,dawn:G.dawn,
     p:{x:G.p.x,y:G.p.y,hp:G.p.hp,maxHp:G.p.maxHp,fx:G.p.fx,fy:G.p.fy,shield:G.p.shield|0,shT:G.p.shT||0},st:G.st,weapons:G.weapons.map(w=>({id:w.id,lvl:w.lvl})),passives:G.passives,wMult:G.wMult,wLv:G.wLv,
     banned:[...G.banned],charges:G.charges,elites:G.elites,nextBoss:G.nextBoss,bosses:G.bosses,bossCycle:G.bossCycle,bossesKilled:G.bossesKilled,killsBy:G.killsBy,bombsUsed:G.bombsUsed,nextElite:G.nextElite,nextSwarm:G.nextSwarm,swarms:G.swarms,warned:G.warned,elitesKilled:G.elitesKilled,
-    dmgBy:G.dmgBy,chaosLog:G.chaosLog,mod:!!G.mod,god:!!G.god,infHp:!!G.infHp,maxDmg:!!G.maxDmg,noCd:!!G.noCd,killN:G.killN,lastMult:G.lastMult,abcd:G.ab.cd,abMul:G.abMul,
+    dmgBy:G.dmgBy,chaosLog:G.chaosLog,relics:G.relics,chestQ:G.chestQ|0,chestsOpened:G.chestsOpened|0,mod:!!G.mod,god:!!G.god,infHp:!!G.infHp,maxDmg:!!G.maxDmg,noCd:!!G.noCd,killN:G.killN,lastMult:G.lastMult,abcd:G.ab.cd,abMul:G.abMul,
     enemies:G.enemies.filter(e=>!e.dead).slice(0,400).map(e=>[e.type,Math.round(e.x),Math.round(e.y),Math.round(e.hp*10)/10,Math.round(e.max*10)/10,Math.round(e.spd),Math.round(e.dmg*10)/10]),
     gems:G.gems.slice(0,300).map(g=>[Math.round(g.x),Math.round(g.y),g.v]),coinsArr:G.coinsArr.map(c=>[Math.round(c.x),Math.round(c.y)]),
     crysArr:G.crysArr.map(c=>[Math.round(c.x),Math.round(c.y)]),items:G.items.map(i=>[Math.round(i.x),Math.round(i.y),i.kind])};
@@ -2641,7 +2875,7 @@ function resumeRun(){
   G.coinsArr=(r.coinsArr||[]).map(a=>({x:a[0],y:a[1],sp:0,fly:false}));G.crysArr=(r.crysArr||[]).map(a=>({x:a[0],y:a[1],sp:0,fly:false}));
   G.items=(r.items||[]).map(a=>({x:a[0],y:a[1],kind:a[2]}));
   G.cam.x=G.p.x;G.cam.y=G.p.y;lastRunSave=G.t;hudCache={};
-  G.chaosLog=r.chaosLog||[];G.mod=G.mod||!!r.mod;G.god=!!r.god;G.infHp=!!r.infHp;G.maxDmg=!!r.maxDmg;G.noCd=!!r.noCd;
+  G.chaosLog=r.chaosLog||[];G.relics={};for(const k in r.relics||{})if(RELICS[k])G.relics[k]=r.relics[k]|0;G.chestQ=r.chestQ|0;G.chestsOpened=r.chestsOpened|0;G.mod=G.mod||!!r.mod;G.god=!!r.god;G.infHp=!!r.infHp;G.maxDmg=!!r.maxDmg;G.noCd=!!r.noCd;
   state='paused';joy.active=false;$('#inv').innerHTML=invHtml();$('#statgrid').innerHTML=statsHtml();chaosLogRender();show('pause');
 }
 function start(ch){clearRun();initAudio();newGame(ch,SAVE.diff);lastRunSave=0;hudCache={};state='play';show(null);last=performance.now();
@@ -2654,7 +2888,7 @@ function gameOver(){
   const prev=SAVE.bestBy[G.diff],record=!prev||G.t>prev.t;
   const doneBefore=MISSIONS.filter(m=>m.prog()>=m.goal).map(m=>m.id);
   const L=SAVE.life;L.elites=(L.elites|0)+G.elitesKilled;L.bestT=Math.max(L.bestT||0,G.t);L.maxLvl=Math.max(L.maxLvl|0,G.lvl);L.runs++;L.kills+=G.kills;L.time+=G.t;L.coins+=earned;if(G.dawn)L.dawns++;
-  L.bosses=(L.bosses|0)+(G.bossesKilled|0);L.bestBosses=Math.max(L.bestBosses|0,G.bossesKilled|0);L.bombs=(L.bombs|0)+(G.bombsUsed|0);
+  L.bosses=(L.bosses|0)+(G.bossesKilled|0);L.bestBosses=Math.max(L.bestBosses|0,G.bossesKilled|0);L.bombs=(L.bombs|0)+(G.bombsUsed|0);L.chests=(L.chests|0)+(G.chestsOpened|0);
   L.killsBy=L.killsBy||{};for(const k in G.killsBy)L.killsBy[k]=(L.killsBy[k]|0)+G.killsBy[k];
   L.bestTBy=L.bestTBy||{};L.bestTBy[G.diff]=Math.max(L.bestTBy[G.diff]||0,G.t);
   L.bestKills=Math.max(L.bestKills|0,G.kills);L.bestElites=Math.max(L.bestElites|0,G.elitesKilled);
