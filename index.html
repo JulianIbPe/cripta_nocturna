@@ -211,9 +211,10 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 .acct .who small{color:var(--muted);font-size:14px}
 .acct form{display:flex;gap:8px;flex-wrap:wrap}
 .acct label{font-size:14px;font-weight:600;color:var(--muted);width:100%}
-.acct input{flex:1 1 160px;min-width:0;font:inherit;font-size:18px;padding:10px 12px;border-radius:10px;border:1px solid var(--stone-2);background:#0f0d20;color:var(--ink);user-select:text;-webkit-user-select:text}
-.acct input:focus-visible{outline:2px solid var(--ember);outline-offset:1px}
-#authForm input,#passForm input,#linkForm input,#nameForm input{flex-basis:100%}
+.acct input,.acct textarea{flex:1 1 160px;min-width:0;font:inherit;font-size:18px;padding:10px 12px;border-radius:10px;border:1px solid var(--stone-2);background:#0f0d20;color:var(--ink);user-select:text;-webkit-user-select:text}
+.acct textarea{resize:none;line-height:1.3;font-size:16px;word-break:break-all}
+.acct input:focus-visible,.acct textarea:focus-visible{outline:2px solid var(--ember);outline-offset:1px}
+#authForm input,#passForm input,#linkForm textarea,#nameForm input{flex-basis:100%}
 #authForm .msg:empty,#passForm .msg:empty,#linkForm .msg:empty,#nameForm .msg:empty{display:none}
 #modBody .acct{margin-bottom:12px}
 #modBody form{display:flex;gap:8px;flex-wrap:wrap}#modBody form input{flex-basis:100%}
@@ -1743,7 +1744,8 @@ if(!window.CriptaApp&&!/Electron/.test(navigator.userAgent)&&window.history&&his
   window.addEventListener('popstate',()=>{if(goBack())arm();});}
 // Al cambiar de ventana no quedan teclas trabadas y la partida se pausa sola
 window.addEventListener('blur',()=>{keys.clear();joy.active=false;if(state==='play'&&!(G&&G.afk))pause();});
-window.addEventListener('contextmenu',e=>e.preventDefault());
+// Sin menú contextual en el juego, salvo en los campos de texto: ahí es el que trae Pegar al mantener apretado
+window.addEventListener('contextmenu',e=>{if(!(e.target.closest&&e.target.closest('input,textarea')))e.preventDefault();});
 function inputVec(){
   let x=0,y=0;
   if(keys.has('a')||keys.has('arrowleft'))x--;if(keys.has('d')||keys.has('arrowright'))x++;
@@ -2541,8 +2543,8 @@ function renderAcct(){
   if(!FB.apiKey){msg('Las cuentas todavía no están activadas en esta versión del juego. Tu progreso queda guardado en este dispositivo.');return;}
   if(!AUTH&&pendLogin){
     const f=document.createElement('form');f.id='linkForm';f.noValidate=true;
-    f.innerHTML='<label for="linkCode">Código del mail</label><input id="linkCode" type="text" autocomplete="one-time-code" spellcheck="false">'+
-      '<button class="btn" type="submit" id="linkOk">Confirmar</button><button class="btn ghost" type="button" id="linkAgain">Reenviar mail</button>'+
+    f.innerHTML='<label for="linkCode">Código del mail</label><textarea id="linkCode" rows="3" autocomplete="one-time-code" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Pegá acá el código o el link del mail"></textarea>'+
+      '<button class="btn ghost" type="button" id="linkPaste">Pegar</button><button class="btn" type="submit" id="linkOk">Confirmar</button><button class="btn ghost" type="button" id="linkAgain">Reenviar mail</button>'+
       '<button class="btn ghost" type="button" id="linkCancel">Cancelar</button><p class="msg" id="linkMsg" aria-live="polite"></p>';
     msg('Para confirmar que sos vos, te mandamos un mail a '+pendLogin.email+'. Abrí el link, copiá el código que aparece y pegalo acá (también sirve pegar el link entero). Si no llega, fijate en spam.');el.appendChild(f);
     const out=t=>{f.querySelector('#linkMsg').textContent=t;},btns=on=>f.querySelectorAll('button').forEach(b=>b.disabled=!on);
@@ -2552,6 +2554,13 @@ function renderAcct(){
       catch(er){out(authMsg(er));btns(true);}};
     f.querySelector('#linkAgain').onclick=async()=>{btns(false);try{await sendLoginLink(pendLogin.email);out('Te mandamos otro mail. Usá el código del último que llegue.');}catch(er){out(authMsg(er));}btns(true);};
     f.querySelector('#linkCancel').onclick=()=>{pendLogin=null;renderAcct();};
+    // Enter confirma (en un campo de varias líneas, si no, haría un salto de línea)
+    f.linkCode.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();f.requestSubmit?f.requestSubmit():f.onsubmit(e);}});
+    // Pegar: en el APK con el portapapeles de Android; en el navegador con la API del portapapeles
+    f.querySelector('#linkPaste').onclick=async()=>{let t='';
+      try{if(window.CriptaApp&&window.CriptaApp.readClipboard)t=window.CriptaApp.readClipboard()||'';else if(navigator.clipboard&&navigator.clipboard.readText)t=await navigator.clipboard.readText();}catch(e){}
+      if(t.trim()){f.linkCode.value=t.trim();out('');f.linkCode.focus();}
+      else{out('No se pudo leer lo que copiaste. Mantené apretado el campo de arriba y tocá Pegar.');f.linkCode.focus();}};
     return;}
   if(!AUTH){
     const f=document.createElement('form');f.id='authForm';f.noValidate=true;

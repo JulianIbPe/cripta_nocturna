@@ -1,6 +1,7 @@
 package com.julian.criptanocturna;
 
 import android.app.Activity;
+import android.content.ClipboardManager;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
@@ -90,6 +91,19 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void openUrl(String url) {
             if (url.startsWith("https://github.com/")) startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+        }
+
+        // Lee el texto copiado, para el botón Pegar del código de verificación.
+        @JavascriptInterface
+        public String readClipboard() {
+            try {
+                ClipboardManager cm = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                if (cm == null || !cm.hasPrimaryClip() || cm.getPrimaryClip().getItemCount() == 0) return "";
+                CharSequence t = cm.getPrimaryClip().getItemAt(0).coerceToText(MainActivity.this);
+                return t == null ? "" : t.toString();
+            } catch (Exception e) {
+                return "";
+            }
         }
 
         // Guarda la copia del progreso en Descargas (Android 10+) o en la carpeta de la app.
