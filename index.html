@@ -893,7 +893,7 @@ const PDEF={
   maldicion:{name:'Calavera maldita',col:'#b3548a',desc:m=>'+'+pc(.1*m)+' de dificultad: más enemigos que se vuelven más duros con el tiempo, y más puntos',apply(m){G.st.curse+=.1*m;}},
   caos:{name:'Esencia del caos',col:'#ff5fd2',desc:m=>'Mejora una estadística al azar'+(m>1?' con su rareza':'')+'. Solo el caos da Escudo y proyectiles por encima del límite',apply(m){
     const ids=Object.keys(PDEF).filter(k=>k!=='caos').concat(Object.keys(CHAOS_EXTRA)),id=ids[(Math.random()*ids.length)|0],D=PDEF[id]||CHAOS_EXTRA[id];
-    D.apply(m);banner('Caos: '+D.desc(m));G.chaosLog.push({t:Math.floor(G.t),id,m});}},
+    D.apply(m);banner('Caos: '+D.name);G.chaosLog.push({t:Math.floor(G.t),id,m});}},
   rosario:{name:'Rosario de hueso',col:'#efe6d2',desc:m=>'Recuperás '+Math.round(3*m)+' de vida cada 25 bajas',apply(m){G.st.killHeal+=Math.round(3*m);}},
   verdugo:{name:'Capucha de verdugo',col:'#8a8fb0',desc:m=>'+'+dec(1.5*m)+'% de chance de rematar de un golpe a los enemigos comunes',apply(m){G.st.exec+=.015*m;}},
   caliz:{name:'Cáliz de sangre',col:'#e2435a',desc:m=>'+'+pc(.08*m)+' de tu vida máxima',apply(m){const v=Math.round(G.p.maxHp*.08*m);G.p.maxHp+=v;G.p.hp+=v;}},
@@ -1612,7 +1612,7 @@ function openLevelUp(){
   // Todo al máximo (o bloqueado): los niveles suben igual, sin pantalla ni mejora
   if(!opts.length){G.pending=0;if(state==='levelup'){state='play';show(null);last=performance.now();}if(G.texts.length<60)G.texts.push({x:G.p.x,y:G.p.y-30,txt:'Nivel '+G.lvl,life:1,heal:true});return;}
   if(G.afk&&state==='play'){const o=opts.slice().sort((a,b)=>(b.r|0)-(a.r|0))[0];sfx('level');
-    if(G.texts.length<60)G.texts.push({x:G.p.x,y:G.p.y-30,txt:(o.k==='w'?WDEF[o.id].name:PDEF[o.id].name)+' · Nv '+o.lvl,life:1.4,heal:true});pick(o);return;}
+    if(G.texts.length<60)G.texts.push({x:G.p.x,y:G.p.y-30,txt:o.k==='w'?WDEF[o.id].name:PDEF[o.id].name,life:1.4,heal:true});pick(o);return;}
   state='levelup';joy.active=false;sfx('level');G.banMode=false;
   G.curOpts=opts;renderLevelUp(true);show('levelup');
 }
@@ -1646,7 +1646,7 @@ function openChest(){
   G.chestQ--;const r=rollRelicRarity(),ids=Object.keys(RELICS).filter(k=>RELICS[k].r===r),id=ids[(Math.random()*ids.length)|0],R_=RELICS[id];
   G.relics[id]=(G.relics[id]|0)+1;R_.apply();G.chestsOpened=(G.chestsOpened|0)+1;
   const rr=RREL[r],n=G.relics[id];
-  if(G.afk&&state==='play'){sfx('level');banner('Cofre: '+R_.name+' ('+rr.n.toLowerCase()+')');return;}
+  if(G.afk&&state==='play'){sfx('level');banner('Cofre: '+R_.name);return;}
   state='chest';joy.active=false;sfx(r>=2?'boss':'level');
   $('#chestCard').innerHTML=`<div class="card ${rr.cls}"${r?` style="border-color:${rr.c}"`:''}><span class="ic">${svg(R_.ic,R_.col)}</span><span class="nm"><strong>${R_.name}</strong><span class="tag" style="color:${rr.c}">Reliquia ${rr.n.toLowerCase()}${n>1?' · ahora tenés '+n:''}</span></span><span class="ds">${R_.desc()}${n>1?'. Se suma a las que ya tenías':''}</span></div>`;
   $('#chestHint').textContent=G.chestQ>0?'Te queda'+(G.chestQ>1?'n '+G.chestQ+' cofres':' 1 cofre')+' por abrir.':'';
@@ -2890,10 +2890,10 @@ function resumeRun(){
 }
 function start(ch){clearRun();initAudio();newGame(ch,SAVE.diff);lastRunSave=0;hudCache={};state='play';show(null);last=performance.now();renderAfk();
   try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{});}catch(e){}}
-function pause(why){if(state!=='play')return;state='paused';closeSpeedMenu();$('#pauseEyebrow').textContent=typeof why==='string'?why+' · AFK sigue activo':'Pausa';syncDevUi();saveRun();endReset();if(restartArm){clearTimeout(restartArm);restartArm=null;}$('#restartBtn').textContent='Reiniciar partida';$('#restartBtn').style.borderColor='';joy.active=false;$('#inv').innerHTML=invHtml();$('#statgrid').innerHTML=statsHtml();chaosLogRender();show('pause');$('#pause').scrollTop=0;}
+function pause(why){if(state!=='play')return;state='paused';closeSpeedMenu();$('#pauseEyebrow').textContent=typeof why==='string'?why:'Pausa';syncDevUi();saveRun();endReset();if(restartArm){clearTimeout(restartArm);restartArm=null;}$('#restartBtn').textContent='Reiniciar partida';$('#restartBtn').style.borderColor='';joy.active=false;$('#inv').innerHTML=invHtml();$('#statgrid').innerHTML=statsHtml();chaosLogRender();show('pause');$('#pause').scrollTop=0;}
 function resume(){state='play';show(null);last=performance.now();renderAfk();}
 function renderAfk(){const b=$('#afkBtn');if(b&&G)b.setAttribute('aria-pressed',String(!!G.afk));}
-function toggleAfk(){if(!G||state!=='play')return;G.afk=!G.afk;renderAfk();sfx('gem');banner(G.afk?'AFK: la partida sigue sola y se pausa con cada jefe':'AFK desactivado');}
+function toggleAfk(){if(!G||state!=='play')return;G.afk=!G.afk;renderAfk();sfx('gem');banner(G.afk?'AFK activado':'AFK desactivado');}
 function gameOver(){
   state='over';clearRun();joy.active=false;
   const DF=DIFFS[G.diff],timeBonus=Math.floor(G.t/30),dawnBonus=G.dawn?50:0,base=G.coins+timeBonus+dawnBonus,diffBonus=Math.round(base*(DF.coin-1)),earned=base+diffBonus;
