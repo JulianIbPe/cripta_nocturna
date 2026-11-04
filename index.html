@@ -200,6 +200,12 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 .aitem small{display:block;margin-top:5px;color:var(--ember);font-size:13px;font-weight:600;letter-spacing:.03em}
 @media (prefers-reduced-motion:reduce){.screen:not([hidden]) .panel,.aitem{animation:none}}
 .seg.three{grid-template-columns:repeat(3,1fr)}
+.ltools{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;align-items:end}
+.ltools label{display:grid;gap:4px;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.ltools select{appearance:none;-webkit-appearance:none;width:100%;min-width:0;font:inherit;font-size:16px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink);padding:9px 30px 9px 12px;border-radius:10px;border:1px solid var(--stone-2);
+  background:var(--stone) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23a79fc4' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 11px center}
+.ltools select:focus-visible{outline:2px solid var(--ember);outline-offset:1px}
+.ltools .lcount{grid-column:1/-1;font-size:14px;color:var(--muted)}
 .tile.wide{grid-column:1/-1;grid-template-columns:auto 1fr;align-items:center;column-gap:14px;row-gap:2px;border-color:rgba(255,210,122,.35);background:linear-gradient(135deg,#2c2042,#17122b)}
 .tile.wide>span:first-child{grid-row:span 2}
 .tile.wide svg{width:32px;height:32px}
@@ -492,6 +498,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
       <button role="radio" id="arsP" aria-checked="false">Objetos</button>
       <button role="radio" id="arsR" aria-checked="false">Reliquias</button>
     </div>
+    <div class="ltools" id="arsTools"></div>
     <div class="alist" id="arsList"></div>
     <button class="btn ghost backBtn">Volver</button>
   </div>
@@ -528,6 +535,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
     <div class="eyebrow">Desafíos de la cripta</div>
     <h2>Misiones</h2>
     <p>Cada misión cumplida desbloquea un arma nueva que empieza a aparecer al subir de nivel. El progreso se cuenta al terminar cada partida.</p>
+    <div class="ltools" id="misTools"></div>
     <div class="alist" id="misList"></div>
     <button class="btn ghost backBtn">Volver</button>
   </div>
@@ -2809,19 +2817,54 @@ function drawMenuHero(now){
   soul(true);
 }
 /* ---- Arsenal ---- */
+/* ---- Filtros y orden de las listas (Arsenal y Misiones); la elección queda mientras el juego esté abierto ---- */
+const LIST_OPTS={
+  w:{f:[['all','Todas'],['open','Desbloqueadas'],['lock','Bloqueadas'],['start','Iniciales'],['mis','De misión'],['excl','Exclusivas de élite']],
+     s:[['def','Orden del juego'],['name','Nombre (A-Z)'],['dmg','Más daño'],['dmg5','Más daño a nivel 5'],['cd','Recarga más rápida']]},
+  p:{f:[['all','Todos'],['atk','Ataque'],['def','Defensa'],['util','Utilidad']],
+     s:[['def','Orden del juego'],['name','Nombre (A-Z)'],['max','Nivel máximo']]},
+  r:{f:[['all','Todas'],['3','Legendarias'],['2','Épicas'],['1','Raras'],['0','Comunes']],
+     s:[['rdesc','Rareza: mayor primero'],['rasc','Rareza: menor primero'],['name','Nombre (A-Z)']]},
+  m:{f:[['all','Todas'],['todo','En curso'],['done','Cumplidas'],['wpn','Premio: arma'],['coins','Premio: monedas'],['gems','Premio: gemas']],
+     s:[['def','Orden del juego'],['near','Más cerca de cumplir'],['far','Menos avance'],['name','Nombre (A-Z)'],['prize','Premio más grande']]}};
+const listSel={};for(const k in LIST_OPTS)listSel[k]={f:LIST_OPTS[k].f[0][0],s:LIST_OPTS[k].s[0][0]};
+function renderListTools(box,k,shown,total,redraw){const O=LIST_OPTS[k],S=listSel[k];
+  const opt=(a,v)=>a.map(([id,t])=>`<option value="${id}"${id===v?' selected':''}>${t}</option>`).join('');
+  box.innerHTML=`<label>Mostrar<select data-l="f">${opt(O.f,S.f)}</select></label><label>Ordenar<select data-l="s">${opt(O.s,S.s)}</select></label><p class="lcount" aria-live="polite">${shown===total?'Mostrando '+total:'Mostrando '+shown+' de '+total}</p>`;
+  box.querySelectorAll('select').forEach(sel=>sel.onchange=()=>{S[sel.dataset.l]=sel.value;redraw();});}
+const byName=(a,b)=>a.name.localeCompare(b.name,'es');
+// Categoría de cada objeto para el filtro de Arsenal
+const PCAT={grimorio:'atk',reloj:'atk',lupa:'atk',trebol:'atk',flecha:'atk',mazo:'atk',espejo:'atk',tintero:'atk',verdugo:'atk',
+  corazon:'def',vela:'def',coraza:'def',colmillo:'def',anillo:'def',pluma:'def',rosario:'def',caliz:'def',
+  botas:'util',iman:'util',herradura:'util',bolsa:'util',pergamino:'util',maldicion:'util',caos:'util'};
+const noRes='<p class="msg">No hay nada con ese filtro.</p>';
 let arsTab='w';
 function renderArsenal(){
   $('#arsW').setAttribute('aria-checked',String(arsTab==='w'));$('#arsP').setAttribute('aria-checked',String(arsTab==='p'));$('#arsR').setAttribute('aria-checked',String(arsTab==='r'));
-  let h='';
-  if(arsTab==='w'){for(const id in WDEF){const D=WDEF[id],st=Object.values(CHARS).find(c=>c.weapon===id);
+  let h='';const S=listSel[arsTab],tools=$('#arsTools');
+  if(arsTab==='w'){
+    const all=Object.keys(WDEF).map((id,i)=>{const D=WDEF[id];return{id,i,name:D.name,D,start:Object.values(CHARS).some(c=>c.weapon===id),lk:!weaponUnlocked(id)};});
+    const F={all:()=>true,open:w=>!w.lk,lock:w=>w.lk,start:w=>w.start,mis:w=>!!w.D.mission,excl:w=>!!w.D.excl}[S.f]||(()=>true);
+    const cdOf=w=>w.D.cd?w.D.cd[0]:w.D.tick?w.D.tick[0]:1/0;
+    const SO={def:(a,b)=>a.i-b.i,name:byName,dmg:(a,b)=>b.D.dmg[0]-a.D.dmg[0]||byName(a,b),dmg5:(a,b)=>b.D.dmg[4]-a.D.dmg[4]||byName(a,b),cd:(a,b)=>cdOf(a)-cdOf(b)||byName(a,b)}[S.s];
+    const list=all.filter(F).sort(SO);renderListTools(tools,'w',list.length,all.length,renderArsenal);if(!list.length)h=noRes;
+    for(const {id} of list){const D=WDEF[id],st=Object.values(CHARS).find(c=>c.weapon===id);
     const lk=!weaponUnlocked(id),ms=D.mission&&MISSIONS.find(m=>m.id===D.mission);
     h+=`<div class="aitem${lk?' lockd':''}"><span class="ic">${svg(lk?'candado':id,lk?'#6b6390':D.col)}</span><div><strong>${D.name}</strong><p>${D.up[0]}</p><small>${lk?'Bloqueada · misión '+ms.name+': '+ms.desc:st?'Arma inicial de '+st.short:ms?'Desbloqueada con la misión '+ms.name:D.excl?'Exclusiva de '+CHARS[D.excl].short+': arranca con ella':'Aparece al subir de nivel'} · hasta nivel ${WMAX} (más con el Yunque infernal)</small></div></div>`;}}
   else if(arsTab==='r'){
+    const all=Object.keys(RELICS).map(id=>({id,name:RELICS[id].name,r:RELICS[id].r})),list=all.filter(x=>S.f==='all'||x.r===+S.f);
+    renderListTools(tools,'r',list.length,all.length,renderArsenal);
     h+=`<p class="msg">Salen de los cofres: cualquier enemigo puede soltar uno con muy poca chance y al derrotar un jefe siempre se abre uno. La suerte no cambia cuántos cofres caen, pero sí la rareza de lo que traen. Se pueden repetir y cada copia suma otra vez su efecto.</p>`;
-    for(let r=RREL.length-1;r>=0;r--){const ids=Object.keys(RELICS).filter(k=>RELICS[k].r===r);
-      h+=`<div class="dtitle" style="color:${RREL[r].c}">${RREL[r].n}s · ${ids.length}</div>`;
-      for(const id of ids){const D=RELICS[id];h+=`<div class="aitem"><span class="ic">${svg(D.ic,D.col)}</span><div><strong>${D.name}</strong><p>${D.desc()}.</p><small style="color:${RREL[r].c}">Reliquia ${RREL[r].n.toLowerCase()}</small></div></div>`;}}}
-  else{for(const id in PDEF){const D=PDEF[id];
+    const item=x=>{const D=RELICS[x.id];return `<div class="aitem"><span class="ic">${svg(D.ic,D.col)}</span><div><strong>${D.name}</strong><p>${D.desc()}.</p><small style="color:${RREL[D.r].c}">Reliquia ${RREL[D.r].n.toLowerCase()}</small></div></div>`;};
+    if(S.s==='name')h+=list.slice().sort(byName).map(item).join('');
+    else{const rs=[3,2,1,0];if(S.s==='rasc')rs.reverse();
+      for(const r of rs){const ids=list.filter(x=>x.r===r).sort(byName);if(!ids.length)continue;
+        h+=`<div class="dtitle" style="color:${RREL[r].c}">${RREL[r].n}s · ${ids.length}</div>`+ids.map(item).join('');}}}
+  else{
+    const all=Object.keys(PDEF).map((id,i)=>({id,i,name:PDEF[id].name,max:PDEF[id].max||PMAX}));
+    const list=all.filter(x=>S.f==='all'||(PCAT[x.id]||'util')===S.f).sort({def:(a,b)=>a.i-b.i,name:byName,max:(a,b)=>b.max-a.max||byName(a,b)}[S.s]);
+    renderListTools(tools,'p',list.length,all.length,renderArsenal);if(!list.length)h=noRes;
+    for(const {id} of list){const D=PDEF[id];
     h+=`<div class="aitem"><span class="ic">${svg(id,D.col)}</span><div><strong>${D.name}</strong><p>${D.desc(1)}${D.fixed?'':' (común)'}.</p><small>Hasta nivel ${D.max||PMAX}</small></div></div>`;}}
   $('#arsList').innerHTML=h;
 }
@@ -2843,7 +2886,14 @@ $('#tBoard').addEventListener('click',openBoard);
 $('#tAcc').addEventListener('click',()=>{initAudio();$('#acctToast').textContent='';renderAcct();show('account');$('#account').scrollTop=0;});
 function renderMissions(){payMissions();
   const ftime=t=>t>=3600?fmtLong(t):fmt(t);
-  $('#misList').innerHTML=MISSIONS.map(m=>{const wid=Object.keys(WDEF).find(k=>WDEF[k].mission===m.id),W_=WDEF[wid],pr=Math.min(m.goal,m.prog()),done=pr>=m.goal;
+  const S=listSel.m,prizeVal=m=>m.reward?(m.reward.gems?m.reward.gems*300:m.reward.coins):0; // una gema vale ~300 monedas en la tienda
+  const all=MISSIONS.map((m,i)=>({m,i,name:m.name,pct:Math.min(1,m.prog()/m.goal)}));
+  const F={all:()=>true,todo:x=>x.pct<1,done:x=>x.pct>=1,wpn:x=>!x.m.reward,coins:x=>!!(x.m.reward&&x.m.reward.coins),gems:x=>!!(x.m.reward&&x.m.reward.gems)}[S.f]||(()=>true);
+  // "Más cerca" y "Menos avance" dejan las cumplidas al final
+  const SO={def:(a,b)=>a.i-b.i,name:byName,near:(a,b)=>(a.pct>=1)-(b.pct>=1)||b.pct-a.pct,far:(a,b)=>(a.pct>=1)-(b.pct>=1)||a.pct-b.pct,prize:(a,b)=>prizeVal(b.m)-prizeVal(a.m)||a.i-b.i}[S.s];
+  const list=all.filter(F).sort(SO);renderListTools($('#misTools'),'m',list.length,all.length,renderMissions);
+  $('#misList').innerHTML=list.length?'':noRes;
+  $('#misList').innerHTML+=list.map(x=>x.m).map(m=>{const wid=Object.keys(WDEF).find(k=>WDEF[k].mission===m.id),W_=WDEF[wid],pr=Math.min(m.goal,m.prog()),done=pr>=m.goal;
     const ptxt=m.time?ftime(pr)+' / '+ftime(m.goal):pr.toLocaleString('es-AR')+' / '+m.goal.toLocaleString('es-AR');
     const prize=m.reward?rewardTxt(m.reward):W_.name,ic=m.reward?(m.reward.gems?['gema','#ff8ad8']:['bolsa','#ffd27a']):[wid,W_.col];
     return `<div class="aitem"><span class="ic">${svg(done?ic[0]:'candado',done?ic[1]:'#6b6390')}</span><div><strong>${m.name}</strong><p>${m.desc}.</p>
