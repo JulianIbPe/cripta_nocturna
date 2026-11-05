@@ -479,7 +479,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
       <p><b>Las mejoras tienen rareza</b>: Común, Poco común, Rara, Épica y Legendaria. Cuanto más rara, más fuerte. La Herradura de plata sube tu suerte y hace que salgan más seguido las rarezas altas.</p>
       <p><b>Cuanto más sobrevivís, más peligrosos son</b>: la vida, el daño y la velocidad de los enemigos suben cada minuto. Después del amanecer siguen subiendo, pero más despacio. La tabla muestra cuánto se multiplican en Fácil; las otras dificultades suman lo suyo encima.</p>
       <div class="difftbl" id="diffTbl"></div>
-      <p><b>Pasarte del máximo también sirve</b>: más de 100% de crítico da overcrit (×3, ×4…), la velocidad de ataque de más se vuelve daño (Sobrecarga), el esquivar por encima del 60% se vuelve contraataque, y más de 100% de suerte hace aparecer mejoras míticas.</p>
+      <p><b>Pasarte del máximo también sirve</b>: más de 100% de crítico da overcrit (×2,5, ×3…), la velocidad de ataque de más se vuelve daño (Sobrecarga), el esquivar por encima del 60% se vuelve contraataque, y más de 100% de suerte hace aparecer mejoras míticas.</p>
       <p><b>Cumplí misiones</b> para desbloquear armas nuevas.</p>
       <p><b>En la Tienda comprás mejoras permanentes</b>: usos de Cambiar, Bloquear y Saltar en cada subida de nivel, y más gemas por partida.</p>
       <p><b>Las gemas rosas son raras</b>: casi nunca caen de enemigos comunes, cada calabaza maldita tiene la mitad de chances de soltar una y el amanecer te da 2. Con gemas desbloqueás a los 6 personajes élite.</p>
@@ -898,7 +898,7 @@ const PDEF={
   lupa:{name:'Lente lunar',col:'#c9c2ff',desc:m=>'+'+pc(.12*m)+' de área',apply(m){G.st.area+=.12*m;}},
   vela:{name:'Vela eterna',col:'#ffb36b',desc:m=>'Regenera '+dec(.4*m)+' de vida por segundo',apply(m){G.st.regen+=.4*m;}},
   coraza:{name:'Coraza',col:'#a7b0c8',desc:m=>'Recibís '+Math.round(m)+' de daño menos por golpe',apply(m){G.st.armor+=Math.round(m);}},
-  trebol:{name:'Trébol de cementerio',col:'#7dffb0',desc:m=>'+'+pc(.08*m)+' de crítico. Pasado el 100% los golpes hacen overcrit (×3, ×4…)',apply(m){G.st.crit+=.08*m;}},
+  trebol:{name:'Trébol de cementerio',col:'#7dffb0',desc:m=>'+'+pc(.08*m)+' de crítico. Pasado el 100% los golpes hacen overcrit (×2,5, ×3…)',apply(m){G.st.crit+=.08*m;}},
   herradura:{name:'Herradura de plata',col:'#d8dbe8',desc:m=>'+'+pc(.2*m)+' de suerte: más mejoras raras, épicas y legendarias. Pasado el 100% aparecen las míticas',apply(m){G.st.luck+=.2*m;}},
   bolsa:{name:'Bolsa de monedas',col:'#f0b429',desc:m=>'+'+pc(.25*m)+' de monedas que sueltan los enemigos',apply(m){G.st.coinMul+=.25*m;}},
   pergamino:{name:'Pergamino antiguo',col:'#e6dcc4',desc:m=>'+'+pc(.1*m)+' de experiencia',apply(m){G.st.xpMul+=.1*m;}},
@@ -927,7 +927,7 @@ const CHAOS_EXTRA={
 };
 /* ---- Reliquias: salen de los cofres. Se pueden repetir y cada copia vuelve a sumar su efecto ---- */
 // Cofres: muy poca chance en cualquier enemigo (la suerte no la cambia) y siempre en los jefes. La suerte sí mejora la rareza
-const CHEST_CHANCE=.0003;
+const CHEST_CHANCE=.0003; // se divide por 1+minutos/5: a los 10 min es un tercio, a los 20 un quinto
 const RREL=[{n:'Común',c:'#b9b2d6',w:60,cls:''},{n:'Rara',c:'#5aa8ff',w:28,cls:'r2'},{n:'Épica',c:'#c06bff',w:10,cls:'r3'},{n:'Legendaria',c:'#ffb32b',w:2,cls:'r4'}];
 const RFX={
   dmg:[v=>'+'+pc(v)+' de daño',v=>{G.st.dmg+=v;}],
@@ -1002,8 +1002,8 @@ const RELICS={};
   ['avaro','Anillo del avaro',2,'bolsa','#ffb32b',{coin:.4,luck:.2}],
   ['alas','Alas de murciélago',2,'murcielagos','#a98bff',{spd:.15,evade:.06}],
   ['cristal','Calavera de cristal',2,'calaveras','#bfe8ff',{magnet:.25,xp:.15}],
-  ['coronarey','Corona del rey eterno',3,'corona','#ffb32b',{objLv:5}],
-  ['yunque','Yunque infernal',3,'yunque','#ff6a3d',{armLv:5}],
+  ['coronarey','Corona del rey eterno',3,'corona','#ffb32b',{objLv:2}],
+  ['yunque','Yunque infernal',3,'yunque','#ff6a3d',{armLv:2}],
   ['grial','Grial negro',3,'caliz','#ff4dd8',{dmg:.3,area:.2,regen:2}],
   ['eternidad','Reloj de la eternidad',3,'reloj','#ffe27a',{atk:.2,ab:.2}],
   ['estrella','Estrella caída',3,'juicio','#fff6d6',{amount:1,shield:1,luck:.25}],
@@ -1011,9 +1011,9 @@ const RELICS={};
   desc:()=>Object.entries(fx).map(([k,v])=>RFX[k][0](v)).join(' · '),
   apply(){for(const k in fx)RFX[k][1](fx[k]);}};});
 const relN=id=>(G&&G.relics&&G.relics[id])|0;
-// Máximos de nivel: los legendarios Yunque infernal y Corona del rey eterno suben 5 niveles más por copia
-const wMax=()=>WMAX+5*relN('yunque');
-const pMax=id=>(PDEF[id].max||PMAX)+(PDEF[id].fixed?1:5)*relN('coronarey');
+// Máximos de nivel: los legendarios Yunque infernal y Corona del rey eterno suben 2 niveles más por copia
+const wMax=()=>WMAX+2*relN('yunque');
+const pMax=id=>(PDEF[id].max||PMAX)+(PDEF[id].fixed?1:2)*relN('coronarey');
 function rollRelicRarity(){const lk=Math.max(0,G.st.luck);let tot=0;const ws=RREL.map((r,i)=>{const w=r.w*Math.pow(1+lk,i);tot+=w;return w;});
   let x=Math.random()*tot;for(let i=0;i<ws.length;i++){x-=ws[i];if(x<=0)return i;}return 0;}
 const RAR=[
@@ -1124,20 +1124,20 @@ const svg=(id,col)=>`<svg viewBox="0 0 24 24" fill="none" stroke="${col}" stroke
 const DIFFS={
   facil:{name:'Fácil',hp:1,dmg:1,coin:1,xp:0,pts:1,desc:'La noche normal: enemigos, experiencia, monedas y gemas sin cambios. Ideal para probar personajes. Puntos ×1.'},
   medio:{name:'Medio',hp:1.5,dmg:1.25,coin:1.25,gem:1.15,xp:-.05,pts:1.5,desc:'Enemigos con +50% de vida y +25% de daño. +25% de monedas, +15% de gemas y -5% de experiencia. Puntos ×1,5.'},
-  dificil:{name:'Difícil',hp:2,dmg:1.5,coin:1.5,gem:1.25,xp:-.1,pts:2,desc:'Enemigos con +100% de vida y +50% de daño. +50% de monedas, +25% de gemas y -10% de experiencia. Puntos ×2.'},
-  imposible:{name:'Imposible',hp:2,dmg:2,spd:2,coin:1.5,gem:1.5,xp:-.5,pts:3,desc:'Enemigos con el doble de vida, daño y velocidad. +50% de monedas, +50% de gemas y -50% de experiencia. Puntos ×3.'},
+  dificil:{name:'Difícil',ramp:1.1,hp:2,dmg:1.5,coin:1.5,gem:1.25,xp:-.1,pts:2,desc:'Enemigos con +100% de vida y +50% de daño. +50% de monedas, +25% de gemas y -10% de experiencia. Puntos ×2.'},
+  imposible:{name:'Imposible',ramp:1.2,hp:2,dmg:2,spd:2,coin:1.5,gem:1.5,xp:-.5,pts:3,desc:'Enemigos con el doble de vida, daño y velocidad. +50% de monedas, +50% de gemas y -50% de experiencia. Puntos ×3.'},
 };
 // Tablas de Cómo jugar, armadas con las mismas fórmulas del juego para que nunca queden desactualizadas
 function renderDiffTables(){const f=v=>fmtMult(v>=10?Math.round(v):Math.round(v*10)/10),mins=[0,5,10,15,20,25,30,40];
   $('#diffTbl').innerHTML='<table><caption>Enemigos según el minuto (Fácil)</caption><thead><tr><th>Min</th><th>Vida</th><th>Daño</th><th>Velocidad</th><th>Puntos</th></tr></thead><tbody>'+
     mins.map(m=>{const t=m*60;return `<tr${m===DAWN_M?' class="dawn"':''}><td>${m}${m===DAWN_M?' ☀':''}</td><td>${f(enemyHpMult(t))}</td><td>${f(enemyDmgMult(t))}</td><td>${fmtMult(Math.round(enemySpdMult(t)*100)/100)}</td><td>${fmtMult(timeMult(t))}</td></tr>`;}).join('')+'</tbody></table>';
   $('#diffTbl2').innerHTML='<table><caption>Lo que suma cada dificultad</caption><thead><tr><th></th>'+Object.values(DIFFS).map(D=>`<th>${D.name}</th>`).join('')+'</tr></thead><tbody>'+
-    [['Vida',D=>fmtMult(D.hp)],['Daño',D=>fmtMult(D.dmg)],['Velocidad',D=>fmtMult(D.spd||1)],['Monedas',D=>fmtMult(D.coin)],['Gemas',D=>fmtMult(D.gem!==undefined?D.gem:D.coin)],['Exp',D=>(D.xp?Math.round(D.xp*100)+'%':'—')],['Puntos',D=>fmtMult(D.pts)]]
+    [['Vida',D=>fmtMult(D.hp)],['Escalado',D=>D.ramp?'^'+String(D.ramp).replace('.',','):'—'],['Daño',D=>fmtMult(D.dmg)],['Velocidad',D=>fmtMult(D.spd||1)],['Monedas',D=>fmtMult(D.coin)],['Gemas',D=>fmtMult(D.gem!==undefined?D.gem:D.coin)],['Exp',D=>(D.xp?Math.round(D.xp*100)+'%':'—')],['Puntos',D=>fmtMult(D.pts)]]
     .map(([n,g])=>`<tr><td>${n}</td>${Object.values(DIFFS).map(D=>`<td>${g(D)}</td>`).join('')}</tr>`).join('')+'</tbody></table>';}
 // Texto corto con solo lo que cambia la dificultad: "Vida enemiga +50% · Exp -5% · Puntos ×1,5"
 function diffChanges(k){const D=DIFFS[k],out=[],pc_=v=>(v>0?'+':'')+Math.round(v*100)+'%';
   const add=(t,v)=>{if(v&&Math.abs(v)>1e-9)out.push(t+' '+pc_(v));};
-  add('Vida enemiga',D.hp-1);add('Daño enemigo',D.dmg-1);add('Velocidad enemiga',(D.spd||1)-1);
+  add('Vida enemiga',D.hp-1);add('Daño enemigo',D.dmg-1);add('Velocidad enemiga',(D.spd||1)-1);if(D.ramp)out.push('Los enemigos se endurecen más rápido con los minutos');
   add('Monedas',D.coin-1);add('Gemas',(D.gem!==undefined?D.gem:D.coin)-1);add('Exp',D.xp);
   out.push('Puntos ×'+String(D.pts).replace('.',','));
   return (out.length===1?'Sin cambios · ':'')+out.join(' · ');}
@@ -1152,6 +1152,12 @@ const BUFFS={
     desc:'+5% de experiencia en todas tus partidas por cada nivel.'},
   velocidad:{name:'Reloj del tiempo',short:'Velocidad',icon:'reloj',gemOnly:[75,250],
     desc:'Acelera el juego. Nivel 1 desbloquea velocidad ×2 y nivel 2 desbloquea ×5. La cambiás con el botón ×1 durante la partida.'},
+  vitalidad:{name:'Sangre de roble',short:'Vida',icon:'corazon',coin:[150,300,500,750,1100],gem:[15,28],
+    desc:'+10 de vida máxima al empezar cada partida por cada nivel.'},
+  fuerza:{name:'Filo bendito',short:'Daño',icon:'grimorio',coin:[200,400,650,950,1400],gem:[18,32],
+    desc:'+4% de daño en todas tus partidas por cada nivel.'},
+  codicia:{name:'Bolsillo sin fondo',short:'Monedas',icon:'bolsa',coin:[120,250,420,650,950],gem:[12,22],
+    desc:'+8% de monedas en todas tus partidas por cada nivel.'},
   gemspawn:{name:'Imán de gemas',short:'Gemas',icon:'gema',gemOnly:[20,30,45,65,90],
     desc:'+5% de probabilidad de que caigan gemas por cada nivel.'},
 };
@@ -1195,6 +1201,12 @@ const CHARS={
     active:{name:'Calabomba',icon:'calabomba',cd:14,desc:'Explosión enorme que arrasa todo a tu alrededor.'},
     grow:{d:n=>'+'+(20*n)+'% de monedas',f:(G,n)=>{G.st.coinMul+=.2*n;}},
     setup(G){G.st.amount+=1;G.st.coinMul+=1;}},
+  fraile:{name:'Fray Anselmo',short:'Fray Anselmo',price:1600,weapon:'agua',hat:'brim',
+    col:{cloak:'#4a3a2a',hood:'#33281c',face:'#f0d8bc',lamp:'#7ac8ff'},
+    passive:{name:'Fe inquebrantable',desc:'+0,5 de vida por segundo, +2 de armadura y +10% de área.'},
+    active:{name:'Bendición',icon:'agua',cd:16,desc:'Recuperás 25% de tu vida y una onda santa daña y empuja todo lo cercano.'},
+    grow:{d:n=>'+'+dec(n*.15)+' de regeneración y +'+(2*n)+'% de área',f:(G,n)=>{G.st.regen+=.15*n;G.st.area+=.02*n;}},
+    setup(G){G.st.regen+=.5;G.st.armor+=2;G.st.area+=.1;}},
   valkiria:{name:'Brunhild la Valquiria',short:'Brunhild',gems:20,weapon:'martillo',hat:'helm',
     col:{cloak:'#3d4f6e',hood:'#2a3850',face:'#f0e0d0',lamp:'#9ad0ff'},
     passive:{name:'Furia del norte',desc:'+25% de daño, +30 de vida máxima y +5% de velocidad.'},
@@ -1231,6 +1243,12 @@ const CHARS={
     active:{name:'Siega',icon:'siega',cd:20,desc:'Un tajo circular que mata al instante a los enemigos comunes cercanos y hace 200 a las calabazas.'},
     grow:{d:n=>'+'+dec(n*.5)+'% de matar al instante',f:(G,n)=>{G.st.exec+=.005*n;}},
     setup(G){G.st.dmg+=.3;G.st.crit+=.15;G.st.exec=.04;G.st.killHeal=8;}},
+  banshee:{name:'Aine la Banshee',short:'Aine',gems:150,weapon:'latigo',hat:'collar',
+    col:{cloak:'#c9d6e8',hood:'#8fa3c0',face:'#eef4ff',lamp:'#9ad0ff'},
+    passive:{name:'Lamento eterno',desc:'+20% de velocidad de ataque, +15% de área, +10% de esquivar y +10% de velocidad.'},
+    active:{name:'Alarido',icon:'campana',cd:18,desc:'Un grito que ralentiza 4 segundos todo lo que hay en pantalla y le hace 90 de daño.'},
+    grow:{d:n=>'+'+(2*n)+'% de esquivar y +'+(2*n)+'% de área',f:(G,n)=>{G.st.evade+=.02*n;G.st.area+=.02*n;}},
+    setup(G){const st=G.st;st.cdRaw=(st.cdRaw||st.cd)/1.2;st.cd=Math.max(.3,st.cdRaw);st.area+=.15;st.evade+=.1;st.spd+=.1;}},
 };
 
 const ETYPES={
@@ -1314,6 +1332,7 @@ function newGame(ch,df){
   c.setup(G);
   G.st.xpMul+=DIFFS[df].xp;
   G.st.xpMul+=.05*(SAVE.buffs.sabiduria|0);
+  {const B=SAVE.buffs,v=10*(B.vitalidad|0);G.p.maxHp+=v;G.p.hp+=v;G.st.dmg+=.04*(B.fuerza|0);G.st.coinMul+=.08*(B.codicia|0);}
   G.speed=speedOpts().includes(SAVE.speed)?SAVE.speed:1;
   const cl=SAVE.charLv[ch]|0;G.st.dmg+=.1*cl;G.p.maxHp+=10*cl;G.p.hp+=10*cl;G.abMul=Math.max(.4,1-.08*cl);if(cl&&c.grow)c.grow.f(G,cl);
   G.wLv[c.weapon]=1;
@@ -1342,11 +1361,11 @@ function pickType(t){const mix=SPAWN_MIX.find(m=>t<m[0])[1];let r=Math.random();
   for(const k in mix){r-=mix[k];if(r<=0)return k;}return 'bat';}
 function spawnRadius(){return Math.hypot(VW,VH)/2+30;}
 function spawnEnemy(type,x,y){
-  const d=ETYPES[type],m=enemyHpMult(G.t);
+  const d=ETYPES[type],m=enemyHpMult(G.t)**(DIFFS[G.diff].ramp||1);
   if(x===undefined){const a=Math.random()*TAU,R=spawnRadius();x=G.p.x+Math.cos(a)*R;y=G.p.y+Math.sin(a)*R;}
   const hard=1+G.st.curse*Math.min(1.5,G.t/600);let hp=d.hp*m*DIFFS[G.diff].hp*hard;if(d.boss)hp*=1+(G.bossCycle|0);else if(d.elite)hp*=1+G.elites*0.6;
   const spd=d.spd*rand(.9,1.1)*enemySpdMult(G.t)*(DIFFS[G.diff].spd||1);
-  const e={type,x,y,hp,max:hp,spd,dmg:d.dmg*enemyDmgMult(G.t)*DIFFS[G.diff].dmg*hard,r:d.r,xp:d.xp,kb:d.kb/(1+Math.max(0,spd-50)/120),elite:!!d.elite,boss:!!d.boss,cd:d.boss?3:0,dashT:0,kx:0,ky:0,flash:0,oh:0,mh:0,frozen:0,ph:Math.random()*TAU,dead:false};
+  const e={type,x,y,hp,max:hp,spd,dmg:d.dmg*enemyDmgMult(G.t)**(DIFFS[G.diff].ramp||1)*DIFFS[G.diff].dmg*hard,r:d.r,xp:d.xp,kb:d.kb/(1+Math.max(0,spd-50)/120),elite:!!d.elite,boss:!!d.boss,cd:d.boss?3:0,dashT:0,kx:0,ky:0,flash:0,oh:0,mh:0,frozen:0,ph:Math.random()*TAU,dead:false};
   G.enemies.push(e);return e;}
 // Tope total de enemigos: los enjambres no lo pasan (jefes y calabazas sí, son pocos). Sin tope, en partidas largas se acumulaban miles y el juego se congelaba
 const MAX_EN=420;
@@ -1377,14 +1396,16 @@ function bomb(){
 const FREEZE_CHANCE=.02;
 // Solo las armas de hielo pueden congelar
 const FREEZE_SRC=new Set(['lanzahielo','novahelada']);
+const overcharge=st=>st.cdRaw&&st.cdRaw<.3?1+(.3/st.cdRaw-1)*.5:1;
 function hurt(e,base,kx,ky,src){
   if(e.dead)return;
   if(src&&G.wMult[src])base*=G.wMult[src];
   if(src&&G.wLv&&G.wLv[src]>5)base*=1+.12*(G.wLv[src]-5);
   if(G.maxDmg)base=Math.max(base,e.hp*10+1e5);
   const st=G.st;let tier=0;if(st.crit>0){tier=Math.floor(st.crit);if(Math.random()<st.crit-tier)tier++;}
-  const crit=tier>0,over=st.cdRaw&&st.cdRaw<.3?.3/st.cdRaw:1;
-  let dmg=Math.max(1,Math.round(base*st.dmg*over*rand(.9,1.1)*(1+tier)));
+  // Nerf: la Sobrecarga convierte en daño solo la mitad del exceso, y cada nivel de overcrit pasado el primero suma ×0,5 (×2, ×2,5, ×3…)
+  const crit=tier>0,over=overcharge(st),cm=tier<=1?1+tier:2+.5*(tier-1);
+  let dmg=Math.max(1,Math.round(base*st.dmg*over*rand(.9,1.1)*cm));
   if(st.exec&&!e.elite&&Math.random()<st.exec)dmg=Math.max(dmg,Math.ceil(e.hp));
   // Los golpes de las armas de hielo tienen una chance baja de congelar 1 segundo (los jefes no se congelan)
   if(FREEZE_SRC.has(src)&&!e.boss&&!(e.frozen>0)&&Math.random()<FREEZE_CHANCE)e.frozen=1;
@@ -1406,7 +1427,7 @@ function hurt(e,base,kx,ky,src){
     else if(Math.random()<.0015*(DIFFS[G.diff].gem||DIFFS[G.diff].coin)*(1+.05*(SAVE.buffs.gemspawn|0)))G.crysArr.push({x:e.x-4,y:e.y-4,sp:0,fly:false});
     if(st.killHeal){G.killN++;if(G.killN%25===0){G.p.hp=Math.min(G.p.maxHp,G.p.hp+st.killHeal);G.texts.push({x:G.p.x,y:G.p.y-20,txt:'+'+st.killHeal,life:.8,heal:true});}}
     // Los jefes siempre dan un cofre y se abre solo (no hace falta ir a buscarlo); cualquier otro enemigo lo suelta con muy poca chance (no depende de la suerte)
-    if(e.boss)G.chestQ=(G.chestQ|0)+1;else if(Math.random()<CHEST_CHANCE)G.items.push({x:e.x,y:e.y,kind:'chest'});
+    if(e.boss)G.chestQ=(G.chestQ|0)+1;else if(Math.random()<CHEST_CHANCE/(1+G.t/300))G.items.push({x:e.x,y:e.y,kind:'chest'});
     if(e.boss){G.bossesKilled++;G.items.push({x:e.x+18,y:e.y,kind:'heal'},{x:e.x-18,y:e.y,kind:'vacuum'});G.shake=.5;banner(ETYPES[e.type].name+' derrotado');}
     else if(e.elite){G.elitesKilled++;if(Math.random()<.5)G.items.push({x:e.x+14,y:e.y,kind:'heal'});G.items.push({x:e.x-14,y:e.y,kind:'vacuum'});G.shake=.35;}
     else{const r=Math.random();
@@ -1607,6 +1628,9 @@ function useAbility(){
     case 'angel':{const R=165*st.area;blast(R,150,300);ring(p.x,p.y,R,'#ffe27a');ring(p.x,p.y,R*.6,'#fff3c4');strike(p.x,p.y,0,0,'#fff3c4');G.shake=.4;sfx('boss');break;}
     case 'golem':{const quake=()=>{if(!G)return;const P=G.p,R=130*G.st.area;near(P.x,P.y,R+24,e=>{const dx=e.x-P.x,dy=e.y-P.y,d=Math.hypot(dx,dy)||1;if(d<R+e.r){hurt(e,60,dx/d*250,dy/d*250);e.slowT=Math.max(e.slowT||0,2);}});ring(P.x,P.y,R,'#9a9aa8');G.shake=.3;sfx('boss');};
       quake();G.timers.push({t:.5,fn:quake},{t:1,fn:quake});break;}
+    case 'fraile':{p.hp=Math.min(p.maxHp,p.hp+p.maxHp*.25);const R=110*st.area;blast(R,70,450);ring(p.x,p.y,R,'#7ac8ff');sfx('heal');break;}
+    case 'banshee':{for(const e of G.enemies)if(!e.dead&&Math.abs(e.x-G.cam.x)<VW/2+30&&Math.abs(e.y-G.cam.y)<VH/2+30){e.slowT=Math.max(e.slowT||0,4);hurt(e,90,0,0);}
+      ring(p.x,p.y,90,'#c9d6e8');ring(p.x,p.y,60,'#9ad0ff');G.shake=.3;sfx('boss');break;}
     case 'parca':{const R=140*st.area;near(p.x,p.y,R+24,e=>{if(e.dead)return;const d=Math.hypot(e.x-p.x,e.y-p.y);if(d<R+e.r){if(e.elite)hurt(e,200,0,0);else hurt(e,e.hp/st.dmg*1.2+1,0,0);}});
       ring(p.x,p.y,R,'#b38cff');ring(p.x,p.y,R*.85,'#e6dcc4');G.shake=.35;sfx('boss');break;}
   }
@@ -2274,8 +2298,8 @@ function statsHtml(){
     ['Vel. de ataque',pct(1/st.cd-1),cls(1-st.cd)],
     ['Vel. de proyectil',pct(st.projSpd-1),cls(st.projSpd-1)],
     ['Empuje',pct(st.kb-1),cls(st.kb-1)],
-    ['Vida enemiga',fmtMult(Math.round(enemyHpMult(G.t)*DIFFS[G.diff].hp*10)/10),'down'],
-    ['Daño enemigo',fmtMult(Math.round(enemyDmgMult(G.t)*DIFFS[G.diff].dmg*10)/10),'down'],
+    ['Vida enemiga',fmtMult(Math.round(enemyHpMult(G.t)**(DIFFS[G.diff].ramp||1)*DIFFS[G.diff].hp*10)/10),'down'],
+    ['Daño enemigo',fmtMult(Math.round(enemyDmgMult(G.t)**(DIFFS[G.diff].ramp||1)*DIFFS[G.diff].dmg*10)/10),'down'],
     ['Vel. enemiga',fmtMult(Math.round(enemySpdMult(G.t)*100)/100),'down'],
     ['Área',pct(st.area-1),cls(st.area-1)],
     ['Velocidad',pct(st.spd-1),cls(st.spd-1)],
@@ -2286,7 +2310,7 @@ function statsHtml(){
     ['Congelar (armas de hielo)',G.weapons.some(w=>FREEZE_SRC.has(w.id))?Math.round(FREEZE_CHANCE*100)+'%':'—',''],
     ['Escudo',st.shield?(p.shield|0)+' / '+st.shield:'—',cls(st.shield||0)],
     ['Crítico',Math.round(st.crit*100)+'%'+(st.crit>1?' · overcrit':''),st.crit>1?'up':cls(st.crit)],
-    ['Sobrecarga',st.cdRaw<.3?'+'+pc(.3/st.cdRaw-1):'—',st.cdRaw<.3?'up':''],
+    ['Sobrecarga',st.cdRaw<.3?'+'+pc(overcharge(st)-1):'—',st.cdRaw<.3?'up':''],
     ['Contraataque',st.evade>.6?String(Math.round(20*(1+(st.evade-.6)*10))):'—',st.evade>.6?'up':''],
     ['Robo de vida',Math.round(st.leech*100)+'%',cls(st.leech)],
     ['Experiencia',pct(st.xpMul-1),cls(st.xpMul-1)],
@@ -2401,7 +2425,7 @@ function loadSave(){let sv=null;try{sv=JSON.parse(localStorage.getItem(SAVE_KEY)
 function normalizeSave(sv){
   if(!sv||typeof sv!=='object'){sv={coins:0,unlocked:['sepulturero'],sel:'sepulturero',best:null};try{const b=JSON.parse(localStorage.getItem('cripta-best')||'null');if(b)sv.best=b;}catch(e){}}
   if(!Array.isArray(sv.unlocked))sv.unlocked=[];if(!sv.unlocked.includes('sepulturero'))sv.unlocked.push('sepulturero');
-  if(!CHARS[sv.sel])sv.sel='sepulturero';if(!DIFFS[sv.diff])sv.diff='facil';if(!sv.life||typeof sv.life!=='object')sv.life={runs:0,kills:0,time:0,coins:0,dawns:0};if(!sv.bestBy||typeof sv.bestBy!=='object'){sv.bestBy={};if(sv.best)sv.bestBy.facil=sv.best;}sv.coins=sv.coins|0;sv.gems=sv.gems|0;if(!sv.buffs||typeof sv.buffs!=='object')sv.buffs={};if(!sv.charLv||typeof sv.charLv!=='object')sv.charLv={};for(const k of ['roll','ban','skip','sabiduria','gemspawn','velocidad'])sv.buffs[k]=Math.max(0,sv.buffs[k]|0);if(typeof sv.life.gems!=='number')sv.life.gems=0;return sv;}
+  if(!CHARS[sv.sel])sv.sel='sepulturero';if(!DIFFS[sv.diff])sv.diff='facil';if(!sv.life||typeof sv.life!=='object')sv.life={runs:0,kills:0,time:0,coins:0,dawns:0};if(!sv.bestBy||typeof sv.bestBy!=='object'){sv.bestBy={};if(sv.best)sv.bestBy.facil=sv.best;}sv.coins=sv.coins|0;sv.gems=sv.gems|0;if(!sv.buffs||typeof sv.buffs!=='object')sv.buffs={};if(!sv.charLv||typeof sv.charLv!=='object')sv.charLv={};for(const k of ['roll','ban','skip','sabiduria','gemspawn','velocidad','vitalidad','fuerza','codicia'])sv.buffs[k]=Math.max(0,sv.buffs[k]|0);if(typeof sv.life.gems!=='number')sv.life.gems=0;return sv;}
 let SAVE=loadSave();
 function persist(){SAVE.savedAt=Date.now();try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE));}catch(e){}scheduleCloud();}
 /* ---- Account: cloud save (Firebase, mail y contraseña por REST) + file backup ---- */
