@@ -67,6 +67,8 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 .best{font-variant-numeric:tabular-nums;color:var(--soul);font-weight:600;letter-spacing:.04em}
 .btn{appearance:none;border:0;border-radius:14px;padding:16px 20px;font-size:22px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--ember);color:#1a0d02;box-shadow:0 6px 0 #a3480f,0 0 30px rgba(255,138,61,.3);transition:transform .08s}
 .btn:active{transform:translateY(4px);box-shadow:0 2px 0 #a3480f}
+.resetbtn{border-color:#e2435a!important;color:#ff8a9a!important;margin-bottom:12px}
+.resetbtn.confirm{background:#e2435a!important;color:#fff!important}
 .btn.ghost{background:transparent;color:var(--ink);box-shadow:none;border:1px solid rgba(236,230,255,.25);font-size:18px;padding:13px 18px}
 .btnrow{display:flex;gap:10px;flex-wrap:wrap}
 .btnrow .btn{flex:1 1 140px}
@@ -551,6 +553,9 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
     <h2>Cuenta</h2>
     <div class="acct" id="acctCloud"></div>
     <p class="toast" id="acctToast" aria-live="polite"></p>
+    <div class="dtitle">Reiniciar</div>
+    <p class="msg">Borra todo tu progreso: monedas, gemas, personajes, mejoras, misiones, récords y tu puntaje en la clasificación. No se puede deshacer.</p>
+    <button class="btn ghost resetbtn" id="resetAll">Reiniciar todo</button>
     <button class="btn ghost backBtn">Volver</button>
   </div>
 </section>
@@ -2797,8 +2802,7 @@ function renderCharUp(){
   const lv=SAVE.charLv[pickSel]|0,max=CHAR_MAX,nc=charUpCost(lv),next=nc&&nc.n,have=nc&&nc.gem?SAVE.gems:SAVE.coins,can=!!nc&&have>=next;
   let bars='';for(let i=0;i<max;i++)bars+=`<i class="${i<lv?'on':''}"></i>`;
   el.innerHTML=`<strong>Mejoras de ${c.name} · Nv ${lv}/${max}</strong><div class="cu-lv">${bars}</div>
-    <p>Ahora empieza con +${lv*10}% de daño, +${lv*10} de vida y ${lv*8}% menos de recarga en ${c.active.name}. Cada nivel suma +10% de daño, +10 de vida y -8% de recarga.</p>
-    ${c.grow?`<p>Pasiva mejorada: ${c.grow.d(1)} por nivel${lv?' (ahora '+c.grow.d(lv)+')':''}. Los niveles 6 y 7 se pagan con gemas.</p>`:''}
+    <p>${lv?`+${lv*10}% de daño · +${lv*10} de vida · -${lv*8}% de recarga en ${c.active.name}${c.grow?' · '+c.grow.d(lv):''}`:'Todavía sin mejoras.'}</p>
     ${next===null?'<p class="maxed">Nivel máximo</p>':`<button class="shopitem${cuConfirm?' confirm':''}" id="cuBtn"${can?'':' disabled'}><strong>Subir a nivel ${lv+1}</strong><small>${can?(nc.gem?'Se paga con gemas':'Se paga con monedas'):'Te faltan '+(next-have).toLocaleString('es-AR')+(nc.gem?' gemas':' monedas')}</small><span class="pr">${cuConfirm?'Confirmar':(nc.gem?'<i class="gemi"></i>':'<i class="coin"></i>')+next.toLocaleString('es-AR')}</span></button>`}`;
   const b=el.querySelector('#cuBtn');if(b)b.addEventListener('click',()=>{
     if(!cuConfirm){cuConfirm=true;clearTimeout(cuTimer);cuTimer=setTimeout(()=>{cuConfirm=false;if(!$('#chars').hidden)renderCharUp();},3500);renderCharUp();return;}
@@ -3003,6 +3007,15 @@ function saveRun(){
     localStorage.setItem(RUN_KEY,JSON.stringify(r));}catch(e){}
 }
 function clearRun(){try{localStorage.removeItem(RUN_KEY);}catch(e){}}
+// Reiniciar todo: progreso nuevo (gana en la nube por savedAt más nuevo), sin partida guardada y sin puntaje en la clasificación. Pide dos toques
+let resetArmT=null;
+$('#resetAll').addEventListener('click',async()=>{const b=$('#resetAll');
+  if(!b.classList.contains('confirm')){b.classList.add('confirm');b.textContent='Tocá de nuevo para borrar todo';clearTimeout(resetArmT);resetArmT=setTimeout(()=>{b.classList.remove('confirm');b.textContent='Reiniciar todo';},4000);return;}
+  clearTimeout(resetArmT);b.classList.remove('confirm');b.textContent='Reiniciar todo';
+  clearRun();try{localStorage.removeItem('cripta-best');}catch(e){}G=null;state='menu';SAVE=normalizeSave(null);pickSel=SAVE.sel;LB.remote=null;persist();
+  let msg='Listo: empezás de cero.';
+  if(AUTH&&FB.apiKey){try{await queueWrite(()=>fbDb('DELETE','scores/'+AUTH.uid,undefined,true));}catch(e){msg+=' No se pudo borrar tu puntaje de la clasificación (¿sin internet?).';}}
+  $('#acctToast').textContent=msg;renderMenu();});
 function loadRun(){try{const r=JSON.parse(localStorage.getItem(RUN_KEY)||'null');return r&&r.v===1&&CHARS[r.char]&&DIFFS[r.diff]?r:null;}catch(e){return null;}}
 function resumeRun(){
   const r=loadRun();if(!r)return;initAudio();newGame(r.char,r.diff);
