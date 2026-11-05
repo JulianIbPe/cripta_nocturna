@@ -416,7 +416,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
   <div class="hudrow">
     <div class="l"><span id="lvl">Nv 1</span><span id="kills">0 bajas</span></div>
     <div class="tcol"><span id="time">00:00</span><span id="rec"></span></div>
-    <div class="r"><span id="hudCoins"><i class="coin"></i><span id="hudCoinN">0</span></span><span id="hudGems" hidden><i class="gemi"></i><span id="hudGemN">0</span></span><span class="spdwrap"><button id="speedBtn" hidden aria-label="Velocidad del juego" aria-haspopup="listbox" aria-expanded="false">×1 ▾</button><div id="speedMenu" role="listbox" aria-label="Velocidad del juego" hidden></div></span><button id="afkBtn" aria-pressed="false" aria-label="Modo AFK: la partida sigue sola y se pausa cuando aparece un jefe">AFK</button><button id="pauseBtn" aria-label="Pausa"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="2" width="3.5" height="12" rx="1"/><rect x="9.5" y="2" width="3.5" height="12" rx="1"/></svg></button></div>
+    <div class="r"><span id="hudCoins"><i class="coin"></i><span id="hudCoinN">0</span></span><span id="hudGems" hidden><i class="gemi"></i><span id="hudGemN">0</span></span><span class="spdwrap"><button id="speedBtn" hidden aria-label="Velocidad del juego" aria-haspopup="listbox" aria-expanded="false">×1 ▾</button><div id="speedMenu" role="listbox" aria-label="Velocidad del juego" hidden></div></span><button id="afkBtn" aria-pressed="false" aria-label="Modo AFK: la partida sigue sola, guarda la experiencia y los cofres hasta que lo desactivás y se pausa cuando aparece un jefe">AFK</button><button id="pauseBtn" aria-label="Pausa"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="2" width="3.5" height="12" rx="1"/><rect x="9.5" y="2" width="3.5" height="12" rx="1"/></svg></button></div>
   </div>
   <div class="hudinv" id="hudInv"><div class="slots" id="slotW"></div><div class="slots" id="slotP"></div></div>
 </div>
@@ -672,7 +672,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
     <p class="cfgnote">Marcados caen de los enemigos; desmarcá los que no quieras que aparezcan.</p>
     <div class="dtitle">Jefes</div>
     <button class="btn ghost" id="bossHoldBtn" aria-pressed="false">Subidas de nivel en jefes: al momento</button>
-    <p class="cfgnote">Activado, mientras haya un jefe vivo la experiencia se guarda (la barra queda llena y dorada) y subís de nivel y elegís las mejoras cuando lo derrotás, sin cortar la pelea. Con AFK se eligen solas igual.</p>
+    <p class="cfgnote">Activado, mientras haya un jefe vivo la experiencia se guarda (la barra queda llena y dorada) y subís de nivel y elegís las mejoras cuando lo derrotás, sin cortar la pelea.</p>
     <div class="dtitle">Gráficos</div>
     <button class="btn ghost" id="lowFxBtn" aria-pressed="false">Efectos reducidos: no</button>
     <p class="cfgnote">Para celulares de gama baja: menos resolución, sin partículas, sin números de daño, sin temblor de pantalla y luces más simples.</p>
@@ -1687,7 +1687,7 @@ $('#abBtn').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagat
 
 /* ---------- Level up ---------- */
 // Con "Subidas de nivel en jefes: después del jefe" la experiencia se junta (la barra queda llena) y los niveles se suben recién cuando el jefe muere
-function gainXp(v){G.xp+=v*G.st.xpMul;if(!isFinite(G.xp))G.xp=0;if(G.xp>=G.need&&!luOk()){if(!G.xpHeld){G.xpHeld=true;if(G.texts.length<60)G.texts.push({x:G.p.x,y:G.p.y-30,txt:'Experiencia guardada hasta vencer al jefe',life:1.6,heal:true});}return;}G.xpHeld=false;while(G.xp>=G.need&&G.need>0){G.xp-=G.need;G.lvl++;G.need=xpNeed(G.lvl);G.pending++;}}
+function gainXp(v){G.xp+=v*G.st.xpMul;if(!isFinite(G.xp))G.xp=0;if(G.xp>=G.need&&!luOk()){if(!G.xpHeld){G.xpHeld=true;if(G.texts.length<60)G.texts.push({x:G.p.x,y:G.p.y-30,txt:G.afk?'Experiencia guardada hasta salir de AFK':'Experiencia guardada hasta vencer al jefe',life:1.6,heal:true});}return;}G.xpHeld=false;while(G.xp>=G.need&&G.need>0){G.xp-=G.need;G.lvl++;G.need=xpNeed(G.lvl);G.pending++;}}
 function buildOptions(exclude){
   let pool=[];
   for(const w of G.weapons)if(w.lvl<wMax())pool.push({k:'w',id:w.id,lvl:w.lvl+1});
@@ -1699,15 +1699,13 @@ function buildOptions(exclude){
   for(let i=pool.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[pool[i],pool[j]]=[pool[j],pool[i]];}
   const out=pool.slice(0,3);for(const o of out)if(!(o.k==='p'&&PDEF[o.id].fixed))o.r=rollRarity();
   return out;}
-// Opción de Configuración (SAVE.bossHold, apagada de entrada): con un jefe vivo las subidas de nivel esperan a que muera. Con AFK no hace falta
+// Las subidas de nivel esperan: en AFK hasta que lo desactivás, y con la opción de Configuración SAVE.bossHold (apagada de entrada) mientras haya un jefe vivo
 const bossAlive=()=>!!G&&G.enemies.some(e=>e.boss&&e.hp>0);
-const luOk=()=>!SAVE.bossHold||!G||G.afk||!bossAlive();
+const luOk=()=>!G||(!G.afk&&(!SAVE.bossHold||!bossAlive()));
 function openLevelUp(){
   const opts=buildOptions();
   // Todo al máximo (o bloqueado): los niveles suben igual, sin pantalla ni mejora
   if(!opts.length){G.pending=0;if(state==='levelup'){state='play';show(null);last=performance.now();}if(G.texts.length<60)G.texts.push({x:G.p.x,y:G.p.y-30,txt:'Nivel '+G.lvl,life:1,heal:true});return;}
-  if(G.afk&&state==='play'){const o=opts.slice().sort((a,b)=>(b.r|0)-(a.r|0))[0];sfx('level');
-    if(G.texts.length<60)G.texts.push({x:G.p.x,y:G.p.y-30,txt:o.k==='w'?WDEF[o.id].name:PDEF[o.id].name,life:1.4,heal:true});pick(o);return;}
   state='levelup';joy.active=false;sfx('level');G.banMode=false;
   G.curOpts=opts;renderLevelUp(true);show('levelup');
 }
@@ -1741,13 +1739,12 @@ function openChest(){
   G.chestQ--;const r=rollRelicRarity(),ids=Object.keys(RELICS).filter(k=>RELICS[k].r===r&&!(RELICS[k].once&&relN(k))),id=ids[(Math.random()*ids.length)|0],R_=RELICS[id];
   G.relics[id]=(G.relics[id]|0)+1;R_.apply();G.chestsOpened=(G.chestsOpened|0)+1;
   const rr=RREL[r],n=G.relics[id];
-  if(G.afk&&state==='play'){sfx('level');banner('Cofre: '+R_.name);return;}
   state='chest';joy.active=false;sfx(r>=2?'boss':'level');
   $('#chestCard').innerHTML=`<div class="card ${rr.cls}"${r?` style="border-color:${rr.c}"`:''}><span class="ic">${svg(R_.ic,R_.col)}</span><span class="nm"><strong>${R_.name}</strong><span class="tag" style="color:${rr.c}">Reliquia ${rr.n.toLowerCase()}${n>1?' · ahora tenés '+n:''}</span></span><span class="ds">${R_.desc()}${n>1?'. Se suma a las que ya tenías':''}</span></div>`;
   $('#chestHint').textContent=G.chestQ>0?'Te queda'+(G.chestQ>1?'n '+G.chestQ+' cofres':' 1 cofre')+' por abrir.':'';
   $('#chestOk').textContent=G.chestQ>0?'Abrir el siguiente':'Seguir';
   show('chest');setTimeout(()=>{try{$('#chestOk').focus({preventScroll:true});}catch(e){}},50);}
-function closeChest(){if(state!=='chest'||!G)return;if(G.chestQ>0){openChest();return;}state='play';show(null);last=performance.now();if(G.pending>0&&luOk())openLevelUp();}
+function closeChest(){if(state!=='chest'||!G)return;if(G.chestQ>0&&!G.afk){openChest();return;}state='play';show(null);last=performance.now();if(G.pending>0&&luOk())openLevelUp();}
 $('#chestOk').addEventListener('click',closeChest);
 function luDone(){G.pending--;if(G.pending>0&&luOk())openLevelUp();else{state='play';show(null);last=performance.now();}}
 $('#luTools').addEventListener('click',e=>{const b=e.target.closest('.lutool');if(!b||b.disabled||state!=='levelup')return;const k=b.dataset.t;
@@ -1982,8 +1979,11 @@ function update(dt){
   spawnUpdate(dt);
   G.cam.x+=(p.x-G.cam.x)*Math.min(1,dt*8);G.cam.y+=(p.y-G.cam.y)*Math.min(1,dt*8);
   if(G.t-lastRunSave>3){lastRunSave=G.t;saveRun();}
-  if(G.pending>0&&luOk())openLevelUp();else if(G.chestQ>0&&state==='play')openChest();
+  if(G.pending>0&&luOk())openLevelUp();else if(G.chestQ>0&&state==='play'&&!G.afk)openChest();
   else if(G.xpHeld&&state==='play'&&luOk())gainXp(0);
+  // AFK: los cofres se guardan sin abrir hasta que lo desactivás
+  if(G.afk&&(G.chestQ|0)>(G.afkChests|0))banner((G.chestQ>1?G.chestQ+' cofres guardados':'Cofre guardado')+' para cuando salgas de AFK');
+  G.afkChests=G.chestQ|0;
   // AFK: apareció un jefe, se pausa para que lo enfrentes vos
   if(G.afkStop&&state==='play'){const n=G.afkStop;G.afkStop=null;pause('Apareció '+n);}
 }
@@ -3079,7 +3079,7 @@ function start(ch){clearRun();initAudio();newGame(ch,SAVE.diff);lastRunSave=0;hu
 function pause(why){if(state!=='play'&&state!=='levelup'&&state!=='chest')return;G.pauseFrom=state==='play'?null:state;if(state==='levelup')G.banMode=false;state='paused';closeSpeedMenu();$('#pauseEyebrow').textContent=typeof why==='string'?why:'Pausa';syncDevUi();saveRun();endReset();if(restartArm){clearTimeout(restartArm);restartArm=null;}$('#restartBtn').textContent='Reiniciar partida';$('#restartBtn').style.borderColor='';joy.active=false;$('#inv').innerHTML=invHtml();$('#statgrid').innerHTML=statsHtml();chaosLogRender();show('pause');$('#pause').scrollTop=0;}
 function resume(){const s=G&&G.pauseFrom;if(G)G.pauseFrom=null;if(s==='levelup'){state='levelup';renderLevelUp(false);show('levelup');}else if(s==='chest'){state='chest';show('chest');}else{state='play';show(null);}last=performance.now();renderAfk();}
 function renderAfk(){const b=$('#afkBtn');if(b&&G)b.setAttribute('aria-pressed',String(!!G.afk));}
-function toggleAfk(){if(!G||(state!=='play'&&state!=='levelup'&&state!=='chest'))return;G.afk=!G.afk;renderAfk();sfx('gem');banner(G.afk?'AFK activado':'AFK desactivado');}
+function toggleAfk(){if(!G||(state!=='play'&&state!=='levelup'&&state!=='chest'))return;G.afk=!G.afk;renderAfk();sfx('gem');banner(G.afk?'AFK activado: la experiencia y los cofres se guardan':'AFK desactivado');}
 function gameOver(){
   state='over';clearRun();joy.active=false;
   const DF=DIFFS[G.diff],timeBonus=Math.floor(G.t/30),dawnBonus=G.dawn?50:0,base=G.coins+timeBonus+dawnBonus,diffBonus=Math.round(base*(DF.coin-1)),earned=base+diffBonus;
