@@ -288,6 +288,9 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 .wallet{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
 .updbar{display:block;width:100%;margin:6px 0;padding:10px 14px;border-radius:12px;border:1px solid var(--ember);background:var(--stone);color:var(--ink);font:inherit;font-size:15px;text-align:left;cursor:pointer}
 .updbar b{color:var(--ember)}
+.updlock{position:fixed;inset:0;z-index:9999;background:rgba(6,4,14,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px 16px;text-align:center;color:var(--ink)}
+.updlock[hidden]{display:none}
+.updlock h2{margin:0;color:var(--ember)}.updlock p{margin:0;max-width:340px}
 .wallet .coinline,.wallet .gemline{font-size:18px}
 #hudGems{display:flex;align-items:center;gap:5px;font-weight:700;color:#ff8be0;font-variant-numeric:tabular-nums;font-size:17px}
 .char.prem{border-color:rgba(255,95,210,.35);background:linear-gradient(180deg,#2a1838,#14112a)}
@@ -470,6 +473,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
       <p><b>Tus armas atacan solas.</b> Juntá las almas que sueltan los enemigos para subir de nivel y elegir mejoras.</p>
       <p><b>Cada personaje tiene una habilidad</b>: tocá el botón de abajo a la derecha cuando esté cargada.</p>
       <p><b>Cada 5 minutos aparece un jefe</b>: la Reina Araña, que pone arañas; El Conde, que embiste; y el Coloso de Lápidas, que golpea el suelo (salí del círculo rojo). Sueltan muchas monedas, 2 gemas, curación y un imán.</p>
+      <p><b>Jefes supremos</b>: en los minutos 20, 30, 40, 50 y 60 aparece además uno más grande que mezcla los ataques de los otros: la Baronesa de Sangre, la Madre de las Telarañas, el Titán del Osario, el Archiliche y el Devorador de Almas.</p>
       <p><b>Los enemigos pueden soltar</b> manzanas (curan), imanes (atraen todo) y bombas (limpian la pantalla).</p>
       <p><b>Cofres</b>: cualquier enemigo puede soltar uno con muy poca chance y al derrotar un jefe siempre se abre uno. Cada cofre trae una reliquia común, rara, épica o legendaria (la suerte mejora la rareza). Se pueden repetir y se suman. Mirá todas en Arsenal → Reliquias.</p>
       <p><b>Cada 90 segundos llega un enjambre</b> y cada 2 minutos una calabaza maldita, que suelta curación, un imán de almas y muchas monedas.</p>
@@ -608,6 +612,11 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
   </div>
 </section>
 
+<div class="updlock" id="updLock" role="alertdialog" aria-modal="true" aria-labelledby="updLockH" hidden>
+  <h2 id="updLockH">Actualización obligatoria</h2>
+  <p>Salió la versión <b id="updLockTag"></b>. Para seguir jugando tenés que instalarla. Tu progreso no se pierde.</p>
+  <button class="btn" id="updLockBtn">Descargar la versión nueva</button>
+</div>
 <section id="chest" class="screen" hidden>
   <div class="panel">
     <div class="eyebrow">Cofre</div>
@@ -1266,6 +1275,15 @@ const ETYPES={
   coloso:{hp:8000,pts:6000,spd:30,dmg:50,r:34,xp:300,kb:0,col:'#9a9aa8',elite:true,boss:true,name:'Coloso de Lápidas'},
 };
 const BOSS_ORDER=['reina','conde','coloso'];
+// Jefes supremos: uno por hito (minuto 20 a 60), aparte de los de cada 5 min. `base` = de qué jefe toman el dibujo (teñido con `hue`); `acts` = ataques que alternan
+Object.assign(ETYPES,{
+  baronesa:{hp:15000,pts:12000,spd:60,dmg:45,r:28,xp:400,kb:0,col:'#ff3d6e',elite:true,boss:true,name:'La Baronesa de Sangre',base:'conde',hue:320,acts:['conde','reina']},
+  tejedora:{hp:25000,pts:18000,spd:50,dmg:55,r:34,xp:550,kb:0,col:'#7dffb0',elite:true,boss:true,name:'Madre de las Telarañas',base:'reina',hue:100,acts:['reina','coloso']},
+  titan:{hp:40000,pts:26000,spd:34,dmg:70,r:42,xp:700,kb:0,col:'#7ad8ff',elite:true,boss:true,name:'Titán del Osario',base:'coloso',hue:180,acts:['coloso','conde']},
+  archilich:{hp:60000,pts:36000,spd:56,dmg:80,r:34,xp:900,kb:0,col:'#b38cff',elite:true,boss:true,name:'El Archiliche',base:'conde',hue:220,acts:['conde','coloso','reina']},
+  devorador:{hp:90000,pts:50000,spd:40,dmg:100,r:50,xp:1200,kb:0,col:'#ff4dd8',elite:true,boss:true,name:'El Devorador de Almas',base:'coloso',hue:270,acts:['coloso','reina','conde']},
+});
+const MILE_BOSSES=[[20,'baronesa'],[30,'tejedora'],[40,'titan'],[50,'archilich'],[60,'devorador']];
 // Escalado progresivo de los enemigos (estilo Megabonk). Las curvas pasan a crecer de forma exponencial
 // para que ninguna build aguante para siempre: la duración de la partida la marca qué tan bien se combinan
 // las armas y los objetos. Vida: +12% por minuto desde el 5. Daño: +8% por minuto desde el 8.
@@ -1375,6 +1393,8 @@ function spawnUpdate(dt){
   while(G.spawnAcc>=1){G.spawnAcc--;if(G.enemies.length<target)spawnEnemy(pickType(t));}
   if(t>=G.nextBoss){G.nextBoss+=300;const k=BOSS_ORDER[G.bosses%BOSS_ORDER.length];G.bossCycle=Math.floor(G.bosses/BOSS_ORDER.length);G.bosses++;
     spawnEnemy(k);banner('¡Jefe: '+ETYPES[k].name+'!');sfx('boss');G.shake=.3;if(G.afk)G.afkStop=ETYPES[k].name;}
+  const mb=MILE_BOSSES[G.mBoss|0];
+  if(mb&&t>=mb[0]*60){G.mBoss=(G.mBoss|0)+1;spawnEnemy(mb[1]);banner('¡Jefe supremo: '+ETYPES[mb[1]].name+'!');sfx('boss');G.shake=.5;if(G.afk)G.afkStop=ETYPES[mb[1]].name;}
   if(t>=G.nextElite){G.nextElite+=120;G.elites++;spawnEnemy('pumpkin');banner('Se acerca una calabaza maldita');sfx('boss');}
   if(t>=G.nextSwarm){G.nextSwarm+=90;G.swarms++;const n=Math.max(0,Math.min(48,20+G.swarms*7,MAX_EN-G.enemies.length)),R=spawnRadius();
     for(let i=0;i<n;i++){const a=i/n*TAU;const e=spawnEnemy('bat',G.p.x+Math.cos(a)*R,G.p.y+Math.sin(a)*R);e.spd*=1.15;}
@@ -1738,6 +1758,7 @@ const endJoy=e=>{if(e.pointerId===joy.id)joy.active=false;};
 cv.addEventListener('pointerup',endJoy);cv.addEventListener('pointercancel',endJoy);
 const visBtn=sel=>{const b=document.querySelector(sel);return b&&b.offsetParent&&!b.disabled?b:null;};
 window.addEventListener('keydown',e=>{
+  if(updTag){if(e.key!=='Enter'&&e.key!==' ')e.preventDefault();return;}
   const k=e.key.toLowerCase(),onBtn=!!(e.target.closest&&e.target.closest('button'));
   if(/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)&&k!=='escape')return;
   keys.add(k);
@@ -1758,6 +1779,7 @@ window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
 /* ---- Botón atrás del celular (APK: MainActivity llama a criptaBack; navegador: entrada extra en el historial) ---- */
 // Hace lo mismo que el botón Volver de la pantalla abierta. Devuelve false solo en el menú principal: ahí atrás sale de la app
 function goBack(){
+  if(updTag)return false;
   if(state==='play'){pause();return true;}
   if(!$('#mod').hidden){closeMod();return true;}
   if(!$('#config').hidden){closeCfg();return true;}
@@ -1810,10 +1832,12 @@ function update(dt){
     near(e.x,e.y,e.r+22,o=>{if(o===e)return;const ox=e.x-o.x,oy=e.y-o.y,dd=ox*ox+oy*oy,rr=e.r+o.r;
       if(dd<rr*rr&&dd>.01){const q=Math.sqrt(dd),f=(rr-q)/rr;sx+=ox/q*f;sy+=oy/q*f;}});
     let mv=e.type==='ghost'?1+Math.sin(e.ph*.4)*.25:e.type==='arana'?1+Math.sin(e.ph*.9)*.35:1;
-    if(e.boss){e.cd-=dt;
-      if(e.type==='reina'&&e.cd<=0){e.cd=3.5;if(G.enemies.length<450)for(let i=0;i<3;i++){const a=Math.random()*TAU;spawnEnemy('arana',e.x+Math.cos(a)*30,e.y+Math.sin(a)*30);}}
-      else if(e.type==='conde'){if(e.cd<=0){e.cd=4;e.dashT=.7;sfx('zap');}if(e.dashT>0){e.dashT-=dt;mv*=3.2;if(G.parts.length<PCAP())G.parts.push({x:e.x,y:e.y,vx:0,vy:0,life:.35,max:.35,col:'#c4123a',sz:5});}}
-      else if(e.type==='coloso'&&e.cd<=0){e.cd=5;G.slams.push({x:e.x,y:e.y,R:115,t:0,dur:1,dmg:e.dmg*1.2});}}if(st.slowAura&&d<95*st.area)mv*=.65;if(e.slowT>0){e.slowT-=dt;mv*=.4;}
+    if(e.boss){e.cd-=dt;const acts=ETYPES[e.type].acts||[e.type],q=acts.length>1?.7:1;
+      if(e.cd<=0){const a=acts[e.actI=((e.actI|0)+1)%acts.length];
+        if(a==='reina'){e.cd=3.5*q;if(G.enemies.length<450)for(let i=0;i<3;i++){const a=Math.random()*TAU;spawnEnemy('arana',e.x+Math.cos(a)*30,e.y+Math.sin(a)*30);}}
+        else if(a==='conde'){e.cd=4*q;e.dashT=.7;sfx('zap');}
+        else if(a==='coloso'){e.cd=5*q;G.slams.push({x:e.x,y:e.y,R:115*(e.r/34),t:0,dur:1,dmg:e.dmg*1.2});}}
+      if(e.dashT>0){e.dashT-=dt;mv*=3.2;if(G.parts.length<PCAP())G.parts.push({x:e.x,y:e.y,vx:0,vy:0,life:.35,max:.35,col:ETYPES[e.type].col,sz:5});}}if(st.slowAura&&d<95*st.area)mv*=.65;if(e.slowT>0){e.slowT-=dt;mv*=.4;}
     e.x+=(dx/d*e.spd*mv+sx*70+e.kx)*dt;e.y+=(dy/d*e.spd*mv+sy*70+e.ky)*dt;
     const k=Math.min(1,dt*9);e.kx-=e.kx*k;e.ky-=e.ky*k;
     e.flash-=dt;e.oh-=dt;e.ph+=dt*(e.type==='bat'?16:5);
@@ -1929,7 +1953,9 @@ function update(dt){
 }
 
 /* ---------- Draw ---------- */
-function drawEnemy(e){
+function drawEnemy(e){const d=ETYPES[e.type];if(!d||!d.base)return drawEnemyBase(e);
+  ctx.save();if(!lowFx)ctx.filter='hue-rotate('+d.hue+'deg) saturate(1.3)';drawEnemyBase(Object.assign({},e,{type:d.base}));ctx.restore();}
+function drawEnemyBase(e){
   const x=e.x,y=e.y,r=e.r,fl=e.flash>0;
   ctx.fillStyle='rgba(0,0,0,0.3)';ctx.beginPath();ctx.ellipse(x,y+r*.9,r*.8,r*.3,0,0,TAU);ctx.fill();
   if(e.type==='bat'){
@@ -2537,7 +2563,9 @@ async function checkUpdate(){
   if(APP_VER==='dev'||!(window.CriptaApp||/Electron/.test(navigator.userAgent))||updTag)return;
   try{const r=await fetch('https://api.github.com/repos/JulianIbPe/cripta_nocturna/releases/latest');if(!r.ok)return;const j=await r.json();
     if(!j.tag_name||cmpVer(j.tag_name,APP_VER)<=0)return;updTag=j.tag_name;
-    for(const el of document.querySelectorAll('.updbar')){el.querySelector('b').textContent=updTag;el.hidden=false;el.onclick=()=>openExt(RELEASES);}}catch(e){}}
+    for(const el of document.querySelectorAll('.updbar')){el.querySelector('b').textContent=updTag;el.hidden=false;el.onclick=()=>openExt(RELEASES);}
+    // Obligatoria: pausa (y guarda) la partida y tapa todo hasta que instalen la versión nueva
+    pause('Actualización obligatoria');$('#updLockTag').textContent=updTag;$('#updLock').hidden=false;$('#updLockBtn').onclick=()=>openExt(RELEASES);setTimeout(()=>{try{$('#updLockBtn').focus();}catch(e){}},50);}catch(e){}}
 // Si al abrir no había internet o GitHub no respondió, se vuelve a probar
 setInterval(checkUpdate,30*60*1000);window.addEventListener('online',checkUpdate);
 function scheduleCloud(){if(!cloudRef()||cloudState.status==='denied')return;clearTimeout(cloudTimer);cloudTimer=setTimeout(pushCloud,3000);}
@@ -2967,7 +2995,7 @@ function saveRun(){
   if(!G||state==='over'||state==='menu')return;
   try{const r={v:1,char:G.char,diff:G.diff,t:G.t,kills:G.kills,lvl:G.lvl,xp:G.xp,need:G.need,pending:G.pending,score:G.score,coins:G.coins,crys:G.crys,dawn:G.dawn,
     p:{x:G.p.x,y:G.p.y,hp:G.p.hp,maxHp:G.p.maxHp,fx:G.p.fx,fy:G.p.fy,shield:G.p.shield|0,shT:G.p.shT||0},st:G.st,weapons:G.weapons.map(w=>({id:w.id,lvl:w.lvl})),passives:G.passives,wMult:G.wMult,wLv:G.wLv,
-    banned:[...G.banned],charges:G.charges,elites:G.elites,nextBoss:G.nextBoss,bosses:G.bosses,bossCycle:G.bossCycle,bossesKilled:G.bossesKilled,killsBy:G.killsBy,bombsUsed:G.bombsUsed,nextElite:G.nextElite,nextSwarm:G.nextSwarm,swarms:G.swarms,warned:G.warned,elitesKilled:G.elitesKilled,
+    banned:[...G.banned],charges:G.charges,elites:G.elites,nextBoss:G.nextBoss,bosses:G.bosses,bossCycle:G.bossCycle,mBoss:G.mBoss|0,bossesKilled:G.bossesKilled,killsBy:G.killsBy,bombsUsed:G.bombsUsed,nextElite:G.nextElite,nextSwarm:G.nextSwarm,swarms:G.swarms,warned:G.warned,elitesKilled:G.elitesKilled,
     dmgBy:G.dmgBy,chaosLog:G.chaosLog,afk:!!G.afk,relics:G.relics,chestQ:G.chestQ|0,chestsOpened:G.chestsOpened|0,mod:!!G.mod,god:!!G.god,infHp:!!G.infHp,maxDmg:!!G.maxDmg,noCd:!!G.noCd,killN:G.killN,lastMult:G.lastMult,abcd:G.ab.cd,abMul:G.abMul,
     enemies:G.enemies.filter(e=>!e.dead).slice(0,400).map(e=>[e.type,Math.round(e.x),Math.round(e.y),Math.round(e.hp*10)/10,Math.round(e.max*10)/10,Math.round(e.spd),Math.round(e.dmg*10)/10]),
     gems:G.gems.slice(0,300).map(g=>[Math.round(g.x),Math.round(g.y),g.v]),coinsArr:G.coinsArr.map(c=>[Math.round(c.x),Math.round(c.y)]),
@@ -2979,7 +3007,7 @@ function loadRun(){try{const r=JSON.parse(localStorage.getItem(RUN_KEY)||'null')
 function resumeRun(){
   const r=loadRun();if(!r)return;initAudio();newGame(r.char,r.diff);
   Object.assign(G,{t:r.t,kills:r.kills,lvl:r.lvl,xp:r.xp,need:r.need,pending:r.pending|0,score:r.score,coins:r.coins,crys:r.crys|0,dawn:!!r.dawn,elites:r.elites|0,
-    nextBoss:r.nextBoss||Math.max(300,Math.ceil((r.t+1)/300)*300),bosses:r.bosses|0,bossCycle:r.bossCycle|0,bossesKilled:r.bossesKilled|0,killsBy:r.killsBy||{},bombsUsed:r.bombsUsed|0,nextElite:r.nextElite,nextSwarm:r.nextSwarm,swarms:r.swarms|0,warned:!!r.warned,elitesKilled:r.elitesKilled|0,dmgBy:r.dmgBy||{},killN:r.killN|0,lastMult:r.lastMult,
+    nextBoss:r.nextBoss||Math.max(300,Math.ceil((r.t+1)/300)*300),bosses:r.bosses|0,bossCycle:r.bossCycle|0,mBoss:r.mBoss!==undefined?r.mBoss|0:MILE_BOSSES.filter(m=>m[0]*60<=r.t).length,bossesKilled:r.bossesKilled|0,killsBy:r.killsBy||{},bombsUsed:r.bombsUsed|0,nextElite:r.nextElite,nextSwarm:r.nextSwarm,swarms:r.swarms|0,warned:!!r.warned,elitesKilled:r.elitesKilled|0,dmgBy:r.dmgBy||{},killN:r.killN|0,lastMult:r.lastMult,
     wMult:r.wMult||{},wLv:r.wLv||{},passives:r.passives||{},charges:r.charges||G.charges,abMul:r.abMul||G.abMul});
   Object.assign(G.p,r.p);Object.assign(G.st,r.st);G.ab.cd=r.abcd||0;G.banned=new Set(r.banned||[]);
   G.weapons=(r.weapons||[]).filter(w=>WDEF[w.id]).map(w=>({id:w.id,lvl:w.lvl,timer:.3,ang:0}));
