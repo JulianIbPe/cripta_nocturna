@@ -481,7 +481,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
       <p><b>Jefes supremos</b>: en los minutos 20, 30, 40, 50 y 60 aparece además uno más grande que mezcla los ataques de los otros: la Baronesa de Sangre, la Madre de las Telarañas, el Titán del Osario, el Archiliche y el Devorador de Almas.</p>
       <p><b>Los enemigos pueden soltar</b> manzanas (curan), imanes (atraen todo) y bombas (limpian la pantalla).</p>
       <p><b>Cofres</b>: cualquier enemigo puede soltar uno con muy poca chance y al derrotar un jefe siempre se abre uno. Cada cofre trae una reliquia común, rara, épica o legendaria (la suerte mejora la rareza). Se pueden repetir y se suman. Mirá todas en Arsenal → Reliquias.</p>
-      <p><b>Cada 90 segundos llega un enjambre</b> y cada 2 minutos una calabaza maldita, que suelta curación, un imán de almas y muchas monedas.</p>
+      <p><b>Cada 90 segundos llega un enjambre</b> y cada 2 minutos una calabaza maldita, que suelta curación, un imán de almas, un cofre con una reliquia y muchas monedas.</p>
       <p><b>Sumás puntos matando enemigos y jefes.</b> Cada minuto que sobrevivís sube el multiplicador ×0,1 (×2 al amanecer); después del amanecer sube ×0,05 por minuto, hasta ×3. Medio da ×1,5 y Difícil ×2. La clasificación se ordena por puntaje.</p>
       <div class="difftbl" id="diffTbl2"></div>
       <p><b>Juntá monedas</b> para desbloquear personajes nuevos. En Medio y Difícil ganás más.</p>
@@ -1173,8 +1173,8 @@ const BUFFS={
     desc:'Cerrás la subida de nivel sin elegir nada. +1 uso por partida en cada nivel.'},
   sabiduria:{name:'Sabiduría antigua',short:'Exp',icon:'pergamino',coin:[120,240,400,600,850],gem:[13,24],
     desc:'+5% de experiencia en todas tus partidas por cada nivel.'},
-  velocidad:{name:'Reloj del tiempo',short:'Velocidad',icon:'reloj',gemOnly:[75,250],
-    desc:'Acelera el juego. Nivel 1 desbloquea velocidad ×2 y nivel 2 desbloquea ×5. La cambiás con el botón ×1 durante la partida.'},
+  velocidad:{name:'Reloj del tiempo',short:'Velocidad',icon:'reloj',gemOnly:[75,250,500,900],
+    desc:'Acelera el juego. Nivel 1 desbloquea velocidad ×2, nivel 2 hasta ×5, nivel 3 hasta ×7 y nivel 4 hasta ×10. La cambiás con el botón ×1 durante la partida o en Configuración.'},
   vitalidad:{name:'Sangre de roble',short:'Vida',icon:'corazon',coin:[150,300,500,750,1100],gem:[15,28],
     desc:'+10 de vida máxima al empezar cada partida por cada nivel.'},
   fuerza:{name:'Filo bendito',short:'Daño',icon:'grimorio',coin:[200,400,650,950,1400],gem:[18,32],
@@ -1461,7 +1461,7 @@ function hurt(e,base,kx,ky,src){
     else if(Math.random()<.0015*(DIFFS[G.diff].gem||DIFFS[G.diff].coin)*(1+.05*(SAVE.buffs.gemspawn|0)))G.crysArr.push({x:e.x-4,y:e.y-4,sp:0,fly:false});
     if(st.killHeal){G.killN++;if(G.killN%25===0){G.p.hp=Math.min(G.p.maxHp,G.p.hp+st.killHeal);G.texts.push({x:G.p.x,y:G.p.y-20,txt:'+'+st.killHeal,life:.8,heal:true});}}
     // Los jefes siempre dan un cofre y se abre solo (no hace falta ir a buscarlo); cualquier otro enemigo lo suelta con muy poca chance (no depende de la suerte)
-    if(e.boss)G.chestQ=(G.chestQ|0)+1;else if(Math.random()<CHEST_CHANCE/(1+G.t/300))G.items.push({x:e.x,y:e.y,kind:'chest'});
+    if(e.boss)G.chestQ=(G.chestQ|0)+1;else if(e.type==='pumpkin')G.items.push({x:e.x-18,y:e.y+10,kind:'chest'});else if(Math.random()<CHEST_CHANCE/(1+G.t/300))G.items.push({x:e.x,y:e.y,kind:'chest'});
     if(e.boss){G.bossesKilled++;G.items.push({x:e.x+18,y:e.y,kind:'heal'},{x:e.x-18,y:e.y,kind:'vacuum'});G.shake=.5;banner(ETYPES[e.type].name+' derrotado');}
     else if(e.elite){G.elitesKilled++;if(Math.random()<.5)G.items.push({x:e.x+14,y:e.y,kind:'heal'});G.items.push({x:e.x-14,y:e.y,kind:'vacuum'});G.shake=.35;}
     else{const r=Math.random();
@@ -2300,14 +2300,15 @@ function renderHudInv(){
   $('#slotW').innerHTML=row('Armas',G.weapons.map(w=>({id:w.id,col:WDEF[w.id].col,lv:w.lvl,max:wMax(),name:WDEF[w.id].name})));
   $('#slotP').innerHTML=row('Objetos',Object.keys(G.passives).map(id=>({id,col:PDEF[id].col,lv:G.passives[id],max:pMax(id),name:PDEF[id].name})));
 }
-// Reloj del tiempo: nivel 1 deja elegir hasta ×2, nivel 2 hasta ×5, con todos los pasos intermedios
-const speedOpts=()=>{const lv=Math.min(2,SAVE.buffs.velocidad|0),mx=[1,2,5][lv],o=[];for(let i=1;i<=mx;i++)o.push(i);return o;};
+// Reloj del tiempo: nivel 1 deja elegir hasta ×2, nivel 2 hasta ×5, nivel 3 hasta ×7 y nivel 4 hasta ×10, con todos los pasos intermedios
+const SPEED_MAX=[1,2,5,7,10];
+const speedOpts=()=>{const lv=Math.min(SPEED_MAX.length-1,SAVE.buffs.velocidad|0),mx=SPEED_MAX[lv],o=[];for(let i=1;i<=mx;i++)o.push(i);return o;};
 function renderSpeed(){const b=$('#speedBtn'),o=speedOpts();b.hidden=o.length<2;if(b.hidden)closeSpeedMenu();if(!G)return;if(!o.includes(G.speed))G.speed=1;b.textContent='×'+G.speed+' ▾';b.classList.toggle('fast',G.speed>1);}
 function setSpeed(v){if(G)G.speed=v;SAVE.speed=v;persist();renderSpeed();renderSpeedCfg();sfx('gem');}
 // Configuración: la misma velocidad que el botón del HUD, también sin partida (la toma la próxima)
 function renderSpeedCfg(){const el=$('#speedSeg');if(!el)return;const o=speedOpts(),cur=G?G.speed:(o.includes(SAVE.speed)?SAVE.speed:1);
-  el.style.gridTemplateColumns='repeat('+o.length+',1fr)';el.innerHTML=o.map(v=>`<button role="radio" data-sp="${v}" aria-checked="${v===cur}">×${v}</button>`).join('');
-  $('#speedNote').textContent=o.length<2?'Comprá el Reloj del tiempo en la tienda para jugar a ×2 o hasta ×5.':'También se cambia en partida con el botón de arriba a la derecha'+(o.length<5?' o con la tecla V. Con el Reloj del tiempo nivel 2 llega a ×5.':' o con la tecla V.');}
+  el.style.gridTemplateColumns='repeat('+Math.min(5,o.length)+',1fr)';el.innerHTML=o.map(v=>`<button role="radio" data-sp="${v}" aria-checked="${v===cur}">×${v}</button>`).join('');
+  $('#speedNote').textContent=o.length<2?'Comprá el Reloj del tiempo en la tienda para jugar a ×2 o hasta ×5.':'También se cambia en partida con el botón de arriba a la derecha'+(o.length<10?' o con la tecla V. Mejorando el Reloj del tiempo en la tienda llega hasta ×10.':' o con la tecla V.');}
 $('#speedSeg').addEventListener('click',e=>{const b=e.target.closest('[data-sp]');if(b)setSpeed(+b.dataset.sp);});
 function renderBossHold(){const b=$('#bossHoldBtn');b.textContent='Subidas de nivel en jefes: '+(SAVE.bossHold?'después del jefe':'al momento');b.setAttribute('aria-pressed',String(!!SAVE.bossHold));}
 $('#bossHoldBtn').addEventListener('click',()=>{SAVE.bossHold=!SAVE.bossHold;persist();renderBossHold();sfx('gem');});
