@@ -54,6 +54,15 @@ button:focus-visible{outline:2px solid var(--ember);outline-offset:3px}
 .hudrow .r{display:flex;justify-content:flex-end}
 #pauseBtn{pointer-events:auto;width:42px;height:42px;border-radius:50%;border:1px solid rgba(236,230,255,.25);background:rgba(12,10,24,.7);display:grid;place-items:center}
 #pauseBtn svg{width:16px;height:16px}
+/* Avisos del Imán de reliquias: una línea por reliquia, se van solos */
+#relNotes{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 168px);transform:translateX(-50%);z-index:3;display:grid;gap:6px;width:min(340px,calc(100% - 32px));pointer-events:none}
+.relnote{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;border:1px solid;background:rgba(12,10,24,.88);box-shadow:0 6px 18px rgba(0,0,0,.45);animation:relnote 3.6s ease-out forwards}
+.relnote svg{width:26px;height:26px;flex:none}
+.relnote span{display:grid;line-height:1.15;min-width:0}
+.relnote b{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.relnote em{font-style:normal;font-size:13px}
+@keyframes relnote{0%{opacity:0;transform:translateY(-6px)}8%,80%{opacity:1;transform:none}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.relnote{animation:none}}
 /* En la subida de nivel y el cofre el HUD queda arriba de la pantalla: pausa y velocidad siguen andando */
 #hud.top{z-index:6}
 #levelup,#chest{padding-top:calc(env(safe-area-inset-top,0px) + 72px)}
@@ -411,6 +420,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
 
 <canvas id="c" aria-label="Campo de juego"></canvas>
 
+<div id="relNotes" aria-live="polite"></div>
 <div id="hud" hidden>
   <div class="xpbar"><i id="xpfill"></i></div>
   <div class="hudrow">
@@ -482,7 +492,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
       <p><b>Cada 5 minutos aparece un jefe</b>: la Reina Araña, que pone arañas; El Conde, que embiste; y el Coloso de Lápidas, que golpea el suelo (salí del círculo rojo). Sueltan muchas monedas, 2 gemas, curación y un imán.</p>
       <p><b>Jefes supremos</b>: en los minutos 20, 30, 40, 50 y 60 aparece además uno más grande que mezcla los ataques de los otros: la Baronesa de Sangre, la Madre de las Telarañas, el Titán del Osario, el Archiliche y el Devorador de Almas.</p>
       <p><b>Los enemigos pueden soltar</b> manzanas (curan), imanes (atraen todo) y bombas (limpian la pantalla).</p>
-      <p><b>Cofres</b>: cualquier enemigo puede soltar uno con muy poca chance y al derrotar un jefe siempre se abre uno. Cada cofre trae una reliquia común, rara, épica o legendaria (la suerte mejora la rareza). Se pueden repetir y se suman. Mirá todas en Arsenal → Reliquias.</p>
+      <p><b>Cofres</b>: cualquier enemigo puede soltar uno con muy poca chance y al derrotar un jefe siempre se abre uno. Cada cofre trae una reliquia común, rara, épica, legendaria o mítica (la suerte mejora la rareza). Se pueden repetir y se suman. Mirá todas en Arsenal → Reliquias.</p>
       <p><b>Cada 90 segundos llega un enjambre</b> y cada 2 minutos una calabaza maldita, que suelta curación, un imán de almas, un cofre con una reliquia y muchas monedas.</p>
       <p><b>Sumás puntos matando enemigos y jefes.</b> Cada minuto que sobrevivís sube el multiplicador ×0,1 (×2 al amanecer); después del amanecer sube ×0,05 por minuto, hasta ×3. Medio da ×1,5 y Difícil ×2. La clasificación se ordena por puntaje.</p>
       <div class="difftbl" id="diffTbl2"></div>
@@ -960,7 +970,7 @@ const CHAOS_EXTRA={
 /* ---- Reliquias: salen de los cofres. Se pueden repetir y cada copia vuelve a sumar su efecto ---- */
 // Cofres: muy poca chance en cualquier enemigo (la suerte no la cambia) y siempre en los jefes. La suerte sí mejora la rareza
 const CHEST_CHANCE=.0003; // se divide por 1+minutos/5: a los 10 min es un tercio, a los 20 un quinto
-const RREL=[{n:'Común',c:'#b9b2d6',w:60,cls:''},{n:'Rara',c:'#5aa8ff',w:28,cls:'r2'},{n:'Épica',c:'#c06bff',w:10,cls:'r3'},{n:'Legendaria',c:'#ffb32b',w:2,cls:'r4'}];
+const RREL=[{n:'Común',c:'#b9b2d6',w:60,cls:''},{n:'Rara',c:'#5aa8ff',w:28,cls:'r2'},{n:'Épica',c:'#c06bff',w:10,cls:'r3'},{n:'Legendaria',c:'#ffb32b',w:2,cls:'r4'},{n:'Mítica',c:'#ff4dd8',w:.3,cls:'r5'}];
 const RFX={
   dmg:[v=>'+'+pc(v)+' de daño',v=>{G.st.dmg+=v;}],
   area:[v=>'+'+pc(v)+' de área',v=>{G.st.area+=v;}],
@@ -986,10 +996,11 @@ const RFX={
   ab:[v=>'-'+pc(v)+' de recarga de la habilidad',v=>{G.abMul=Math.max(.25,(G.abMul||1)*(1-v));}],
   objLv:[v=>'Todos tus objetos pueden subir '+v+' niveles más que el máximo (el Espejo embrujado, 1 más)',()=>{}],
   armLv:[v=>'Todas tus armas pueden subir '+v+' niveles más que el máximo',()=>{}],
+  chestMag:[()=>'Atrae todos los cofres del mapa y sus reliquias se abren solas, con un aviso en vez de la pantalla del cofre. Sale una sola por partida',()=>{}],
   pull:[v=>'Cada '+v+' s atrae todas las almas, monedas y gemas del mapa. Sale una sola por partida',()=>{if(G)G.pullT=0;}],
 };
 const RELICS={};
-[ // id, nombre, rareza (0 común, 1 rara, 2 épica, 3 legendaria), ícono, color, efectos
+[ // id, nombre, rareza (0 común, 1 rara, 2 épica, 3 legendaria, 4 mítica), ícono, color, efectos
   ['diente','Diente de lobo',0,'colmillo','#e6dcc4',{dmg:.04}],
   ['ceniza','Bolsita de ceniza',0,'niebla','#a79fc4',{area:.05}],
   ['cuerda','Cuerda de ahorcado',0,'latigo','#c8a27a',{spd:.05}],
@@ -1041,6 +1052,7 @@ const RELICS={};
   ['eternidad','Reloj de la eternidad',3,'reloj','#ffe27a',{atk:.2,ab:.2}],
   ['estrella','Estrella caída',3,'juicio','#fff6d6',{amount:1,shield:1,luck:.25}],
   ['imanabismo','Imán del abismo',3,'iman','#5ee6c4',{pull:30},true],
+  ['imanreliq','Imán de reliquias',4,'iman','#ff4dd8',{chestMag:1},true],
 ].forEach(([id,name,r,ic,col,fx,once])=>{RELICS[id]={name,r,ic,col,fx,once:!!once,
   desc:()=>Object.entries(fx).map(([k,v])=>RFX[k][0](v)).join(' · '),
   apply(){for(const k in fx)RFX[k][1](fx[k]);}};});
@@ -1735,9 +1747,20 @@ function banish(idx){
   if(nw)G.curOpts[idx]=nw;else G.curOpts.splice(idx,1);
   sfx('hurt');if(!G.curOpts.length){G.pending=1;luDone();return;}renderLevelUp(false);
 }
+// Tira y aplica una reliquia. Si en esa rareza no queda ninguna (las únicas ya salieron), baja a la siguiente
+function rollRelic(){let r=rollRelicRarity(),ids=[];
+  for(;r>=0;r--){ids=Object.keys(RELICS).filter(k=>RELICS[k].r===r&&!(RELICS[k].once&&relN(k)));if(ids.length)break;}
+  const id=ids[(Math.random()*ids.length)|0];G.chestQ--;G.relics[id]=(G.relics[id]|0)+1;RELICS[id].apply();G.chestsOpened=(G.chestsOpened|0)+1;return{id,r};}
+// Imán de reliquias (mítica): los cofres se abren todos juntos sin pantalla; un aviso dice qué salió
+function openChestsQuiet(){const got=[];let top=0;while(G.chestQ>0){const o=rollRelic();got.push(o.id);top=Math.max(top,o.r);}
+  if(!got.length)return;sfx(top>=2?'boss':'level');
+  const box=$('#relNotes'),cnt={};for(const id of got)cnt[id]=(cnt[id]|0)+1;
+  for(const id in cnt){const R_=RELICS[id],rr=RREL[R_.r],el=document.createElement('div');el.className='relnote';el.style.borderColor=rr.c;
+    el.innerHTML=`${svg(R_.ic,R_.col)}<span><b>${R_.name}${cnt[id]>1?' ×'+cnt[id]:''}</b><em style="color:${rr.c}">Reliquia ${rr.n.toLowerCase()} · ahora tenés ${G.relics[id]}</em></span>`;
+    box.appendChild(el);while(box.children.length>4)box.firstChild.remove();setTimeout(()=>el.remove(),3600);}}
 function openChest(){
-  G.chestQ--;const r=rollRelicRarity(),ids=Object.keys(RELICS).filter(k=>RELICS[k].r===r&&!(RELICS[k].once&&relN(k))),id=ids[(Math.random()*ids.length)|0],R_=RELICS[id];
-  G.relics[id]=(G.relics[id]|0)+1;R_.apply();G.chestsOpened=(G.chestsOpened|0)+1;
+  if(relN('imanreliq')){openChestsQuiet();if(state==='chest'){state='play';show(null);last=performance.now();}return;}
+  const {id,r}=rollRelic(),R_=RELICS[id];
   const rr=RREL[r],n=G.relics[id];
   state='chest';joy.active=false;sfx(r>=2?'boss':'level');
   $('#chestCard').innerHTML=`<div class="card ${rr.cls}"${r?` style="border-color:${rr.c}"`:''}><span class="ic">${svg(R_.ic,R_.col)}</span><span class="nm"><strong>${R_.name}</strong><span class="tag" style="color:${rr.c}">Reliquia ${rr.n.toLowerCase()}${n>1?' · ahora tenés '+n:''}</span></span><span class="ds">${R_.desc()}${n>1?'. Se suma a las que ya tenías':''}</span></div>`;
@@ -1945,6 +1968,8 @@ function update(dt){
     if(c.fly){c.sp=Math.min(600,c.sp+900*dt);c.x+=dx/d*c.sp*dt;c.y+=dy/d*c.sp*dt;
       if(d<p.r+6){c.dead=true;G.crys++;sfx('heal');G.texts.push({x:p.x,y:p.y-24,txt:'+1 gema',life:1.1,gem:true});}}
   }
+  // Imán de reliquias: los cofres del mapa vuelan hacia vos
+  if(relN('imanreliq'))for(const it of G.items)if(it.kind==='chest'){const dx=p.x-it.x,dy=p.y-it.y,d=Math.hypot(dx,dy)||1,v=Math.min(d,900*dt);it.x+=dx/d*v;it.y+=dy/d*v;}
   for(const it of G.items){const d=Math.hypot(p.x-it.x,p.y-it.y);
     if(d<p.r+12){it.dead=true;
       if(it.kind==='heal'){p.hp=Math.min(p.maxHp,p.hp+30);sfx('heal');G.texts.push({x:p.x,y:p.y-20,txt:'+30',life:.9,heal:true});}
@@ -2892,7 +2917,7 @@ function renderMenu(){
 }
 function cycle(d){initAudio();let i=CH_IDS.indexOf(pickSel);pickSel=CH_IDS[(i+d+CH_IDS.length)%CH_IDS.length];
   if(SAVE.unlocked.includes(pickSel)){SAVE.sel=pickSel;persist();}renderMenu();sfx('gem');}
-function goMenu(){closeBoard();G=null;state='menu';joy.active=false;renderMenu();show('menu');}
+function goMenu(){closeBoard();G=null;$('#relNotes').innerHTML='';state='menu';joy.active=false;renderMenu();show('menu');}
 $('#heroPrev').addEventListener('click',()=>cycle(-1));
 $('#heroNext').addEventListener('click',()=>cycle(1));
 const heroCv=$('#heroCv'),hctx=heroCv.getContext('2d');let swipeX=null;
@@ -2921,7 +2946,7 @@ const LIST_OPTS={
      s:[['def','Orden del juego'],['name','Nombre (A-Z)'],['dmg','Más daño'],['dmg5','Más daño a nivel 5'],['cd','Recarga más rápida']]},
   p:{f:[['all','Todos'],['atk','Ataque'],['def','Defensa'],['util','Utilidad']],
      s:[['def','Orden del juego'],['name','Nombre (A-Z)'],['max','Nivel máximo']]},
-  r:{f:[['all','Todas'],['3','Legendarias'],['2','Épicas'],['1','Raras'],['0','Comunes']],
+  r:{f:[['all','Todas'],['4','Míticas'],['3','Legendarias'],['2','Épicas'],['1','Raras'],['0','Comunes']],
      s:[['rdesc','Rareza: mayor primero'],['rasc','Rareza: menor primero'],['name','Nombre (A-Z)']]},
   m:{f:[['all','Todas'],['todo','En curso'],['done','Cumplidas'],['wpn','Premio: arma'],['coins','Premio: monedas'],['gems','Premio: gemas']],
      s:[['def','Orden del juego'],['near','Más cerca de cumplir'],['far','Menos avance'],['name','Nombre (A-Z)'],['prize','Premio más grande']]}};
@@ -2955,7 +2980,7 @@ function renderArsenal(){
     h+=`<p class="msg">Salen de los cofres: cualquier enemigo puede soltar uno con muy poca chance y al derrotar un jefe siempre se abre uno. La suerte no cambia cuántos cofres caen, pero sí la rareza de lo que traen. Se pueden repetir y cada copia suma otra vez su efecto.</p>`;
     const item=x=>{const D=RELICS[x.id];return `<div class="aitem"><span class="ic">${svg(D.ic,D.col)}</span><div><strong>${D.name}</strong><p>${D.desc()}.</p><small style="color:${RREL[D.r].c}">Reliquia ${RREL[D.r].n.toLowerCase()}</small></div></div>`;};
     if(S.s==='name')h+=list.slice().sort(byName).map(item).join('');
-    else{const rs=[3,2,1,0];if(S.s==='rasc')rs.reverse();
+    else{const rs=[4,3,2,1,0];if(S.s==='rasc')rs.reverse();
       for(const r of rs){const ids=list.filter(x=>x.r===r).sort(byName);if(!ids.length)continue;
         h+=`<div class="dtitle" style="color:${RREL[r].c}">${RREL[r].n}s · ${ids.length}</div>`+ids.map(item).join('');}}}
   else{
@@ -3074,7 +3099,7 @@ function resumeRun(){
   G.chaosLog=r.chaosLog||[];G.relics={};for(const k in r.relics||{})if(RELICS[k])G.relics[k]=r.relics[k]|0;G.chestQ=r.chestQ|0;G.chestsOpened=r.chestsOpened|0;G.afk=!!r.afk;G.mod=G.mod||!!r.mod;G.god=!!r.god;G.infHp=!!r.infHp;G.maxDmg=!!r.maxDmg;G.noCd=!!r.noCd;
   state='paused';joy.active=false;$('#inv').innerHTML=invHtml();$('#statgrid').innerHTML=statsHtml();chaosLogRender();show('pause');
 }
-function start(ch){clearRun();initAudio();newGame(ch,SAVE.diff);lastRunSave=0;hudCache={};state='play';show(null);last=performance.now();renderAfk();
+function start(ch){clearRun();$('#relNotes').innerHTML='';initAudio();newGame(ch,SAVE.diff);lastRunSave=0;hudCache={};state='play';show(null);last=performance.now();renderAfk();
   try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{});}catch(e){}}
 function pause(why){if(state!=='play'&&state!=='levelup'&&state!=='chest')return;G.pauseFrom=state==='play'?null:state;if(state==='levelup')G.banMode=false;state='paused';closeSpeedMenu();$('#pauseEyebrow').textContent=typeof why==='string'?why:'Pausa';syncDevUi();saveRun();endReset();if(restartArm){clearTimeout(restartArm);restartArm=null;}$('#restartBtn').textContent='Reiniciar partida';$('#restartBtn').style.borderColor='';joy.active=false;$('#inv').innerHTML=invHtml();$('#statgrid').innerHTML=statsHtml();chaosLogRender();show('pause');$('#pause').scrollTop=0;}
 function resume(){const s=G&&G.pauseFrom;if(G)G.pauseFrom=null;if(s==='levelup'){state='levelup';renderLevelUp(false);show('levelup');}else if(s==='chest'){state='chest';show('chest');}else{state='play';show(null);}last=performance.now();renderAfk();}
