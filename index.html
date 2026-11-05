@@ -687,7 +687,11 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
     <button class="btn ghost" id="lowFxBtn" aria-pressed="false">Efectos reducidos: no</button>
     <p class="cfgnote">Para celulares de gama baja: menos resolución, sin partículas, sin números de daño, sin temblor de pantalla y luces más simples.</p>
     <button class="btn ghost" id="batBtn" aria-pressed="false">Ahorro de batería: no</button>
-    <p class="cfgnote">El juego se dibuja a 30 cuadros por segundo en vez de 60, y los menús y la pausa a 12. Se juega igual, un poco menos fluido. Las dos opciones se guardan en este dispositivo.</p>
+    <p class="cfgnote">El juego se dibuja a 30 cuadros por segundo en vez de 60, y los menús y la pausa a 12. Se juega igual, un poco menos fluido.</p>
+    <button class="btn ghost" id="hideAtkBtn" aria-pressed="false">Ocultar ataques: no</button>
+    <p class="cfgnote">No se dibujan tus armas ni tus habilidades (proyectiles, auras, rayos, charcos…). Siguen pegando igual; los ataques de los jefes se siguen viendo.</p>
+    <button class="btn ghost" id="hideLootBtn" aria-pressed="false">Ocultar monedas, gemas y almas: no</button>
+    <p class="cfgnote">No se dibujan las monedas, las gemas ni las almas de experiencia del suelo. Las seguís juntando igual, y los cofres y los objetos se ven. Las opciones de Gráficos se guardan en este dispositivo.</p>
     <div id="cfgDev" hidden></div>
     <button class="btn ghost" id="cfgBack">Volver</button>
   </div>
@@ -746,6 +750,8 @@ const cv=$('#c'),ctx=cv.getContext('2d');
 let W=0,H=0,DPR=1,S=1,VW=0,VH=0;
 // Efectos reducidos (Configuración → Gráficos): se guarda por dispositivo, no en la cuenta
 let lowFx=false;try{lowFx=localStorage.getItem('cripta-lowfx')==='1';}catch(e){}
+// Rendimiento (Configuración → Gráficos, por dispositivo): no dibujar los ataques propios / las monedas, gemas y almas. Todo sigue funcionando igual
+let hideAtk=false,hideLoot=false;try{hideAtk=localStorage.getItem('cripta-hideatk')==='1';hideLoot=localStorage.getItem('cripta-hideloot')==='1';}catch(e){}
 const PCAP=()=>lowFx?0:300;
 function resize(){
   DPR=lowFx?1:Math.min(2,window.devicePixelRatio||1);
@@ -2151,6 +2157,7 @@ function draw(now){
 
   if(G){
     const inView=(x,y,m)=>Math.abs(x-cx)<VW/2+m&&Math.abs(y-cy)<VH/2+m;
+    if(!hideAtk){
     // aura
     const inc=G.weapons.find(w=>w.id==='incienso');
     if(inc){const R=WDEF.incienso.r[Math.min(inc.lvl,5)-1]*G.st.area;let gr='rgba(179,140,255,0.08)';
@@ -2165,8 +2172,9 @@ function draw(now){
       ctx.fillStyle=gr;ctx.beginPath();ctx.ellipse(z.x,z.y,z.r,z.r*.8,0,0,TAU);ctx.fill();
       if(!lowFx){ctx.fillStyle='rgba(220,240,255,0.75)';for(let k=0;k<4;k++){const an=G.t*3+k*1.6+z.x;ctx.fillRect(z.x+Math.cos(an)*z.r*.55,z.y+Math.sin(an*1.3)*z.r*.4-((G.t*40+k*9)%12),2,4);}}
       ctx.globalAlpha=1;}
+    }
     // gems
-    for(const g of G.gems){if(!inView(g.x,g.y,10))continue;
+    if(!hideLoot)for(const g of G.gems){if(!inView(g.x,g.y,10))continue;
       const s=g.v>=20?7:g.v>=5?5.5:4,col=g.v>=20?'#ff8a3d':g.v>=5?'#7aa8ff':'#5ee6c4';
       ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(g.x,g.y-s);ctx.lineTo(g.x+s*.7,g.y);ctx.lineTo(g.x,g.y+s);ctx.lineTo(g.x-s*.7,g.y);ctx.closePath();ctx.fill();
       ctx.fillStyle='rgba(255,255,255,0.55)';ctx.fillRect(g.x-1,g.y-s*.5,1.5,s*.5);}
@@ -2181,18 +2189,18 @@ function draw(now){
       else if(it.kind==='heal'){ctx.fillStyle='#e2435a';ctx.beginPath();ctx.arc(it.x,it.y+bob,6.5,0,TAU);ctx.fill();ctx.strokeStyle='#7a4a22';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(it.x,it.y-6+bob);ctx.lineTo(it.x,it.y-12+bob);ctx.stroke();}
       else{ctx.strokeStyle='#5ee6c4';ctx.lineWidth=3;ctx.beginPath();ctx.arc(it.x,it.y+bob,6,Math.PI,0,true);ctx.stroke();ctx.fillStyle='#e2435a';ctx.fillRect(it.x-7.5,it.y+bob-1,3,4);ctx.fillRect(it.x+4.5,it.y+bob-1,3,4);}}
     // runes
-    for(const rn of G.runes){const pu=rn.arm>0?.4:.75+Math.sin(G.t*8+rn.x)*.2;ctx.globalAlpha=Math.min(1,rn.life*2)*pu;ctx.strokeStyle='#c06bff';ctx.lineWidth=2;
+    if(!hideAtk)for(const rn of G.runes){const pu=rn.arm>0?.4:.75+Math.sin(G.t*8+rn.x)*.2;ctx.globalAlpha=Math.min(1,rn.life*2)*pu;ctx.strokeStyle='#c06bff';ctx.lineWidth=2;
       ctx.beginPath();ctx.arc(rn.x,rn.y,rn.R*.5,0,TAU);ctx.stroke();ctx.beginPath();for(let k=0;k<5;k++){const a=-Math.PI/2+k*4*Math.PI/5,q=rn.R*.4;k?ctx.lineTo(rn.x+Math.cos(a)*q,rn.y+Math.sin(a)*q):ctx.moveTo(rn.x+Math.cos(a)*q,rn.y+Math.sin(a)*q);}ctx.closePath();ctx.stroke();ctx.globalAlpha=1;}
     // boss slams
     for(const sl of G.slams){const f=Math.min(1,sl.t/sl.dur);ctx.fillStyle='rgba(226,67,90,'+(0.08+f*.18)+')';ctx.beginPath();ctx.arc(sl.x,sl.y,sl.R,0,TAU);ctx.fill();
       ctx.strokeStyle='rgba(226,67,90,0.8)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(sl.x,sl.y,sl.R*f,0,TAU);ctx.stroke();ctx.beginPath();ctx.arc(sl.x,sl.y,sl.R,0,TAU);ctx.stroke();}
     // coins
-    for(const c of G.coinsArr){if(!inView(c.x,c.y,10))continue;
+    if(!hideLoot)for(const c of G.coinsArr){if(!inView(c.x,c.y,10))continue;
       ctx.fillStyle='#a86d0a';ctx.beginPath();ctx.arc(c.x,c.y+1,4.6,0,TAU);ctx.fill();
       ctx.fillStyle='#f0b429';ctx.beginPath();ctx.arc(c.x,c.y,4.6,0,TAU);ctx.fill();
       ctx.fillStyle='#fff1b8';ctx.fillRect(c.x-1.5,c.y-2.5,1.6,3);}
     // rare gems
-    for(const c of G.crysArr){if(!inView(c.x,c.y,14))continue;const pu=1+Math.sin(G.t*6+c.x)*.15;
+    if(!hideLoot)for(const c of G.crysArr){if(!inView(c.x,c.y,14))continue;const pu=1+Math.sin(G.t*6+c.x)*.15;
       ctx.fillStyle='rgba(255,95,210,0.22)';ctx.beginPath();ctx.arc(c.x,c.y,11*pu,0,TAU);ctx.fill();
       ctx.fillStyle='#ff5fd2';ctx.beginPath();ctx.moveTo(c.x,c.y-8);ctx.lineTo(c.x+6,c.y-2);ctx.lineTo(c.x,c.y+8);ctx.lineTo(c.x-6,c.y-2);ctx.closePath();ctx.fill();
       ctx.fillStyle='#ffd1f3';ctx.beginPath();ctx.moveTo(c.x,c.y-8);ctx.lineTo(c.x+6,c.y-2);ctx.lineTo(c.x,c.y-1);ctx.closePath();ctx.fill();}
@@ -2206,6 +2214,7 @@ function draw(now){
       ctx.fillStyle='#4e6b5a';ctx.beginPath();ctx.ellipse(a.x,a.y+bb,8,9,0,0,TAU);ctx.fill();
       ctx.fillStyle='#5ee6c4';ctx.fillRect(a.x-4,a.y-3+bb,2.5,2.5);ctx.fillRect(a.x+1.5,a.y-3+bb,2.5,2.5);ctx.globalAlpha=1;}
     drawPlayer();
+    if(!hideAtk){
     // orbiting skulls
     const atd=G.weapons.find(w=>w.id==='ataud');
     if(atd){const D=WDEF.ataud,L=Math.min(atd.lvl,5)-1,n=D.n[L]+G.st.amount,R=D.r[L]*G.st.area;
@@ -2270,6 +2279,7 @@ function draw(now){
       ctx.fillStyle=b.col?hexA(b.col,.3):'rgba(255,226,122,0.3)';ctx.beginPath();ctx.arc(b.x,b.y,b.R*(1.3-a*.3),0,TAU);ctx.fill();ctx.globalAlpha=1;}
     // ability rings
     for(const r of G.rings){const a=r.life/.45;ctx.globalAlpha=a;ctx.strokeStyle=r.col;ctx.lineWidth=4*a+1;ctx.beginPath();ctx.arc(r.x,r.y,r.r*(1.15-a*.4),0,TAU);ctx.stroke();ctx.globalAlpha=1;}
+    }
     // particles
     for(const q of G.parts){ctx.globalAlpha=Math.max(0,q.life/q.max);ctx.fillStyle=q.col;ctx.fillRect(q.x-q.sz/2,q.y-q.sz/2,q.sz,q.sz);}ctx.globalAlpha=1;
     // damage text
@@ -3172,6 +3182,9 @@ $('#soundMenu').addEventListener('click',()=>setMuted(!muted));
 function setLowFx(v){lowFx=v;try{localStorage.setItem('cripta-lowfx',v?'1':'0');}catch(e){}const b=$('#lowFxBtn');b.textContent='Efectos reducidos: '+(v?'sí':'no');b.setAttribute('aria-pressed',String(v));
   if(v&&G){G.parts.length=0;G.texts=G.texts.filter(t=>t.heal||t.hurt||t.gem);}resize();}
 $('#lowFxBtn').addEventListener('click',()=>setLowFx(!lowFx));setLowFx(lowFx);
+function setHide(k,v){if(k==='atk')hideAtk=v;else hideLoot=v;try{localStorage.setItem(k==='atk'?'cripta-hideatk':'cripta-hideloot',v?'1':'0');}catch(e){}
+  const b=$(k==='atk'?'#hideAtkBtn':'#hideLootBtn');b.textContent=(k==='atk'?'Ocultar ataques: ':'Ocultar monedas, gemas y almas: ')+(v?'sí':'no');b.setAttribute('aria-pressed',String(v));}
+$('#hideAtkBtn').addEventListener('click',()=>setHide('atk',!hideAtk));$('#hideLootBtn').addEventListener('click',()=>setHide('loot',!hideLoot));setHide('atk',hideAtk);setHide('loot',hideLoot);
 let cfgFrom='menu';
 function openCfg(from){cfgFrom=from;setStickMode(stickMode);renderSpeedCfg();renderDrops();renderBossHold();renderCfgDev();show('config');}
 function closeCfg(){show(cfgFrom);}
