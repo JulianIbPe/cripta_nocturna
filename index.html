@@ -2868,8 +2868,16 @@ setInterval(checkUpdate,30*60*1000);window.addEventListener('online',checkUpdate
 function scheduleCloud(){if(!cloudRef()||cloudState.status==='denied')return;clearTimeout(cloudTimer);cloudTimer=setTimeout(pushCloud,3000);}
 let cloudSyncedAt=0; // savedAt del progreso que ya está en la nube
 const cloudDirty=()=>(SAVE.savedAt||0)>cloudSyncedAt;
+// El progreso local queda atado a una cuenta (SAVE.uid). Si todavía no es de esta cuenta (otra PC, recién instalado o
+// jugado sin sesión) no se sube nada hasta comparar con la nube en pullCloud, así no se pisan los datos del otro dispositivo
+const saveIsMine=()=>!!AUTH&&SAVE.uid===AUTH.uid;
+const linkSave=()=>{SAVE.uid=AUTH.uid;try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE));}catch(e){}};
+// Cuánto se jugó: decide qué progreso queda la primera vez que se juntan uno local y el de la cuenta
+const saveProg=sv=>{const l=(sv&&sv.life)||{};return (l.runs|0)*1000+(l.kills|0)+((sv&&sv.unlocked)||[]).length*500+Object.values((sv&&sv.buffs)||{}).reduce((a,b)=>a+(b|0)*200,0);};
+let pulling=false;
 async function pushCloud(){
-  const ref=cloudRef();if(!ref)return;clearTimeout(cloudTimer);cloudState.status='saving';renderAcctIfOpen();
+  const ref=cloudRef();if(!ref)return;clearTimeout(cloudTimer);
+  if(!saveIsMine()){if(!pulling)pullCloud();return;}cloudState.status='saving';renderAcctIfOpen();
   const at=SAVE.savedAt||Date.now();
   try{await queueWrite(()=>ref.set({v:1,at,data:JSON.parse(JSON.stringify(SAVE))}));cloudState={status:'ok',at:Date.now()};cloudSyncedAt=at;}
   catch(e){cloudState={status:e&&e.code==='denied'?'denied':'error',at:cloudState.at};}
@@ -2877,14 +2885,23 @@ async function pushCloud(){
 }
 async function pullCloud(){
   const ref=cloudRef();if(!ref)return;
+  pulling=true;
   try{const sn=await ref.get();
-    if(sn.exists){const d=sn.data(),cloudAt=d.at||0,localAt=SAVE.savedAt||0;
-      if(d.data&&cloudAt>localAt){SAVE=normalizeSave(JSON.parse(JSON.stringify(d.data)));SAVE.savedAt=cloudAt;
-        try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE));}catch(e){}
+    const fresh=!saveIsMine();
+    if(sn.exists&&fresh){const d=sn.data();
+      // Primera vez en este dispositivo con esta cuenta: gana el progreso de la cuenta, salvo que el de acá tenga más jugado.
+      // El que pierde queda de respaldo en cripta-save-prev (local) o cripta-save-prev-cloud
+      if(d.data&&saveProg(d.data)>=saveProg(SAVE)){try{localStorage.setItem('cripta-save-prev',JSON.stringify(SAVE));}catch(e){}
+        SAVE=normalizeSave(JSON.parse(JSON.stringify(d.data)));SAVE.savedAt=d.at||Date.now();linkSave();
+        cloudState={status:'loaded',at:Date.now()};cloudSyncedAt=SAVE.savedAt;pickSel=SAVE.sel;if(state==='menu'&&!$('#menu').hidden)renderMenu();}
+      else{try{localStorage.setItem('cripta-save-prev-cloud',JSON.stringify(d.data));}catch(e){}SAVE.savedAt=Math.max(Date.now(),(d.at||0)+1);linkSave();await pushCloud();}}
+    else if(sn.exists){const d=sn.data(),cloudAt=d.at||0,localAt=SAVE.savedAt||0;
+      if(d.data&&cloudAt>localAt){SAVE=normalizeSave(JSON.parse(JSON.stringify(d.data)));SAVE.savedAt=cloudAt;linkSave();
         cloudState={status:'loaded',at:Date.now()};cloudSyncedAt=cloudAt;pickSel=SAVE.sel;if(state==='menu'&&!$('#menu').hidden)renderMenu();}
       else if(localAt>cloudAt)await pushCloud();else{cloudState={status:'ok',at:Date.now()};cloudSyncedAt=cloudAt;}}
-    else await pushCloud();
+    else{linkSave();await pushCloud();}
   }catch(e){cloudState.status='error';}
+  pulling=false;
   renderAcctIfOpen();
 }
 async function afterLogin(){pendLogin=null;cloudState={status:'idle',at:0};checkDev();renderAcctIfOpen();loadUsername();initOnline();await pullCloud();}
@@ -3318,7 +3335,7 @@ let resetArmT=null;
 $('#resetAll').addEventListener('click',async()=>{const b=$('#resetAll');
   if(!b.classList.contains('confirm')){b.classList.add('confirm');b.textContent='Tocá de nuevo para borrar todo';clearTimeout(resetArmT);resetArmT=setTimeout(()=>{b.classList.remove('confirm');b.textContent='Reiniciar todo';},4000);return;}
   clearTimeout(resetArmT);b.classList.remove('confirm');b.textContent='Reiniciar todo';
-  clearRun();try{localStorage.removeItem('cripta-best');}catch(e){}G=null;state='menu';SAVE=normalizeSave(null);pickSel=SAVE.sel;LB.remote=null;persist();
+  clearRun();try{localStorage.removeItem('cripta-best');}catch(e){}G=null;state='menu';SAVE=normalizeSave(null);if(AUTH)SAVE.uid=AUTH.uid;pickSel=SAVE.sel;LB.remote=null;persist();
   let msg='Listo: empezás de cero.';
   if(AUTH&&FB.apiKey){try{await queueWrite(()=>fbDb('DELETE','scores/'+AUTH.uid,undefined,true));}catch(e){msg+=' No se pudo borrar tu puntaje de la clasificación (¿sin internet?).';}}
   $('#acctToast').textContent=msg;renderMenu();});
