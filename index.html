@@ -511,7 +511,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
       <p><b>Pasarte del máximo también sirve</b>: más de 100% de crítico da overcrit (×2,5, ×3…), la velocidad de ataque de más se vuelve daño (Sobrecarga), el esquivar por encima del 60% se vuelve contraataque, y más de 100% de suerte hace aparecer mejoras míticas.</p>
       <p><b>Cumplí misiones</b> para desbloquear armas nuevas.</p>
       <p><b>En la Tienda comprás mejoras permanentes</b>: usos de Cambiar, Bloquear y Saltar en cada subida de nivel, y más gemas por partida.</p>
-      <p><b>Las gemas rosas son raras</b>: casi nunca caen de enemigos comunes, cada calabaza maldita tiene la mitad de chances de soltar una y el amanecer te da 2. Con gemas desbloqueás a los 7 personajes élite.</p>
+      <p><b>Las gemas rosas son raras</b>: casi nunca caen de enemigos comunes, cada calabaza maldita tiene la mitad de chances de soltar una y el amanecer te da 2. Con gemas desbloqueás a los 9 personajes élite.</p>
       <p><b>En compu:</b> WASD o flechas para moverte (o arrastrá con el mouse), E o Shift para la habilidad, espacio, P o Esc para pausar y V para la velocidad. Al subir de nivel elegís con 1, 2, 3… y usás Cambiar, Bloquear y Saltar con R, B y X. Esc vuelve atrás en los menús, Enter juega o arranca otra partida, y en el menú cambiás de personaje con las flechas.</p>
     </div>
     <button class="btn ghost backBtn">Volver</button>
@@ -931,6 +931,25 @@ const WDEF={
   circulo:{name:'Círculo de fuego',col:'#ff7a2a',excl:'demonio',
     up:['Marca a tus pies un círculo infernal que quema todo lo que entra durante unos segundos.','+4 de daño','Círculo más grande','+5 de daño y dura más','Círculo enorme y +6 de daño'],
     dmg:[8,12,12,17,23],cd:[3.4,3.3,3.1,2.9,2.7],r:[60,60,78,82,100],dur:[2.4,2.4,2.4,3.2,3.4]},
+  // Propias de Elena, Bram y Sor Ignis
+  redomas:{name:'Redomas explosivas',col:'#9ae07a',excl:'alquimista',
+    up:['Arroja redomas que estallan sobre los enemigos más cercanos.','+8 de daño','+1 redoma','Explosión más grande y +10 de daño','+2 redomas y +12 de daño'],
+    dmg:[22,30,30,40,52],cd:[1.8,1.75,1.65,1.55,1.4],n:[1,1,2,2,4],r:[34,34,36,44,48]},
+  nubetox:{name:'Nube tóxica',col:'#7dff6a',excl:'alquimista',
+    up:['Deja nubes venenosas alrededor tuyo que dañan a todo lo que pasa.','+3 de daño','+1 nube y duran más','Nubes más grandes y +4 de daño','+2 nubes y +5 de daño'],
+    dmg:[5,8,8,12,17],cd:[3,2.9,2.8,2.6,2.4],n:[2,2,3,3,5],r:[38,38,40,48,52],dur:[2.5,2.5,3.2,3.2,3.6]},
+  mordisco:{name:'Mordisco salvaje',col:'#e2435a',excl:'lobo',
+    up:['Salta a morder al enemigo más cercano con mucha fuerza y te cura un poco.','+10 de daño','Cura más y recarga más rápida','+14 de daño y muerde a 1 más','+18 de daño y cura el doble'],
+    dmg:[30,40,40,54,72],cd:[1,.95,.85,.8,.75],n:[1,1,1,2,2],heal:[1,1,1.5,1.5,3]},
+  lunallena:{name:'Luna llena',col:'#e8ecff',excl:'lobo',
+    up:['Una onda de luz de luna sale de vos y empuja a los enemigos. Cada proyectil extra suma otra onda detrás.','+6 de daño','Onda más grande','+8 de daño y más seguido','Onda enorme y +10 de daño'],
+    dmg:[14,20,20,28,38],cd:[2.6,2.5,2.4,2.1,1.9],R:[110,110,135,140,165]},
+  antorcha:{name:'Antorcha sagrada',col:'#ffb36b',excl:'inquisidora',
+    up:['Lanza llamaradas hacia el enemigo más cercano que atraviesan y dejan fuego donde terminan.','+6 de daño','+1 llamarada','Atraviesan 1 más y +8 de daño','+1 llamarada y +10 de daño'],
+    dmg:[16,22,22,30,40],cd:[1.3,1.25,1.15,1.05,.95],n:[1,1,2,2,3],pierce:[1,1,1,2,2]},
+  hoguera:{name:'Hoguera purificadora',col:'#ff7a2a',excl:'inquisidora',
+    up:['Prende un anillo de fuego que gira a tu alrededor y quema a los que se acercan.','+4 de daño','+1 llama','Anillo más grande y +5 de daño','+2 llamas y +6 de daño'],
+    dmg:[7,11,11,16,22],cd:[2.8,2.7,2.6,2.4,2.2],n:[4,4,5,5,7],r:[70,70,70,85,90]},
 };
 const MISSIONS=[
   {id:'m_kills',name:'Segador',desc:'Matá 1.000 enemigos sumando todas tus partidas',goal:1000,prog:()=>SAVE.life.kills|0},
@@ -1184,6 +1203,12 @@ const ICON={
   ballesta:'<path d="M4 20 20 4"/><path d="M14 4h6v6"/><path d="M5 9c3 0 7 4 10 10"/>',
   tridente:'<path d="M12 22V6M6 4v5a6 6 0 0 0 12 0V4M12 2v4"/>',
   fuegofatuo:'<path d="M12 21a5 5 0 0 0 5-5c0-4-5-6-3-12-4 2-7 6-7 12a5 5 0 0 0 5 5z"/><circle cx="12" cy="16" r="2"/>',
+  redomas:'<path d="M10 3h4M11 3v5L6 18a2 2 0 0 0 2 3h8a2 2 0 0 0 2-3l-5-10V3"/><path d="M8 15h8"/>',
+  nubetox:'<path d="M7 18a4 4 0 0 1 0-8 5 5 0 0 1 9.5-1.5A3.5 3.5 0 0 1 17 18z"/><path d="M9 14h.01M13 13h.01M15 15h.01"/>',
+  mordisco:'<path d="M4 8c3-3 13-3 16 0M4 16c3 3 13 3 16 0"/><path d="M7 8l1 3 1-3M11 8l1 3 1-3M15 8l1 3 1-3M8 16l1-3 1 3M13 16l1-3 1 3"/>',
+  lunallena:'<path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z"/>',
+  antorcha:'<path d="M10 22h4l1-10H9z"/><path d="M12 12c-3-2-3-5 0-9 3 4 3 7 0 9z"/>',
+  hoguera:'<path d="M4 21h16M6 21l6-5 6 5"/><path d="M12 14c-3-2-3-5 0-9 3 4 3 7 0 9z"/>',
   incensario:'<path d="M12 2v6"/><circle cx="12" cy="13" r="5"/><path d="M9 21c1-2 5-2 6 0M7 13h10"/>',
   cirios:'<path d="M7 21V11h4v10M13 21V8h4v13"/><path d="M9 8c-1-2 0-3 0-4 1 1 2 2 0 4zM15 5c-1-2 0-3 0-4 1 1 2 2 0 4z"/>',
   espectros:'<path d="M6 20V10a6 6 0 0 1 12 0v10l-2-2-2 2-2-2-2 2-2-2z"/><circle cx="10" cy="10" r="1"/><circle cx="14" cy="10" r="1"/>',
@@ -1320,6 +1345,12 @@ const CHARS={
     active:{name:'Profecía',icon:'ojo',cd:16,desc:'Le hace 70 de daño a todo lo que hay en pantalla y te da 1 moneda por cada enemigo que toca (hasta 30).'},
     grow:{d:n=>'+'+(4*n)+'% de suerte',f:(G,n)=>{G.st.luck+=.04*n;}},
     setup(G){G.st.luck+=.3;G.st.crit+=.1;G.st.xpMul+=.1;}},
+  alquimista:{name:'Elena la Alquimista',short:'Elena',price:3000,weapon:'redomas',hat:'brim',
+    col:{cloak:'#2e4a2a',hood:'#1e3320',face:'#f0d8c0',lamp:'#9ae07a'},
+    passive:{name:'Piedra filosofal',desc:'+20% de área, +15% de velocidad de proyectil y +25% de monedas.'},
+    active:{name:'Elixir',icon:'agua',cd:20,desc:'Recuperás 30% de tu vida y durante 6 segundos hacés 40% más de daño.'},
+    grow:{d:n=>'+'+(3*n)+'% de área y +'+(5*n)+'% de monedas',f:(G,n)=>{G.st.area+=.03*n;G.st.coinMul+=.05*n;}},
+    setup(G){G.st.area+=.2;G.st.projSpd+=.15;G.st.coinMul+=.25;}},
   valkiria:{name:'Brunhild la Valquiria',short:'Brunhild',gems:20,weapon:'martillo',hat:'helm',
     col:{cloak:'#3d4f6e',hood:'#2a3850',face:'#f0e0d0',lamp:'#9ad0ff'},
     passive:{name:'Furia del norte',desc:'+25% de daño, +30 de vida máxima y +5% de velocidad.'},
@@ -1368,6 +1399,18 @@ const CHARS={
     active:{name:'Infierno',icon:'meteoro',cd:18,desc:'Llueven 10 bolas de fuego sobre los enemigos en pantalla, de 120 de daño cada una.'},
     grow:{d:n=>'+'+(3*n)+'% de daño y +'+(2*n)+'% de área',f:(G,n)=>{G.st.dmg+=.03*n;G.st.area+=.02*n;}},
     setup(G){const st=G.st;st.dmg+=.35;st.area+=.2;st.cdRaw=(st.cdRaw||st.cd)/1.1;st.cd=Math.max(.3,st.cdRaw);G.p.maxHp=Math.max(40,G.p.maxHp-25);G.p.hp=Math.min(G.p.hp,G.p.maxHp);}},
+  lobo:{name:'Bram el Hombre Lobo',short:'Bram',gems:220,weapon:'mordisco',hat:'fox',
+    col:{cloak:'#4a3a30',hood:'#2e231c',face:'#b8a48c',lamp:'#e8ecff'},
+    passive:{name:'Bestia',desc:'+20% de velocidad, +15% de crítico, +3% de robo de vida y +40 de vida máxima.'},
+    active:{name:'Aullido',icon:'colmillo',cd:22,desc:'Durante 7 segundos hacés 50% más de daño, atacás 30% más rápido y corrés 25% más.'},
+    grow:{d:n=>'+'+(2*n)+'% de crítico y +'+dec(n*.4)+'% de robo de vida',f:(G,n)=>{G.st.crit+=.02*n;G.st.leech+=.004*n;}},
+    setup(G){G.st.spd+=.2;G.st.crit+=.15;G.st.leech+=.03;G.p.maxHp+=40;G.p.hp+=40;}},
+  inquisidora:{name:'Sor Ignis la Inquisidora',short:'Sor Ignis',gems:260,weapon:'antorcha',hat:'collar',
+    col:{cloak:'#e8e0d0',hood:'#8a1a1a',face:'#f4e0cc',lamp:'#ffb36b'},
+    passive:{name:'Fuego purificador',desc:'+25% de daño, +3 de armadura, +10% de área y +0,5 de vida por segundo.'},
+    active:{name:'Auto de fe',icon:'fuego',cd:18,desc:'Prende fuego bajo todos los enemigos en pantalla: quema 3 segundos y les hace 60 de daño al instante.'},
+    grow:{d:n=>'+'+(3*n)+'% de daño y +'+dec(n*.3)+' de armadura',f:(G,n)=>{G.st.dmg+=.03*n;G.st.armor+=.3*n;}},
+    setup(G){G.st.dmg+=.25;G.st.armor+=3;G.st.area+=.1;G.st.regen+=.5;}},
 };
 
 const ETYPES={
@@ -1779,6 +1822,18 @@ function updateWeapons(dt){
     }else if(w.id==='circulo'){w.timer=D.cd[L]*st.cd;const n=1+st.amount,r=D.r[L]*st.area;
       for(let i=0;i<n;i++){if(G.zones.length>=120)break;const a=i/n*TAU,o=i?r*1.4:0;G.zones.push({x:p.x+Math.cos(a)*o,y:p.y+Math.sin(a)*o,r,dmg:D.dmg[L],life:D.dur[L],tick:0,src:'circulo',fire:true});}
       ring(p.x,p.y,r,D.col);
+    }else if(w.id==='redomas'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;
+      for(let i=0;i<n;i++){const t=ts[i%ts.length];G.meteors.push({x:t.x+(i>=ts.length?rand(-20,20):0),y:t.y+(i>=ts.length?rand(-20,20):0),t:0,dur:.4+i*.06,R:D.r[L]*st.area,dmg:D.dmg[L],src:'redomas',col:D.col});}
+    }else if(w.id==='nubetox'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount,r=D.r[L]*st.area;
+      for(let i=0;i<n;i++){if(G.zones.length>=120)break;const a=Math.random()*TAU,d=rand(30,120);G.zones.push({x:p.x+Math.cos(a)*d,y:p.y+Math.sin(a)*d,r,dmg:D.dmg[L],life:D.dur[L],tick:0,src:'nubetox',col:D.col});}
+    }else if(w.id==='mordisco'){const n=D.n[L]+st.amount,ts=nearestEnemies(n).filter(e=>Math.hypot(e.x-p.x,e.y-p.y)<240*st.area);if(!ts.length){w.timer=.15;continue;}w.timer=D.cd[L]*st.cd;
+      for(const t of ts){hurt(t,D.dmg[L],(t.x-p.x)*2,(t.y-p.y)*2,'mordisco');ring(t.x,t.y,16,D.col);p.hp=Math.min(p.maxHp,p.hp+D.heal[L]);}
+    }else if(w.id==='lunallena'){w.timer=D.cd[L]*st.cd;pushWaves({x:p.x,y:p.y,max:D.R[L]*st.area,dmg:D.dmg[L],col:D.col,src:'lunallena'});
+    }else if(w.id==='antorcha'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;
+      for(let i=0;i<n;i++){const t=ts[i%ts.length],a=Math.atan2(t.y-p.y,t.x-p.x)+(i>=ts.length?rand(-.25,.25):0);
+        G.shots.push({src:'antorcha',kind:'bolt',col:D.col,x:p.x,y:p.y,vx:Math.cos(a)*360,vy:Math.sin(a)*360,dmg:D.dmg[L],pierce:D.pierce[L],r:6,life:.9,burn:{dmg:Math.round(D.dmg[L]*.35),r:26*st.area},hit:new Set()});}
+    }else if(w.id==='hoguera'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount,R=D.r[L]*st.area;w.ang=(w.ang||0)+.5;
+      for(let i=0;i<n;i++){if(G.zones.length>=120)break;const a=w.ang+i/n*TAU;G.zones.push({x:p.x+Math.cos(a)*R,y:p.y+Math.sin(a)*R,r:22*st.area,dmg:D.dmg[L],life:2.2,tick:0,src:'hoguera',fire:true});}
     }else if(w.id==='siegaalmas'){w.timer=D.cd[L]*st.cd;const R=D.r[L]*st.area,ex=D.exe[L];
       volleys(1+st.amount,1,.25,()=>{const p=G.p;G.sweeps.push({x:p.x,y:p.y,R,life:.3,a0:Math.atan2(p.fy,p.fx),col:D.col});
         near(p.x,p.y,R+24,e=>{const dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy)||1;if(d>=R+e.r)return;hurt(e,D.dmg[L],dx/d*200,dy/d*200,'siegaalmas');
@@ -1846,6 +1901,11 @@ function useAbility(){
       for(let i=0;i<10;i++){let x,y;if(vis.length){const t=vis[(Math.random()*vis.length)|0];x=t.x+rand(-10,10);y=t.y+rand(-10,10);}else{x=p.x+rand(-VW/3,VW/3);y=p.y+rand(-VH/3,VH/3);}
         G.meteors.push({x,y,t:0,dur:.45+i*.07,R:40*st.area,dmg:120,src:'infierno',col:'#ff5a3d'});}
       G.shake=.25;sfx('boss');break;}
+    case 'alquimista':{p.hp=Math.min(p.maxHp,p.hp+p.maxHp*.3);st.dmg+=.4;const g0=G;G.timers.push({t:6,fn:()=>{if(G===g0)G.st.dmg-=.4;}});ring(p.x,p.y,50,'#9ae07a');sfx('heal');break;}
+    case 'lobo':{const g0=G,cd0=st.cd;st.dmg+=.5;st.spd+=.25;st.cd=Math.max(.3,st.cd/1.3);G.timers.push({t:7,fn:()=>{if(G!==g0)return;G.st.dmg-=.5;G.st.spd-=.25;G.st.cd=Math.max(.3,G.st.cdRaw||cd0);}});
+      ring(p.x,p.y,60,'#e8ecff');ring(p.x,p.y,36,'#e2435a');G.shake=.2;sfx('boss');break;}
+    case 'inquisidora':{for(const e of G.enemies)if(!e.dead&&Math.abs(e.x-G.cam.x)<VW/2+30&&Math.abs(e.y-G.cam.y)<VH/2+30){hurt(e,60,0,0);if(G.zones.length<120)G.zones.push({x:e.x,y:e.y,r:24*st.area,dmg:12,life:3,tick:0,src:'autofe',fire:true});}
+      ring(p.x,p.y,80,'#ffb36b');G.shake=.25;sfx('boss');break;}
     case 'parca':{const R=140*st.area;near(p.x,p.y,R+24,e=>{if(e.dead)return;const d=Math.hypot(e.x-p.x,e.y-p.y);if(d<R+e.r){if(e.elite)hurt(e,200,0,0);else hurt(e,e.hp/st.dmg*1.2+1,0,0);}});
       ring(p.x,p.y,R,'#b38cff');ring(p.x,p.y,R*.85,'#e6dcc4');G.shake=.35;sfx('boss');break;}
   }
@@ -2100,7 +2160,7 @@ function update(dt){
     if(s.home){if(!s.tgt||s.tgt.dead){let bd=1e9;s.tgt=null;near(s.x,s.y,220,e=>{if(e.dead)return;const dd=(e.x-s.x)**2+(e.y-s.y)**2;if(dd<bd){bd=dd;s.tgt=e;}});}
       if(s.tgt){const dx=s.tgt.x-s.x,dy=s.tgt.y-s.y,dd=Math.hypot(dx,dy)||1,v=260;s.vx+=(dx/dd*v-s.vx)*Math.min(1,sd*5);s.vy+=(dy/dd*v-s.vy)*Math.min(1,sd*5);}}
     if(s.wob!==undefined&&s.kind!=='crow'){s.wob+=sd*10;const m=Math.hypot(s.vx,s.vy)||1,o=Math.cos(s.wob)*110*sd;s.x+=-s.vy/m*o;s.y+=s.vx/m*o;}
-    s.x+=s.vx*sd;s.y+=s.vy*sd;s.life-=dt;if(s.life<=0){s.dead=true;continue;}
+    s.x+=s.vx*sd;s.y+=s.vy*sd;s.life-=dt;if(s.life<=0){s.dead=true;if(s.burn&&G.zones.length<120)G.zones.push({x:s.x,y:s.y,r:s.burn.r,dmg:s.burn.dmg,life:1.6,tick:0,src:s.src,fire:true});continue;}
     near(s.x,s.y,s.r+24,e=>{if(s.dead||e.dead||s.hit.has(e))return;const rr=s.r+e.r;
       if((e.x-s.x)**2+(e.y-s.y)**2<rr*rr){s.hit.add(e);if(s.slow)e.slowT=Math.max(e.slowT||0,s.slow);hurt(e,s.dmg,s.vx*.35,s.vy*.35,s.src);if(--s.pierce<0)s.dead=true;}});
   }
@@ -2317,8 +2377,9 @@ function draw(now){
       ctx.strokeStyle='rgba(179,140,255,'+(0.25+Math.sin(G.t*6)*.1+(inc.pulse||0)*.35)+')';ctx.lineWidth=1.5;ctx.setLineDash([6,8]);ctx.lineDashOffset=-G.t*20;ctx.stroke();ctx.setLineDash([]);}
     // holy water puddles
     for(const z of G.zones){if(!inView(z.x,z.y,z.r))continue;ctx.globalAlpha=Math.min(1,z.life*2);
-      let gr=z.fire?'rgba(255,140,60,0.3)':'rgba(110,180,255,0.28)';
-      if(!lowFx){gr=ctx.createRadialGradient(z.x,z.y,2,z.x,z.y,z.r);gr.addColorStop(0,z.fire?'rgba(255,200,90,0.55)':'rgba(140,210,255,0.45)');gr.addColorStop(1,z.fire?'rgba(255,90,40,0.12)':'rgba(90,150,255,0.12)');}
+      let gr=z.col?hexA(z.col,.26):z.fire?'rgba(255,140,60,0.3)':'rgba(110,180,255,0.28)';
+      if(!lowFx&&z.col){gr=ctx.createRadialGradient(z.x,z.y,2,z.x,z.y,z.r);gr.addColorStop(0,hexA(z.col,.45));gr.addColorStop(1,hexA(z.col,.1));}
+      else if(!lowFx){gr=ctx.createRadialGradient(z.x,z.y,2,z.x,z.y,z.r);gr.addColorStop(0,z.fire?'rgba(255,200,90,0.55)':'rgba(140,210,255,0.45)');gr.addColorStop(1,z.fire?'rgba(255,90,40,0.12)':'rgba(90,150,255,0.12)');}
       ctx.fillStyle=gr;ctx.beginPath();ctx.ellipse(z.x,z.y,z.r,z.r*.8,0,0,TAU);ctx.fill();
       if(!lowFx){ctx.fillStyle='rgba(220,240,255,0.75)';for(let k=0;k<4;k++){const an=G.t*3+k*1.6+z.x;ctx.fillRect(z.x+Math.cos(an)*z.r*.55,z.y+Math.sin(an*1.3)*z.r*.4-((G.t*40+k*9)%12),2,4);}}
       ctx.globalAlpha=1;}
