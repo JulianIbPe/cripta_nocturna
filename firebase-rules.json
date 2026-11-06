@@ -22,6 +22,14 @@
         }
       }
     },
+    "devs": {
+      ".read": "auth != null && auth.token.email_verified === true && auth.token.email === 'saebijulian@gmail.com'",
+      "$h": {
+        ".read": true,
+        ".write": "auth != null && auth.token.email_verified === true && auth.token.email === 'saebijulian@gmail.com'",
+        ".validate": "newData.isString()"
+      }
+    },
     "scores": {
       ".read": true,
       ".indexOn": ["score"],

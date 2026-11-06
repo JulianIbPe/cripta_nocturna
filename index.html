@@ -484,6 +484,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
       <button class="tile" id="tRecords" style="order:5"><span id="tReIc"></span><strong>Récords</strong><small id="tReSub"></small></button>
       <button class="tile" id="tAcc" style="order:7"><span id="tAcIc"></span><strong>Cuenta</strong><small id="tAcSub">Guardar tu progreso</small></button>
       <button class="tile" id="tHow" style="order:8"><span id="tHoIc"></span><strong>Cómo jugar</strong><small>Controles y consejos</small></button>
+      <button class="tile wide" id="tLog" style="order:9"><span id="tLgIc"></span><strong>Registro</strong><small>Cambios de cada versión</small></button>
       </div>
     </div>
     <button class="btn ghost" id="cfgMenu">Configuración</button>
@@ -517,6 +518,16 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
       <p><b>Las gemas rosas son raras</b>: casi nunca caen de enemigos comunes, cada calabaza maldita tiene la mitad de chances de soltar una y el amanecer te da 2. Con gemas desbloqueás a los 9 personajes élite.</p>
       <p><b>En compu:</b> WASD o flechas para moverte (o arrastrá con el mouse), E o Shift para la habilidad, espacio, P o Esc para pausar y V para la velocidad. Al subir de nivel elegís con 1, 2, 3… y usás Cambiar, Bloquear y Saltar con R, B y X. Esc vuelve atrás en los menús, Enter juega o arranca otra partida, y en el menú cambiás de personaje con las flechas.</p>
     </div>
+    <button class="btn ghost backBtn">Volver</button>
+  </div>
+</section>
+
+<section id="changelog" class="screen" hidden>
+  <div class="panel">
+    <div class="eyebrow">Qué cambió en el juego</div>
+    <h2>Registro</h2>
+    <button class="btn" id="relBtn">Descargas en GitHub</button>
+    <div class="how" id="logList"></div>
     <button class="btn ghost backBtn">Volver</button>
   </div>
 </section>
@@ -2789,7 +2800,7 @@ function renderBoardList(){
 }
 
 /* ---------- Screens ---------- */
-const screens=['menu','config','chars','maps','howto','arsenal','records','board','shop','missions','account','levelup','chest','pause','over','mod'];
+const screens=['menu','config','chars','maps','howto','changelog','arsenal','records','board','shop','missions','account','levelup','chest','pause','over','mod'];
 function show(name){for(const sc of screens)$('#'+sc).hidden=sc!==name;const h=!(G&&(state==='play'||state==='levelup'||state==='chest'||state==='paused'));$('#hud').hidden=h;$('#hud').classList.toggle('top',state==='levelup'||state==='chest');$('#abBtn').hidden=h||state!=='play';}
 const SAVE_KEY='cripta-save';
 function loadSave(){let sv=null;try{sv=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');}catch(e){}return normalizeSave(sv);}
@@ -2903,6 +2914,33 @@ let cloudTimer=null,cloudState={status:'idle',at:0};
 /* ---- Aviso de actualización (APK y .exe): compara con el último Release de GitHub ---- */
 const APP_VER='dev'; // el workflow lo reemplaza por 1.0.<n> al compilar
 const RELEASES='https://github.com/JulianIbPe/cripta_nocturna/releases/latest';
+// Registro de cambios para todos los jugadores (lo de una sola cuenta, como el menú de pruebas, no va). El más nuevo arriba
+const CHANGELOG=[
+['1.0.53','6 nov',['La partida en curso se comparte entre PC y celular con tu cuenta: queda la que lleva más tiempo vivo.','En PC la partida sigue aunque cambies de ventana o la minimices.','Nueva sección Registro con los cambios de cada versión y acceso a las descargas.']],
+['1.0.52','6 nov',['Mejor rendimiento a ×10 en partidas largas.','Opción para elegir sola la mejora del medio.']],
+['1.0.51','6 nov',['Las armas que iban hacia donde mirás ahora apuntan al enemigo más cercano.']],
+['1.0.50','6 nov',['Pantalla de mapas con vista previa para elegirlos y comprarlos.']],
+['1.0.49','6 nov',['Al entrar con tu cuenta en otro dispositivo se cargan los datos de la cuenta en vez de pisarlos.']],
+['1.0.48','6 nov',['Tres personajes nuevos con armas propias: Elena la Alquimista, Bram el Hombre Lobo y Sor Ignis la Inquisidora.']],
+['1.0.47','6 nov',['Cinco mapas nuevos: Jardín de hongos, Osario, Desierto de los huesos, Cueva de cristales y Vacío astral.']],
+['1.0.46','6 nov',['Se saca Segunda vida de la tienda (se devuelven las gemas).','Ojo del saqueador da +1% de cofres por nivel.']],
+['1.0.45','6 nov',['Tienda: más niveles de Cambiar, Bloquear, Saltar y demás mejoras, y mejoras nuevas de imán, cofres, suerte y herencia.']],
+['1.0.44','6 nov',['Dos personajes nuevos, Zora la Vidente y Asmodeo el Demonio, y armas propias para ellos, Fray Anselmo y Aine.']],
+['1.0.43','5 nov',['Opciones de rendimiento: ocultar ataques y ocultar monedas, gemas y almas.']],
+['1.0.42','5 nov',['Reliquia mítica Imán de reliquias: atrae los cofres y los abre con un aviso.']],
+['1.0.41','5 nov',['AFK guarda la experiencia y los cofres hasta que lo desactivás.']],
+['1.0.40','5 nov',['Reliquia legendaria Imán del abismo (atrae todo cada 30 s).','Opción para apagar curación, bombas e imanes.']],
+['1.0.39','5 nov',['Con la opción de jefes, la experiencia se guarda durante la pelea y los niveles suben al vencerlo.']],
+['1.0.38','5 nov',['Reloj del tiempo con dos niveles más (×7 y ×10).','Las calabazas dejan un cofre con reliquia.']],
+['1.0.37','5 nov',['Velocidad en Configuración, y pausa y velocidad en la subida de nivel.','Opción de guardar las subidas de nivel durante los jefes.']],
+['1.0.36','5 nov',['Mejoras del personaje más claras.','Botón Reiniciar todo en Cuenta.']],
+['1.0.35','5 nov',['Jefes supremos en los minutos 20, 30, 40, 50 y 60.','Las actualizaciones pasan a ser obligatorias.']],
+['','5 nov',['Sobrecarga y overcrit más débiles; escalado más duro en Difícil e Imposible.','Menos cofres a medida que pasa el tiempo; Yunque y Corona dan +2.','Dos personajes y tres mejoras de tienda nuevas.']],
+['','4 nov',['Filtros y orden en armas, objetos, reliquias y misiones.','Se puede pegar el código de verificación.','Modos de ahorro de batería y de efectos reducidos, y brújula de cofres.','Cofres con 50 reliquias, 4 armas y 4 objetos nuevos; los cofres de jefe se abren solos.','Botón AFK, botones que andan con varios dedos y botón atrás del celular.','Congelar queda solo para las armas de hielo.']],
+['','3 nov',['El hielo ralentiza; congelar es una chance de 2% por golpe.','Las armas de área usan los proyectiles extra y hay tope de enemigos para que no se trabe.','Escalado más suave después del amanecer y tablas en Cómo jugar.','Más gemas en las dificultades altas.','Velocidad en desplegable, tres modos de joystick y modo horizontal.']],
+['','1 nov',['Seis armas nuevas que se desbloquean con misiones y nueve misiones más.','Enemigos y jefes nuevos, bomba e imán como premio.','Los enemigos se vuelven más fuertes cuanto más sobrevivís.','La dificultad muestra solo lo que cambia.']],
+['','31 oct',['Primera versión: juego, APK y .exe, cuentas con mail y guardado en la nube.','Clasificación y nombre de usuario único.','Dificultad Imposible, armas élite, mejoras de pasiva y misiones.','Salir de la partida la deja guardada para continuarla.','Se puede jugar sin internet.']]];
+
 function openExt(u){if(window.CriptaApp&&window.CriptaApp.openUrl)window.CriptaApp.openUrl(u);else window.open(u,'_blank');}
 // Compara número por número, así cualquier versión vieja ve el aviso (1.0.10 > 1.0.9 y 1.1.0 > 1.0.99)
 const cmpVer=(a,b)=>{const x=String(a).replace(/^v/,'').split('.').map(Number),y=String(b).replace(/^v/,'').split('.').map(Number);
@@ -3046,11 +3084,33 @@ function renderAcct(){
       setAuth(toAuth(await fbAuth('update',{idToken:j.idToken,password:n,returnSecureToken:true})));pf.reset();out('Listo: cambiaste tu contraseña.');}
     catch(er){out(er.code==='WRONG_CURRENT'?'La contraseña actual no es correcta.':authMsg(er));}
     sv.disabled=false;};
+  if(IS_OWNER)el.appendChild(devAdmin());
 }
 /* ---- Menú de pruebas: solo para la cuenta dueña (hash SHA-256 del mail, para no publicarlo) ---- */
 // shortcut: el chequeo es del lado del cliente; alcanza para que no lo vea nadie más, no para impedir que alguien edite el juego
 const DEV_HASHES=['842985e128aa4f898b629990dbe6de9a9ec0236f6a085118d7b7663fa000f796','50caa529cb02eb7ad9a8859013ade86c45443fff34e6c63c26cdb89387991f3c','629f1a623dd34afb2b6a42ea3022bb13050edabd0be0bbefbec058b08e8aeef0'];
-let IS_DEV=false;
+let IS_DEV=false,IS_OWNER=false;
+const sha256=async t=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+// La cuenta dueña (DEV_HASHES[0]) habilita el menú de pruebas a otros mails desde Cuenta: devs/<sha256 del mail> = mail
+let devList=null;
+function devAdmin(){const box=document.createElement('div');box.className='devopt';box.id='devAdmin';
+  const t=document.createElement('div');t.className='dtitle';t.textContent='Menú de pruebas para otras cuentas';
+  const f=document.createElement('form');f.noValidate=true;
+  f.innerHTML='<label for="devMail">Mail de la cuenta</label><input id="devMail" type="email" inputmode="email" autocomplete="off" spellcheck="false"><button class="btn ghost" type="submit" id="devAdd">Habilitar</button><p class="msg" id="devMsg" aria-live="polite"></p>';
+  const list=document.createElement('div');box.append(t,f,list);
+  const out=m=>{f.querySelector('#devMsg').textContent=m;};
+  const draw=()=>{list.innerHTML='';if(!devList){list.textContent='Cargando…';return;}
+    const ks=Object.keys(devList);if(!ks.length){const p_=document.createElement('p');p_.className='hint';p_.textContent='Todavía no habilitaste a nadie.';list.appendChild(p_);}
+    for(const h of ks){const row=document.createElement('div');row.className='btnrow';const sp=document.createElement('span');sp.textContent=devList[h];
+      const q=document.createElement('button');q.className='btn ghost';q.textContent='Quitar';
+      q.onclick=async()=>{q.disabled=true;try{await fbDb('DELETE','devs/'+h,undefined,true);delete devList[h];draw();out('Listo: le sacaste el menú de pruebas.');}catch(e){q.disabled=false;out(e.code==='denied'?'El servidor no lo permite: faltan las reglas de devs/ en Firebase.':'No se pudo quitar. Probá de nuevo.');}};
+      row.append(sp,q);list.appendChild(row);}};
+  f.onsubmit=async e=>{e.preventDefault();const m=f.devMail.value.trim().toLowerCase();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)){out('Escribí un mail válido.');return;}
+    const b=f.querySelector('#devAdd');b.disabled=true;out('Guardando…');
+    try{const h=await sha256(m);await fbDb('PUT','devs/'+h,m,true);devList=devList||{};devList[h]=m;f.reset();draw();out('Listo: '+m+' ve el menú de pruebas la próxima vez que abra el juego.');}
+    catch(er){out(er.code==='denied'?'El servidor no lo permite: faltan las reglas de devs/ en Firebase.':'No se pudo guardar. Probá de nuevo.');}b.disabled=false;};
+  if(!devList)fbDb('GET','devs',undefined,true).then(v=>{devList=v||{};draw();}).catch(()=>{devList={};draw();out('No se pudo leer la lista.');});
+  draw();return box;}
 // El menú de pruebas es una opción de la cuenta dueña: activado, sus partidas no cuentan para la clasificación; desactivado, sí.
 const devActive=()=>IS_DEV&&!!SAVE.devOn;
 function syncDevUi(){$('#modPause').hidden=!devActive();renderCfgDev();}
@@ -3068,7 +3128,8 @@ function renderCfgDev(){const el=$('#cfgDev');if(!el)return;el.hidden=!IS_DEV;el
   if(SAVE.devOn){const md=document.createElement('button');md.className='btn ghost';md.id='modOpen';md.textContent='Abrir menú de pruebas';md.onclick=()=>{modFrom='config';openMod();};box.appendChild(md);}
   el.appendChild(box);}
 async function checkDev(){
-  try{if(!AUTH){IS_DEV=false;syncDevUi();renderAcctIfOpen();return;}const h=([...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(AUTH.email.toLowerCase())))].map(b=>b.toString(16).padStart(2,'0')).join(''));IS_DEV=!!AUTH&&DEV_HASHES.includes(h);}catch(e){IS_DEV=false;}
+  try{if(!AUTH){IS_DEV=false;syncDevUi();renderAcctIfOpen();return;}const h=await sha256(AUTH.email.toLowerCase());IS_OWNER=h===DEV_HASHES[0];IS_DEV=DEV_HASHES.includes(h);
+    if(!IS_DEV&&FB.apiKey)IS_DEV=!!(await fbDb('GET','devs/'+h).catch(()=>null));}catch(e){IS_DEV=false;IS_OWNER=false;}
   syncDevUi();renderAcctIfOpen();}
 const ST_NAMES={dmg:'Daño ×',cd:'Enfriamiento ×',cdRaw:'Enfriamiento base ×',area:'Área ×',spd:'Velocidad ×',projSpd:'Vel. de proyectiles ×',amount:'Proyectiles extra',shield:'Escudo',magnet:'Imán (px)',regen:'Regeneración',armor:'Armadura',crit:'Crítico',leech:'Robo de vida',killHeal:'Cura por baja',evade:'Esquivar',thorns:'Espinas',exec:'Ejecución',slowAura:'Aura lenta',curse:'Maldición',luck:'Suerte',xpMul:'Experiencia ×',coinMul:'Monedas ×',kb:'Empuje ×'};
 const MOD_FLAGS=[['god','Invencible (no recibís daño)'],['infHp','Vida infinita'],['maxDmg','Daño máximo (todo muere de un golpe)'],['noCd','Sin tiempo de espera (habilidad y armas)']];
@@ -3230,7 +3291,7 @@ function renderMenu(){
   const rn=loadRun();$('#contBtn').hidden=!rn;$('#contNote').hidden=!rn;
   if(rn){$('#contBtn').textContent='Continuar · '+CHARS[rn.char].short+' · '+fmt(rn.t);$('#contNote').textContent='Tenés una partida guardada en '+DIFFS[rn.diff].name+'. Si empezás otra, se reemplaza.';}
   $('#tChIc').innerHTML=svg('calaveras','#efe6d2');$('#tArIc').innerHTML=svg('hacha','#ff9b8a');
-  $('#tReIc').innerHTML=svg('reloj','#ffd27a');$('#tHoIc').innerHTML=svg('grimorio','#b38cff');
+  $('#tReIc').innerHTML=svg('reloj','#ffd27a');$('#tHoIc').innerHTML=svg('grimorio','#b38cff');$('#tLgIc').innerHTML=svg('pergamino','#9fd8ff');
   $('#tAcIc').innerHTML=svg('cuenta','#9ad0ff');renderAcctTile();
   $('#tMiIc').innerHTML=svg('mision','#5ee6c4');$('#tMiSub').textContent=MISSIONS.filter(m=>m.prog()>=m.goal).length+' de '+MISSIONS.length+' cumplidas';
   $('#tChSub').textContent=SAVE.unlocked.length+' de '+CH_IDS.length+' desbloqueados';
@@ -3387,6 +3448,9 @@ $('#tShop').addEventListener('click',()=>{initAudio();shopConfirm=null;$('#shopT
 $('#tArsenal').addEventListener('click',()=>{renderArsenal();show('arsenal');$('#arsenal').scrollTop=0;});
 $('#tRecords').addEventListener('click',()=>{renderRecords();show('records');$('#records').scrollTop=0;});
 $('#tHow').addEventListener('click',()=>{renderDiffTables();show('howto');$('#howto').scrollTop=0;});
+$('#tLog').addEventListener('click',()=>{const L=$('#logList');if(!L.childElementCount)for(const[v,d,its]of CHANGELOG){const t=document.createElement('div');t.className='dtitle';t.textContent=(v?'Versión '+v+' · ':'')+d;L.appendChild(t);
+  for(const it of its){const p_=document.createElement('p');p_.textContent='• '+it;L.appendChild(p_);}}show('changelog');$('#changelog').scrollTop=0;});
+$('#relBtn').addEventListener('click',()=>openExt(RELEASES));
 document.querySelectorAll('.backBtn').forEach(b=>{if(b.id!=='mapsBack')b.addEventListener('click',goMenu);});
 $('#startBtn').addEventListener('click',tryStartOrBuy);
 document.querySelectorAll('[data-d]').forEach(b=>b.addEventListener('click',()=>{SAVE.diff=b.dataset.d;persist();sfx('gem');if(!$('#chars').hidden)renderChars();renderMenu();}));
