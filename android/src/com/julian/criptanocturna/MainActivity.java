@@ -1,6 +1,11 @@
 package com.julian.criptanocturna;
 
 import android.app.Activity;
+import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.IntentFilter;
+import android.database.Cursor;
 import android.content.ClipboardManager;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -91,6 +96,45 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void openUrl(String url) {
             if (url.startsWith("https://github.com/")) startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+        }
+
+        // Baja el APK de la versión nueva con DownloadManager y al terminar abre el instalador de Android
+        @JavascriptInterface
+        public boolean downloadApk(String url) {
+            if (!url.startsWith("https://github.com/JulianIbPe/cripta_nocturna/releases/download/") || !url.endsWith(".apk")) return false;
+            try {
+                File old = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "cripta-update.apk");
+                if (old.exists()) old.delete();
+                final DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                DownloadManager.Request r = new DownloadManager.Request(Uri.parse(url))
+                    .setTitle("Cripta Nocturna: versión nueva")
+                    .setMimeType("application/vnd.android.package-archive")
+                    .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
+                    .setDestinationInExternalFilesDir(MainActivity.this, Environment.DIRECTORY_DOWNLOADS, "cripta-update.apk");
+                final long id = dm.enqueue(r);
+                BroadcastReceiver done = new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context c, Intent i) {
+                        if (i.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1) != id) return;
+                        unregisterReceiver(this);
+                        boolean ok = false;
+                        try (Cursor q = dm.query(new DownloadManager.Query().setFilterById(id))) {
+                            ok = q.moveToFirst() && q.getInt(q.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_SUCCESSFUL;
+                        }
+                        Uri apk = ok ? dm.getUriForDownloadedFile(id) : null;
+                        if (apk == null) { web.evaluateJavascript("window.criptaUpdFail&&criptaUpdFail()", null); return; }
+                        // Android pide confirmar (y la primera vez, permitir instalar desde esta app)
+                        startActivity(new Intent(Intent.ACTION_VIEW).setDataAndType(apk, "application/vnd.android.package-archive")
+                            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK));
+                    }
+                };
+                IntentFilter f = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+                if (Build.VERSION.SDK_INT >= 33) registerReceiver(done, f, Context.RECEIVER_EXPORTED);
+                else registerReceiver(done, f);
+                return true;
+            } catch (Exception e) {
+                return false;
+            }
         }
 
         // Lee el texto copiado, para el botón Pegar del código de verificación.

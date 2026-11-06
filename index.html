@@ -2916,6 +2916,7 @@ const APP_VER='dev'; // el workflow lo reemplaza por 1.0.<n> al compilar
 const RELEASES='https://github.com/JulianIbPe/cripta_nocturna/releases/latest';
 // Registro de cambios para todos los jugadores (lo de una sola cuenta, como el menú de pruebas, no va). El más nuevo arriba
 const CHANGELOG=[
+['1.0.55','6 nov',['En el celular, el botón de actualizar baja la versión nueva y abre el instalador, sin pasar por GitHub.']],
 ['1.0.54','6 nov',['La PC trae la partida del celular al volver a la ventana y cada 30 segundos en el menú o en pausa.']],
 ['1.0.53','6 nov',['La partida en curso se comparte entre PC y celular con tu cuenta: queda la que lleva más tiempo vivo.','En PC la partida sigue aunque cambies de ventana o la minimices.','Nueva sección Registro con los cambios de cada versión y acceso a las descargas.']],
 ['1.0.52','6 nov',['Mejor rendimiento a ×10 en partidas largas.','Opción para elegir sola la mejora del medio.']],
@@ -2947,13 +2948,18 @@ function openExt(u){if(window.CriptaApp&&window.CriptaApp.openUrl)window.CriptaA
 const cmpVer=(a,b)=>{const x=String(a).replace(/^v/,'').split('.').map(Number),y=String(b).replace(/^v/,'').split('.').map(Number);
   for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d;}return 0;};
 let updTag=null;
+// En el APK baja el archivo y abre el instalador; si no se puede (o en PC/iPhone), abre la página de Releases
+function getUpdate(){const v=updTag.replace(/^v/,''),b=$('#updLockBtn');
+  if(window.CriptaApp&&window.CriptaApp.downloadApk&&window.CriptaApp.downloadApk('https://github.com/JulianIbPe/cripta_nocturna/releases/download/'+updTag+'/criptanocturna-'+v+'.apk')){
+    b.disabled=true;b.textContent='Descargando… se va a abrir el instalador';}else openExt(RELEASES);}
+window.criptaUpdFail=()=>{const b=$('#updLockBtn');b.disabled=false;b.textContent='Descargar la versión nueva';openExt(RELEASES);};
 async function checkUpdate(){
   if(APP_VER==='dev'||!(window.CriptaApp||/Electron/.test(navigator.userAgent))||updTag)return;
   try{const r=await fetch('https://api.github.com/repos/JulianIbPe/cripta_nocturna/releases/latest');if(!r.ok)return;const j=await r.json();
     if(!j.tag_name||cmpVer(j.tag_name,APP_VER)<=0)return;updTag=j.tag_name;
-    for(const el of document.querySelectorAll('.updbar')){el.querySelector('b').textContent=updTag;el.hidden=false;el.onclick=()=>openExt(RELEASES);}
+    for(const el of document.querySelectorAll('.updbar')){el.querySelector('b').textContent=updTag;el.hidden=false;el.onclick=getUpdate;}
     // Obligatoria: pausa (y guarda) la partida y tapa todo hasta que instalen la versión nueva
-    pause('Actualización obligatoria');$('#updLockTag').textContent=updTag;$('#updLock').hidden=false;$('#updLockBtn').onclick=()=>openExt(RELEASES);setTimeout(()=>{try{$('#updLockBtn').focus();}catch(e){}},50);}catch(e){}}
+    pause('Actualización obligatoria');$('#updLockTag').textContent=updTag;$('#updLock').hidden=false;$('#updLockBtn').onclick=getUpdate;setTimeout(()=>{try{$('#updLockBtn').focus();}catch(e){}},50);}catch(e){}}
 // Si al abrir no había internet o GitHub no respondió, se vuelve a probar
 setInterval(checkUpdate,30*60*1000);window.addEventListener('online',checkUpdate);
 function scheduleCloud(){if(!cloudRef()||cloudState.status==='denied')return;clearTimeout(cloudTimer);cloudTimer=setTimeout(pushCloud,3000);}
