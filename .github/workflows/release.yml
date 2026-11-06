@@ -1,4 +1,4 @@
-# Cada push a main compila el .exe (Windows) y el APK (Android) con la versión 1.0.<número de run>
+# Cada push a main compila el .exe (Windows), el APK (Android) y el .ipa (iOS) con la versión 1.0.<número de run>
 # y los publica juntos en un Release. Las apps comparan su versión con el último Release y avisan si hay una nueva.
 # Secrets necesarios: ANDROID_KEYSTORE_B64 (android/cripta.keystore en base64) y CRIPTA_KS_PASS.
 name: release
@@ -55,8 +55,21 @@ jobs:
           name: apk
           path: CriptaNocturna.apk
 
+  ipa:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compilar .ipa
+        run: |
+          sed -i '' "s/const APP_VER='dev'/const APP_VER='$VERSION'/" index.html
+          VERSION_CODE=$(( ${{ github.run_number }} + 1 )) VERSION_NAME=$VERSION bash ios/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ipa
+          path: CriptaNocturna.ipa
+
   release:
-    needs: [exe, apk]
+    needs: [exe, apk, ipa]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -69,4 +82,5 @@ jobs:
           # Los archivos del Release llevan la versión en el nombre (criptanocturna-1.0.19.apk)
           mv CriptaNocturna.exe "criptanocturna-$VERSION.exe"
           mv CriptaNocturna.apk "criptanocturna-$VERSION.apk"
-          gh release create "v$VERSION" "criptanocturna-$VERSION.exe" "criptanocturna-$VERSION.apk" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Cripta Nocturna v$VERSION" --generate-notes
+          mv CriptaNocturna.ipa "criptanocturna-$VERSION.ipa"
+          gh release create "v$VERSION" "criptanocturna-$VERSION.exe" "criptanocturna-$VERSION.apk" "criptanocturna-$VERSION.ipa" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Cripta Nocturna v$VERSION" --generate-notes

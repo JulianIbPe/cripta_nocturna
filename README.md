@@ -11,7 +11,7 @@ Abrí `index.html` en el navegador (celular o compu). No necesita instalación n
 
 ## Descargar
 
-En [Releases](https://github.com/JulianIbPe/cripta_nocturna/releases/latest) está la última versión para Windows (`criptanocturna-<versión>.exe`, por ejemplo `criptanocturna-1.0.19.exe`; no se instala: se abre directo) y para Android (`criptanocturna-<versión>.apk`). Cada commit a `main` publica una versión nueva y las apps avisan en el menú cuando hay una.
+En [Releases](https://github.com/JulianIbPe/cripta_nocturna/releases/latest) está la última versión para Windows (`criptanocturna-<versión>.exe`, por ejemplo `criptanocturna-1.0.19.exe`; no se instala: se abre directo) para Android (`criptanocturna-<versión>.apk`) y para iPhone y iPad (`criptanocturna-<versión>.ipa`). El .ipa no está firmado con una cuenta de desarrollador de Apple: se instala con [AltStore](https://altstore.io) o [Sideloadly](https://sideloadly.io), que lo firman con tu Apple ID (con un Apple ID gratis, iOS pide volver a firmarlo cada 7 días). Cada commit a `main` publica una versión nueva y las apps avisan en el menú cuando hay una.
 
 ## Qué tiene
 
@@ -37,6 +37,7 @@ La tabla de clasificación usa las cuentas del juego (Firebase): cualquiera la p
 
 ## Compilar
 
+- **.ipa (iOS):** `bash ios/build.sh` en una Mac con Xcode (lo hace el workflow en `macos-latest`). Para agregar el .ipa a un Release que ya existe sin sacar versión nueva, corré el workflow `ios-agregar` desde Actions.
 - **APK:** `bash android/build.sh` (necesita JDK 17 y Android SDK con `platforms;android-34` y `build-tools;34.0.0`; por defecto los busca en `D:\Programas`).
 - **.exe:** `cd desktop && cp ../index.html . && npm install && npm run dist`.
 - **GitHub Actions** (`.github/workflows/release.yml`) compila los dos y publica el Release. Necesita los secrets `ANDROID_KEYSTORE_B64` (el `android/cripta.keystore` en base64) y `CRIPTA_KS_PASS`.

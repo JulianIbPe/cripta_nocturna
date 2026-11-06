@@ -12,7 +12,9 @@ Juego survivors para celular en un solo archivo, `index.html` (HTML + CSS + JS s
 ## Apps
 
 - **APK:** `android/` (WebView sin Gradle, `bash android/build.sh`; JDK y SDK en `D:\Programas\JDK17` y `D:\Programas\AndroidSDK`). El keystore `android/cripta.keystore` no está en git y tiene que ser siempre el mismo.
-- **.exe:** `desktop/` (Electron portable). Cada push a `main` publica los dos en un Release de GitHub.
+- **.exe:** `desktop/` (Electron portable).
+- **.ipa:** `ios/` (WKWebView en Swift sin proyecto de Xcode: `main.swift`, `Info.plist`, `icons/`; `bash ios/build.sh` en macOS con `swiftc`). Sale sin firmar con cuenta de Apple (firma ad-hoc): se instala con AltStore/Sideloadly. Inyecta `window.CriptaApp={openUrl,ios:true}` (sin `readClipboard`, usa `navigator.clipboard`). El workflow `ios-agregar.yml` (a mano) compila el .ipa del commit de un Release que ya existe y lo sube a ese Release sin sacar versión nueva.
+- Cada push a `main` publica los tres (.exe, APK y .ipa) en un Release de GitHub.
 
 ## Estructura del código (todo dentro de un IIFE en el `<script>`)
 

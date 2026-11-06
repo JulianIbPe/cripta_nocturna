@@ -1,0 +1,47 @@
+# Agrega el .ipa (iOS) a un Release que ya existe, sin sacar una versión nueva.
+# Se corre a mano desde Actions (o por la API). Sin tag, usa el último Release.
+# Compila el código del commit de ese Release, así el .ipa es el mismo juego que el .exe y el APK de esa versión.
+name: ios-agregar
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag del Release (por ejemplo v1.0.48). Vacío = el último'
+        required: false
+permissions:
+  contents: write
+jobs:
+  ipa:
+    runs-on: macos-latest
+    steps:
+      - name: Buscar el Release
+        id: rel
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_IN: ${{ inputs.tag }}
+        run: |
+          TAG="${TAG_IN:-$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName -q .tagName)}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.rel.outputs.tag }}
+      - uses: actions/checkout@v4
+        with:
+          path: actual
+      - name: Compilar .ipa
+        env:
+          VERSION: ${{ steps.rel.outputs.version }}
+        run: |
+          # El juego sale del commit del Release; la parte de iOS, de main (en Releases viejos todavía no existía)
+          rm -rf ios && cp -R actual/ios ios
+          sed -i '' "s/const APP_VER='dev'/const APP_VER='$VERSION'/" index.html
+          VERSION_CODE=$(( ${VERSION##*.} + 1 )) VERSION_NAME=$VERSION bash ios/build.sh
+      - name: Subir al Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.rel.outputs.tag }}
+          VERSION: ${{ steps.rel.outputs.version }}
+        run: |
+          mv CriptaNocturna.ipa "criptanocturna-$VERSION.ipa"
+          gh release upload "$TAG" "criptanocturna-$VERSION.ipa" --repo "$GITHUB_REPOSITORY" --clobber
