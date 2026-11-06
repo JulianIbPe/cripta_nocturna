@@ -1601,6 +1601,8 @@ const CELL=48,grid=new Map();
 const gkey=(cx,cy)=>(cx+32768)*65536+(cy+32768);
 function buildGrid(){grid.clear();for(const e of G.enemies){if(e.dead)continue;const k=gkey(Math.floor(e.x/CELL),Math.floor(e.y/CELL));let a=grid.get(k);if(!a){a=[];grid.set(k,a);}a.push(e);}}
 function near(x,y,r,cb){const x0=Math.floor((x-r)/CELL),x1=Math.floor((x+r)/CELL),y0=Math.floor((y-r)/CELL),y1=Math.floor((y+r)/CELL);
+  // Con área enorme el radio cubre miles de celdas vacías: es más rápido recorrer los enemigos directamente
+  if((x1-x0+1)*(y1-y0+1)>G.enemies.length){const m=r+CELL,en=G.enemies;for(let i=0,n=en.length;i<n;i++){const e=en[i];if(!e.dead&&Math.abs(e.x-x)<=m&&Math.abs(e.y-y)<=m)cb(e);}return;}
   for(let cx=x0;cx<=x1;cx++)for(let cy=y0;cy<=y1;cy++){const a=grid.get(gkey(cx,cy));if(a)for(let i=0;i<a.length;i++)cb(a[i]);}}
 
 /* ---------- Spawning ---------- */
@@ -1718,7 +1720,11 @@ function shieldBlock(){const p=G.p;if(!(p.shield>=1))return false;p.shield--;p.i
   if(G.texts.length<60)G.texts.push({x:p.x,y:p.y-18,txt:'Bloqueado',life:.7,heal:true});return true;}
 // Rendimiento (partidas largas con muchos proyectiles extra): las ondas de un disparo son como mucho 5 y los meteoros en el
 // suelo como mucho 25; lo que sobra se suma al daño de los que salen, así el daño total es el mismo con muchos menos objetos
-function pushWaves(o){const n=1+Math.max(0,G.st.amount|0),c=Math.min(n,5),dmg=o.dmg*n/c;for(let i=0;i<c;i++)G.waves.push(Object.assign({},o,{dmg,r:0,hit:new Set(),delay:i*.2}));}
+// Las ondas no pasan de donde puede haber enemigos (con área enorme llegaban a miles de px y duraban segundos) y hay como mucho
+// 12 vivas por arma: las que sobran suman su daño a la más nueva, así con recarga corta no se acumulan cientos
+function pushWaves(o){const n=1+Math.max(0,G.st.amount|0),c=Math.min(n,5),dmg=o.dmg*n/c,src=o.src||'campana',max=Math.min(o.max,(Math.hypot(VW,VH)/2+30)*1.7);
+  let same=0,young=null;for(const v of G.waves)if((v.src||'campana')===src){same++;if(!young||v.r<young.r)young=v;}
+  for(let i=0;i<c;i++){if(young&&same>=12){young.dmg+=dmg;continue;}G.waves.push(Object.assign({},o,{max,dmg,r:0,hit:new Set(),delay:i*.2}));same++;}}
 function addMeteor(m){if(G.meteors.length>=25){const o=G.meteors[(Math.random()*G.meteors.length)|0];o.dmg+=m.dmg;o.R=Math.max(o.R,m.R);return;}G.meteors.push(m);}
 function updateWeapons(dt){
   const p=G.p,st=G.st;
@@ -2526,7 +2532,7 @@ function draw(now){
       ctx.beginPath();ctx.arc(G.p.x,G.p.y,sw.R*.85,a-1.3,a);ctx.stroke();ctx.strokeStyle='rgba(200,190,255,0.25)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(G.p.x,G.p.y,sw.R,0,TAU);ctx.stroke();ctx.lineCap='butt';ctx.globalAlpha=1;}
     for(const bm of G.beams){ctx.save();ctx.translate(bm.x,bm.y);ctx.rotate(bm.a);ctx.globalAlpha=bm.life/.22;ctx.fillStyle=bm.col?hexA(bm.col,.45):'rgba(255,77,109,0.45)';ctx.fillRect(0,-bm.w,bm.len,bm.w*2);
       ctx.fillStyle='#ffe0e6';ctx.fillRect(0,-bm.w*.25,bm.len,bm.w*.5);ctx.restore();ctx.globalAlpha=1;}
-    for(const v of G.waves){if(v.delay>0)continue;ctx.globalAlpha=Math.max(0,1-v.r/v.max);ctx.strokeStyle=v.col||'#ffd27a';ctx.lineWidth=4;ctx.beginPath();ctx.arc(v.x,v.y,v.r,0,TAU);ctx.stroke();ctx.globalAlpha=1;}
+    for(const v of G.waves){if(v.delay>0||v.r>Math.hypot(Math.abs(v.x-G.cam.x)+VW/2,Math.abs(v.y-G.cam.y)+VH/2)+4)continue;ctx.globalAlpha=Math.max(0,1-v.r/v.max);ctx.strokeStyle=v.col||'#ffd27a';ctx.lineWidth=4;ctx.beginPath();ctx.arc(v.x,v.y,v.r,0,TAU);ctx.stroke();ctx.globalAlpha=1;}
     // meteors
     for(const m of G.meteors){const f=Math.min(1,m.t/m.dur);ctx.fillStyle='rgba(0,0,0,'+(0.15+f*.3)+')';ctx.beginPath();ctx.ellipse(m.x,m.y,m.R*f,m.R*f*.5,0,0,TAU);ctx.fill();
       const my=m.y-(1-f)*220,mx=m.x+(1-f)*60;
@@ -2543,10 +2549,13 @@ function draw(now){
       ctx.moveTo(d*8,6);ctx.quadraticCurveTo(d*sl.len*.55,-18,d*sl.len,2);ctx.stroke();
       ctx.strokeStyle='#f3dcff';ctx.lineWidth=1.5;ctx.stroke();ctx.lineCap='butt';ctx.globalAlpha=1;ctx.restore();}
     // lightning
-    for(const b of G.bolts){const a=b.life/.25;
-      ctx.globalAlpha=a;ctx.strokeStyle=b.col||'#ffe27a';ctx.lineWidth=4;ctx.beginPath();b.pts.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.stroke();
-      ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
-      ctx.fillStyle=b.col?hexA(b.col,.3):'rgba(255,226,122,0.3)';ctx.beginPath();ctx.arc(b.x,b.y,b.R*(1.3-a*.3),0,TAU);ctx.fill();ctx.globalAlpha=1;}
+    // Los rayos del mismo color y casi la misma edad se dibujan en un solo trazo (con muchos proyectiles extra eran decenas de cadenas por disparo)
+    {const gb=new Map();for(const b of G.bolts){const a=Math.ceil(b.life/.25*5)/5,k=(b.col||'#ffe27a')+'|'+a;let L=gb.get(k);if(!L)gb.set(k,L=[]);L.push(b);}
+      for(const [k,L] of gb){const col=k.split('|')[0],a=+k.split('|')[1];ctx.globalAlpha=Math.min(1,a);ctx.beginPath();
+        for(const b of L)b.pts.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));
+        ctx.strokeStyle=col;ctx.lineWidth=4;ctx.stroke();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+        ctx.fillStyle=hexA(col,.3);ctx.beginPath();for(const b of L){const r=b.R*(1.3-b.life/.25*.3);if(r>0){ctx.moveTo(b.x+r,b.y);ctx.arc(b.x,b.y,r,0,TAU);}}ctx.fill();}
+      ctx.globalAlpha=1;}
     // ability rings
     for(const r of G.rings){const a=r.life/.45;ctx.globalAlpha=a;ctx.strokeStyle=r.col;ctx.lineWidth=4*a+1;ctx.beginPath();ctx.arc(r.x,r.y,r.r*(1.15-a*.4),0,TAU);ctx.stroke();ctx.globalAlpha=1;}
     }
@@ -2916,6 +2925,7 @@ const APP_VER='dev'; // el workflow lo reemplaza por 1.0.<n> al compilar
 const RELEASES='https://github.com/JulianIbPe/cripta_nocturna/releases/latest';
 // Registro de cambios para todos los jugadores (lo de una sola cuenta, como el menú de pruebas, no va). El más nuevo arriba
 const CHANGELOG=[
+['1.0.57','6 nov',['Las partidas largas con mucha área y muchos proyectiles extra ya no se traban: la Campana, la Nova de escarcha y las demás armas de área se calculan y se dibujan mucho más rápido.']],
 ['1.0.56','6 nov',['En PC, el botón de actualizar baja la versión nueva y el juego se reinicia actualizado.']],
 ['1.0.55','6 nov',['En el celular, el botón de actualizar baja la versión nueva y abre el instalador, sin pasar por GitHub.']],
 ['1.0.54','6 nov',['La PC trae la partida del celular al volver a la ventana y cada 30 segundos en el menú o en pausa.']],
