@@ -4,7 +4,9 @@ const path = require('path');
 
 Menu.setApplicationMenu(null);
 app.whenReady().then(() => {
-  const win = new BrowserWindow({ width: 1280, height: 800, backgroundColor: '#140c1f', title: 'Cripta Nocturna' });
+  const win = new BrowserWindow({ width: 1280, height: 800, backgroundColor: '#140c1f', title: 'Cripta Nocturna',
+    // La partida sigue aunque la ventana esté minimizada o tapada
+    webPreferences: { backgroundThrottling: false } });
   win.loadFile(path.join(__dirname, 'index.html'));
   // El aviso de actualización abre la página de descargas en el navegador
   win.webContents.setWindowOpenHandler(({ url }) => {

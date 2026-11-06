@@ -2103,7 +2103,9 @@ if(!window.CriptaApp&&!/Electron/.test(navigator.userAgent)&&window.history&&his
   window.addEventListener('pointerdown',arm,true);
   window.addEventListener('popstate',()=>{if(goBack())arm();});}
 // Al cambiar de ventana no quedan teclas trabadas y la partida se pausa sola
-window.addEventListener('blur',()=>{keys.clear();joy.active=false;if(state==='play'&&!(G&&G.afk))pause();});
+// En PC (Electron o mouse) la partida sigue aunque la ventana pierda el foco
+const IS_PC=/Electron/.test(navigator.userAgent)||matchMedia('(pointer:fine)').matches;
+window.addEventListener('blur',()=>{keys.clear();joy.active=false;if(state==='play'&&!(G&&G.afk)&&!IS_PC)pause();});
 // Sin menú contextual en el juego, salvo en los campos de texto: ahí es el que trae Pegar al mantener apretado
 window.addEventListener('contextmenu',e=>{if(!(e.target.closest&&e.target.closest('input,textarea')))e.preventDefault();});
 function inputVec(){
@@ -2869,10 +2871,13 @@ async function setUsername(name){
 function cloudRef(){
   if(!FB.apiKey||!AUTH)return null;
   // Realtime Database: saves/<uid> = {at, data}; data va como texto porque la base borra objetos y listas vacías
-  const req=async(method,body)=>{const b=body&&JSON.stringify(body);
-    const r=await fetch(FB.dbUrl+'/saves/'+AUTH.uid+'.json?auth='+encodeURIComponent(await fbToken()),{method,body:b,keepalive:!!b&&b.length<60000});
+  const req=async(method,body,sub)=>{const b=body!==undefined?JSON.stringify(body):undefined;
+    const r=await fetch(FB.dbUrl+'/saves/'+AUTH.uid+(sub||'')+'.json?auth='+encodeURIComponent(await fbToken()),{method,body:b,keepalive:!!b&&b.length<60000});
     if(!r.ok)throw Object.assign(new Error('db'),{code:r.status===401||r.status===403?'denied':'NETWORK'});return r.json();};
-  return{set:d=>req('PUT',{at:d.at,data:JSON.stringify(d.data)}),
+  // PATCH: así no se borra saves/<uid>/run (la partida en curso, texto JSON)
+  return{set:d=>req('PATCH',{at:d.at,data:JSON.stringify(d.data)}),
+    runGet:async()=>{const j=await req('GET',undefined,'/run');try{return j?JSON.parse(j):null;}catch(e){return null;}},
+    runSet:r=>req(r?'PUT':'DELETE',r?JSON.stringify(r):undefined,'/run'),
     get:async()=>{const j=await req('GET');return{exists:!!j,data:()=>({at:+j.at||0,data:JSON.parse(j.data)})};}};}
 const AUTH_ERR={BAD_NAME:'El nombre tiene que tener de 3 a 16 caracteres: letras sin acentos, números, guion o guion bajo.',NAME_TAKEN:'Ese nombre ya lo usa otra cuenta (las mayúsculas no cuentan). Probá con otro.',NAME_RULES:'El servidor todavía no permite elegir nombres de usuario. Probá más tarde.',NAME_FAILED:'No se pudo reservar ese nombre. Probá de nuevo o elegí otro.',INVALID_OOB_CODE:'Ese código no es válido o ya se usó. Tocá Reenviar mail y usá el del último mail.',EXPIRED_OOB_CODE:'Ese código venció. Tocá Reenviar mail y usá el del último mail.',MISSING_OOB_CODE:'Pegá el código o el link del mail.',UNAUTHORIZED_DOMAIN:'El acceso con link de mail todavía no está configurado en el servidor.',EMAIL_EXISTS:'Ya hay una cuenta con ese mail. Iniciá sesión.',INVALID_LOGIN_CREDENTIALS:'Mail o contraseña incorrectos.',INVALID_PASSWORD:'Mail o contraseña incorrectos.',EMAIL_NOT_FOUND:'Mail o contraseña incorrectos.',INVALID_EMAIL:'Ese mail no es válido.',MISSING_PASSWORD:'Escribí tu contraseña.',WEAK_PASSWORD:'La contraseña tiene que tener al menos 6 caracteres.',PASSWORD_DOES_NOT_MEET_REQUIREMENTS:'La contraseña no cumple los requisitos: revisá el largo y mezclá letras y números.',TOO_MANY_ATTEMPTS_TRY_LATER:'Demasiados intentos. Probá de nuevo en unos minutos.',USER_DISABLED:'Esa cuenta está desactivada.',CONFIGURATION_NOT_FOUND:'Las cuentas todavía no están habilitadas en el servidor. Probá más tarde.',OPERATION_NOT_ALLOWED:'Las cuentas todavía no están habilitadas en el servidor. Probá más tarde.'};
 Object.assign(AUTH_ERR,{
@@ -2947,6 +2952,7 @@ async function pullCloud(){
         cloudState={status:'loaded',at:Date.now()};cloudSyncedAt=cloudAt;pickSel=SAVE.sel;if(state==='menu'&&!$('#menu').hidden)renderMenu();}
       else if(localAt>cloudAt)await pushCloud();else{cloudState={status:'ok',at:Date.now()};cloudSyncedAt=cloudAt;}}
     else{linkSave();await pushCloud();}
+    await syncRun(true);
   }catch(e){cloudState.status='error';}
   pulling=false;
   renderAcctIfOpen();
@@ -3389,7 +3395,8 @@ document.querySelectorAll('[data-d]').forEach(b=>b.addEventListener('click',()=>
 const RUN_KEY='cripta-run';let lastRunSave=0;
 function saveRun(){
   if(!G||state==='over'||state==='menu')return;
-  try{const r={v:1,char:G.char,diff:G.diff,map:G.map,t:G.t,kills:G.kills,lvl:G.lvl,xp:G.xp,need:G.need,pending:G.pending,score:G.score,coins:G.coins,crys:G.crys,dawn:G.dawn,
+  try{G.rid=G.rid||Date.now().toString(36)+Math.random().toString(36).slice(2,8);runDirty=true;
+    const r={v:1,rid:G.rid,char:G.char,diff:G.diff,map:G.map,t:G.t,kills:G.kills,lvl:G.lvl,xp:G.xp,need:G.need,pending:G.pending,score:G.score,coins:G.coins,crys:G.crys,dawn:G.dawn,
     p:{x:G.p.x,y:G.p.y,hp:G.p.hp,maxHp:G.p.maxHp,fx:G.p.fx,fy:G.p.fy,shield:G.p.shield|0,shT:G.p.shT||0},st:G.st,weapons:G.weapons.map(w=>({id:w.id,lvl:w.lvl})),passives:G.passives,wMult:G.wMult,wLv:G.wLv,
     banned:[...G.banned],charges:G.charges,elites:G.elites,nextBoss:G.nextBoss,bosses:G.bosses,bossCycle:G.bossCycle,mBoss:G.mBoss|0,bossesKilled:G.bossesKilled,killsBy:G.killsBy,bombsUsed:G.bombsUsed,nextElite:G.nextElite,nextSwarm:G.nextSwarm,swarms:G.swarms,warned:G.warned,elitesKilled:G.elitesKilled,
     dmgBy:G.dmgBy,chaosLog:G.chaosLog,afk:!!G.afk,relics:G.relics,chestQ:G.chestQ|0,chestsOpened:G.chestsOpened|0,mod:!!G.mod,god:!!G.god,infHp:!!G.infHp,maxDmg:!!G.maxDmg,noCd:!!G.noCd,killN:G.killN,lastMult:G.lastMult,abcd:G.ab.cd,abMul:G.abMul,
@@ -3398,7 +3405,27 @@ function saveRun(){
     crysArr:G.crysArr.map(c=>[Math.round(c.x),Math.round(c.y)]),items:G.items.map(i=>[Math.round(i.x),Math.round(i.y),i.kind])};
     localStorage.setItem(RUN_KEY,JSON.stringify(r));}catch(e){}
 }
-function clearRun(){try{localStorage.removeItem(RUN_KEY);}catch(e){}}
+// Una partida que terminó o se reemplazó queda en SAVE.ended, así no vuelve desde la nube ni desde otro dispositivo
+function clearRun(){const r=loadRun(),id=(r&&r.rid)||(G&&G.rid);try{localStorage.removeItem(RUN_KEY);}catch(e){}
+  if(id){SAVE.ended=[id,...(SAVE.ended||[]).filter(x=>x!==id)].slice(0,30);runDirty=true;persist();}}
+// Partida compartida entre dispositivos (saves/<uid>/run): queda la que lleva más tiempo vivo.
+// get=true la lee de la nube; si no, usa la última que se vio (al cerrar no hay tiempo de leer)
+let runDirty=false,cloudRun=null;
+async function syncRun(get){
+  const ref=cloudRef();if(!ref||!saveIsMine())return;
+  if(get)cloudRun=await ref.runGet();
+  const ended=new Set(SAVE.ended||[]),gone=cloudRun&&ended.has(cloudRun.rid);let local=loadRun();
+  if(local&&ended.has(local.rid)){if(state==='menu'){try{localStorage.removeItem(RUN_KEY);}catch(e){}renderMenu();}local=null;}
+  const cr=gone?null:cloudRun,playing=G&&state!=='menu'&&state!=='paused';
+  if(cr&&(!local||cr.t>local.t)){
+    // La de la nube es más larga: reemplaza la de acá si no se está jugando (en pausa se recarga)
+    if(playing||!CHARS[cr.char]||!DIFFS[cr.diff])return;
+    try{localStorage.setItem(RUN_KEY,JSON.stringify(cr));}catch(e){return;}runDirty=false;
+    if(state==='paused'&&G)resumeRun();else if(state==='menu'&&!$('#menu').hidden)renderMenu();return;}
+  runDirty=false;
+  if(local&&(!cr||cr.rid!==local.rid||local.t>cr.t)){await ref.runSet(local);cloudRun=local;}
+  else if(gone){await ref.runSet(null);cloudRun=null;}
+}
 // Reiniciar todo: progreso nuevo (gana en la nube por savedAt más nuevo), sin partida guardada y sin puntaje en la clasificación. Pide dos toques
 let resetArmT=null;
 $('#resetAll').addEventListener('click',async()=>{const b=$('#resetAll');
@@ -3421,7 +3448,7 @@ function resumeRun(){
   G.coinsArr=(r.coinsArr||[]).map(a=>({x:a[0],y:a[1],v:a[2]||1,sp:0,fly:false}));G.crysArr=(r.crysArr||[]).map(a=>({x:a[0],y:a[1],sp:0,fly:false}));
   G.items=(r.items||[]).map(a=>({x:a[0],y:a[1],kind:a[2]}));
   G.cam.x=G.p.x;G.cam.y=G.p.y;lastRunSave=G.t;hudCache={};
-  G.chaosLog=r.chaosLog||[];G.relics={};for(const k in r.relics||{})if(RELICS[k])G.relics[k]=r.relics[k]|0;G.chestQ=r.chestQ|0;G.chestsOpened=r.chestsOpened|0;G.afk=!!r.afk;G.mod=G.mod||!!r.mod;G.god=!!r.god;G.infHp=!!r.infHp;G.maxDmg=!!r.maxDmg;G.noCd=!!r.noCd;
+  G.chaosLog=r.chaosLog||[];G.relics={};for(const k in r.relics||{})if(RELICS[k])G.relics[k]=r.relics[k]|0;G.chestQ=r.chestQ|0;G.chestsOpened=r.chestsOpened|0;G.rid=r.rid;G.afk=!!r.afk;G.mod=G.mod||!!r.mod;G.god=!!r.god;G.infHp=!!r.infHp;G.maxDmg=!!r.maxDmg;G.noCd=!!r.noCd;
   state='paused';syncRes();joy.active=false;$('#inv').innerHTML=invHtml();$('#statgrid').innerHTML=statsHtml();chaosLogRender();show('pause');
 }
 function start(ch){clearRun();$('#relNotes').innerHTML='';initAudio();newGame(ch,SAVE.diff);lastRunSave=0;hudCache={};state='play';syncRes();show(null);last=performance.now();renderAfk();
@@ -3510,7 +3537,8 @@ $('#stickSeg').addEventListener('click',e=>{const b=e.target.closest('button');i
 $('#modeSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setStickMode(b.dataset.m);});
 setStickMode(stickMode);
 $('#soundPause').addEventListener('click',()=>setMuted(!muted));
-document.addEventListener('visibilitychange',()=>{if(document.hidden){if(state==='play'&&!(G&&G.afk))pause();else saveRun();}});
+// Electron sigue corriendo minimizado (backgroundThrottling:false); el navegador frena las pestañas ocultas, así que ahí se pausa
+document.addEventListener('visibilitychange',()=>{if(document.hidden){if(state==='play'&&!(G&&G.afk)&&!/Electron/.test(navigator.userAgent))pause();else saveRun();}});
 window.addEventListener('pagehide',saveRun);
 $('#contBtn').addEventListener('click',resumeRun);
 $('#modPause').addEventListener('click',openMod);
@@ -3521,9 +3549,10 @@ initOnline();pullCloud();checkUpdate();checkDev();loadUsername();
 // Sin conexión se juega igual; al volver internet se sincroniza (gana el progreso más nuevo)
 window.addEventListener('online',()=>{if(cloudState.status==='error'||cloudState.status==='idle')pullCloud();});
 setInterval(()=>{if(!cloudRef()||cloudState.status==='denied'||cloudState.status==='saving')return;
-  if(cloudState.status==='error'||cloudState.status==='idle')pullCloud();else if(cloudDirty())pushCloud();flushScore();},30000);
-const flushCloud=()=>{if(cloudRef()&&cloudState.status!=='denied'&&cloudDirty())pushCloud();};
-document.addEventListener('visibilitychange',()=>{if(document.hidden)flushCloud();});
+  if(cloudState.status==='error'||cloudState.status==='idle')pullCloud();else{if(cloudDirty())pushCloud();if(runDirty&&!pulling)syncRun(true).catch(()=>{});}flushScore();},30000);
+const flushCloud=()=>{if(cloudRef()&&cloudState.status!=='denied'){if(cloudDirty())pushCloud();if(runDirty)syncRun(false).catch(()=>{});}};
+// Al volver a la app se trae lo del otro dispositivo (progreso y partida), salvo en medio de una partida
+document.addEventListener('visibilitychange',()=>{if(document.hidden)flushCloud();else if(state!=='play'&&cloudState.status!=='denied'&&cloudState.status!=='saving'&&!pulling)pullCloud();});
 window.addEventListener('pagehide',flushCloud);
 
 /* ---------- Loop ---------- */
