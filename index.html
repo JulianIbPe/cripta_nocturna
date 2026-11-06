@@ -1261,13 +1261,11 @@ const BUFFS={
   imanbuff:{name:'Bolsillo magnético',short:'Imán',icon:'iman',coin:[800,1600,3000,5000,8000],gem:[30,55],
     desc:'+10% de radio de atracción de almas, monedas y gemas por cada nivel.'},
   cofres:{name:'Ojo del saqueador',short:'Cofres',icon:'cofre',coin:[2000,4000,7000,11000,16000],gem:[60,110],
-    desc:'+15% de probabilidad de que los enemigos suelten cofres por cada nivel.'},
+    desc:'+1% de probabilidad de que los enemigos suelten cofres por cada nivel.'},
   suerte:{name:'Pata de conejo',short:'Suerte',icon:'trebol',gemOnly:[25,45,70,100,140],
     desc:'+6% de suerte por cada nivel: más mejoras y reliquias de rareza alta.'},
   herencia:{name:'Herencia del cazador',short:'Herencia',icon:'grimorio',gemOnly:[120,300],
     desc:'Tu arma inicial arranca un nivel más alta por cada nivel.'},
-  revivir:{name:'Segunda vida',short:'Revivir',icon:'corazon',gemOnly:[150,400],
-    desc:'Al morir revivís con la mitad de la vida y 3 segundos invulnerable. +1 vez por partida en cada nivel.'},
 };
 const buffMax=id=>{const B=BUFFS[id];return B.gemOnly?B.gemOnly.length:B.coin.length+(B.gem||[]).length;};
 function buffNext(id){const B=BUFFS[id],lv=SAVE.buffs[id]|0;
@@ -1497,7 +1495,7 @@ function newGame(ch,df,mp){
   const cl=SAVE.charLv[ch]|0;G.st.dmg+=.1*cl;G.p.maxHp+=10*cl;G.p.hp+=10*cl;G.abMul=Math.max(.4,1-.08*cl);if(cl&&c.grow)c.grow.f(G,cl);
   G.wLv[c.weapon]=1;
   G.charges={roll:SAVE.buffs.roll|0,ban:SAVE.buffs.ban|0,skip:SAVE.buffs.skip|0};
-  {const B=SAVE.buffs;G.st.magnet*=1+.1*(B.imanbuff|0);G.st.luck+=.06*(B.suerte|0);G.revives=B.revivir|0;
+  {const B=SAVE.buffs;G.st.magnet*=1+.1*(B.imanbuff|0);G.st.luck+=.06*(B.suerte|0);
     const hl=B.herencia|0;if(hl){const w=G.weapons.find(x=>x.id===c.weapon);if(w){w.lvl+=hl;G.wLv[w.id]=w.lvl;}}}
   // Mapa: cambia el suelo y multiplica vida, daño y velocidad de enemigos y el botín (mapMul)
   G.st.xpMul+=MAPS[G.map].mods.xp||0;
@@ -1593,7 +1591,7 @@ function hurt(e,base,kx,ky,src){
     else if(Math.random()<.0015*(DIFFS[G.diff].gem||DIFFS[G.diff].coin)*mapMul('gem')*(1+.05*(SAVE.buffs.gemspawn|0)))G.crysArr.push({x:e.x-4,y:e.y-4,sp:0,fly:false});
     if(st.killHeal){G.killN++;if(G.killN%25===0){G.p.hp=Math.min(G.p.maxHp,G.p.hp+st.killHeal);G.texts.push({x:G.p.x,y:G.p.y-20,txt:'+'+st.killHeal,life:.8,heal:true});}}
     // Los jefes siempre dan un cofre y se abre solo (no hace falta ir a buscarlo); cualquier otro enemigo lo suelta con muy poca chance (no depende de la suerte)
-    if(e.boss)G.chestQ=(G.chestQ|0)+1;else if(e.type==='pumpkin')G.items.push({x:e.x-18,y:e.y+10,kind:'chest'});else if(Math.random()<CHEST_CHANCE*(1+.15*(SAVE.buffs.cofres|0))/(1+G.t/300))G.items.push({x:e.x,y:e.y,kind:'chest'});
+    if(e.boss)G.chestQ=(G.chestQ|0)+1;else if(e.type==='pumpkin')G.items.push({x:e.x-18,y:e.y+10,kind:'chest'});else if(Math.random()<CHEST_CHANCE*(1+.01*(SAVE.buffs.cofres|0))/(1+G.t/300))G.items.push({x:e.x,y:e.y,kind:'chest'});
     if(e.boss){G.bossesKilled++;dropItem(e.x+18,e.y,'heal');dropItem(e.x-18,e.y,'vacuum');G.shake=.5;banner(ETYPES[e.type].name+' derrotado');}
     else if(e.elite){G.elitesKilled++;if(Math.random()<.5)dropItem(e.x+14,e.y,'heal');dropItem(e.x-14,e.y,'vacuum');G.shake=.35;}
     else{const r=Math.random();
@@ -2043,12 +2041,12 @@ function update(dt){
     else if(p.inv<=0&&d<e.r+p.r-2){
       const dmg=Math.max(1,Math.round(e.dmg-st.armor));if(!G.god)p.hp-=dmg;if(st.thorns)hurt(e,st.thorns,-dx/d*150,-dy/d*150);p.inv=.45;G.shake=.18;sfx('hurt');
       if(G.texts.length<60)G.texts.push({x:p.x,y:p.y-18,txt:'-'+dmg,life:.7,hurt:true});
-      if(p.hp<=0&&!G.infHp&&!tryRevive()){gameOver();return;}
+      if(p.hp<=0&&!G.infHp){gameOver();return;}
     }
   }
   for(const sl of G.slams){sl.t+=dt;if(sl.t>=sl.dur&&!sl.done){sl.done=true;G.shake=Math.max(G.shake,.35);sfx('boss');
       if(Math.hypot(p.x-sl.x,p.y-sl.y)<sl.R&&p.inv<=0&&!shieldBlock()){const dmg=Math.max(1,Math.round(sl.dmg-st.armor));if(!G.god)p.hp-=dmg;p.inv=.45;sfx('hurt');
-        if(G.texts.length<60)G.texts.push({x:p.x,y:p.y-18,txt:'-'+dmg,life:.7,hurt:true});if(p.hp<=0&&!G.infHp&&!tryRevive()){gameOver();return;}}}}
+        if(G.texts.length<60)G.texts.push({x:p.x,y:p.y-18,txt:'-'+dmg,life:.7,hurt:true});if(p.hp<=0&&!G.infHp){gameOver();return;}}}}
   G.slams=G.slams.filter(sl=>!sl.done);
   updateWeapons(dt);
   for(const tm of G.timers){tm.t-=dt;if(tm.t<=0&&!tm.done){tm.done=true;tm.fn();}}
@@ -2672,7 +2670,8 @@ function loadSave(){let sv=null;try{sv=JSON.parse(localStorage.getItem(SAVE_KEY)
 function normalizeSave(sv){
   if(!sv||typeof sv!=='object'){sv={coins:0,unlocked:['sepulturero'],sel:'sepulturero',best:null};try{const b=JSON.parse(localStorage.getItem('cripta-best')||'null');if(b)sv.best=b;}catch(e){}}
   if(!Array.isArray(sv.unlocked))sv.unlocked=[];if(!sv.unlocked.includes('sepulturero'))sv.unlocked.push('sepulturero');
-  if(!CHARS[sv.sel])sv.sel='sepulturero';if(!DIFFS[sv.diff])sv.diff='facil';if(!sv.life||typeof sv.life!=='object')sv.life={runs:0,kills:0,time:0,coins:0,dawns:0};if(!sv.bestBy||typeof sv.bestBy!=='object'){sv.bestBy={};if(sv.best)sv.bestBy.facil=sv.best;}sv.coins=sv.coins|0;sv.gems=sv.gems|0;if(!sv.buffs||typeof sv.buffs!=='object')sv.buffs={};if(!sv.charLv||typeof sv.charLv!=='object')sv.charLv={};for(const k in BUFFS)sv.buffs[k]=Math.max(0,sv.buffs[k]|0);if(!Array.isArray(sv.maps))sv.maps=[];sv.maps=sv.maps.filter(k=>MAPS[k]&&k!=='cripta');if(!MAPS[sv.map]||(sv.map!=='cripta'&&!sv.maps.includes(sv.map)))sv.map='cripta';if(typeof sv.life.gems!=='number')sv.life.gems=0;return sv;}
+  if(!CHARS[sv.sel])sv.sel='sepulturero';if(!DIFFS[sv.diff])sv.diff='facil';if(!sv.life||typeof sv.life!=='object')sv.life={runs:0,kills:0,time:0,coins:0,dawns:0};if(!sv.bestBy||typeof sv.bestBy!=='object'){sv.bestBy={};if(sv.best)sv.bestBy.facil=sv.best;}sv.coins=sv.coins|0;sv.gems=sv.gems|0;if(!sv.buffs||typeof sv.buffs!=='object')sv.buffs={};if(!sv.charLv||typeof sv.charLv!=='object')sv.charLv={};if((sv.buffs.revivir|0)>0){sv.gems=(sv.gems|0)+[0,150,550][Math.min(2,sv.buffs.revivir|0)];}delete sv.buffs.revivir; // Segunda vida se sacó de la tienda: se devuelven las gemas
+  for(const k in BUFFS)sv.buffs[k]=Math.max(0,sv.buffs[k]|0);if(!Array.isArray(sv.maps))sv.maps=[];sv.maps=sv.maps.filter(k=>MAPS[k]&&k!=='cripta');if(!MAPS[sv.map]||(sv.map!=='cripta'&&!sv.maps.includes(sv.map)))sv.map='cripta';if(typeof sv.life.gems!=='number')sv.life.gems=0;return sv;}
 let SAVE=loadSave();
 function persist(){SAVE.savedAt=Date.now();try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE));}catch(e){}scheduleCloud();}
 /* ---- Account: cloud save (Firebase, mail y contraseña por REST) + file backup ---- */
@@ -3227,7 +3226,7 @@ document.querySelectorAll('[data-d]').forEach(b=>b.addEventListener('click',()=>
 const RUN_KEY='cripta-run';let lastRunSave=0;
 function saveRun(){
   if(!G||state==='over'||state==='menu')return;
-  try{const r={v:1,char:G.char,diff:G.diff,map:G.map,revives:G.revives|0,t:G.t,kills:G.kills,lvl:G.lvl,xp:G.xp,need:G.need,pending:G.pending,score:G.score,coins:G.coins,crys:G.crys,dawn:G.dawn,
+  try{const r={v:1,char:G.char,diff:G.diff,map:G.map,t:G.t,kills:G.kills,lvl:G.lvl,xp:G.xp,need:G.need,pending:G.pending,score:G.score,coins:G.coins,crys:G.crys,dawn:G.dawn,
     p:{x:G.p.x,y:G.p.y,hp:G.p.hp,maxHp:G.p.maxHp,fx:G.p.fx,fy:G.p.fy,shield:G.p.shield|0,shT:G.p.shT||0},st:G.st,weapons:G.weapons.map(w=>({id:w.id,lvl:w.lvl})),passives:G.passives,wMult:G.wMult,wLv:G.wLv,
     banned:[...G.banned],charges:G.charges,elites:G.elites,nextBoss:G.nextBoss,bosses:G.bosses,bossCycle:G.bossCycle,mBoss:G.mBoss|0,bossesKilled:G.bossesKilled,killsBy:G.killsBy,bombsUsed:G.bombsUsed,nextElite:G.nextElite,nextSwarm:G.nextSwarm,swarms:G.swarms,warned:G.warned,elitesKilled:G.elitesKilled,
     dmgBy:G.dmgBy,chaosLog:G.chaosLog,afk:!!G.afk,relics:G.relics,chestQ:G.chestQ|0,chestsOpened:G.chestsOpened|0,mod:!!G.mod,god:!!G.god,infHp:!!G.infHp,maxDmg:!!G.maxDmg,noCd:!!G.noCd,killN:G.killN,lastMult:G.lastMult,abcd:G.ab.cd,abMul:G.abMul,
@@ -3248,7 +3247,7 @@ $('#resetAll').addEventListener('click',async()=>{const b=$('#resetAll');
   $('#acctToast').textContent=msg;renderMenu();});
 function loadRun(){try{const r=JSON.parse(localStorage.getItem(RUN_KEY)||'null');return r&&r.v===1&&CHARS[r.char]&&DIFFS[r.diff]?r:null;}catch(e){return null;}}
 function resumeRun(){
-  const r=loadRun();if(!r)return;initAudio();newGame(r.char,r.diff,r.map||'cripta');if(r.revives!==undefined)G.revives=r.revives|0;
+  const r=loadRun();if(!r)return;initAudio();newGame(r.char,r.diff,r.map||'cripta');
   Object.assign(G,{t:r.t,kills:r.kills,lvl:r.lvl,xp:r.xp,need:r.need,pending:r.pending|0,score:r.score,coins:r.coins,crys:r.crys|0,dawn:!!r.dawn,elites:r.elites|0,
     nextBoss:r.nextBoss||Math.max(300,Math.ceil((r.t+1)/300)*300),bosses:r.bosses|0,bossCycle:r.bossCycle|0,mBoss:r.mBoss!==undefined?r.mBoss|0:MILE_BOSSES.filter(m=>m[0]*60<=r.t).length,bossesKilled:r.bossesKilled|0,killsBy:r.killsBy||{},bombsUsed:r.bombsUsed|0,nextElite:r.nextElite,nextSwarm:r.nextSwarm,swarms:r.swarms|0,warned:!!r.warned,elitesKilled:r.elitesKilled|0,dmgBy:r.dmgBy||{},killN:r.killN|0,lastMult:r.lastMult,
     wMult:r.wMult||{},wLv:r.wLv||{},passives:r.passives||{},charges:r.charges||G.charges,abMul:r.abMul||G.abMul});
@@ -3268,9 +3267,6 @@ function pause(why){if(state!=='play'&&state!=='levelup'&&state!=='chest')return
 function resume(){const s=G&&G.pauseFrom;if(G)G.pauseFrom=null;if(s==='levelup'){state='levelup';renderLevelUp(false);show('levelup');}else if(s==='chest'){state='chest';show('chest');}else{state='play';show(null);}last=performance.now();renderAfk();}
 function renderAfk(){const b=$('#afkBtn');if(b&&G)b.setAttribute('aria-pressed',String(!!G.afk));}
 function toggleAfk(){if(!G||(state!=='play'&&state!=='levelup'&&state!=='chest'))return;G.afk=!G.afk;renderAfk();sfx('gem');banner(G.afk?'AFK activado: la experiencia y los cofres se guardan':'AFK desactivado');}
-// Segunda vida (tienda): revivís con la mitad de la vida, 3 s invulnerable y una onda que empuja todo
-function tryRevive(){if(!G||!(G.revives>0))return false;G.revives--;const p=G.p;p.hp=Math.max(1,p.maxHp*.5);p.inv=3;
-  blast(140*G.st.area,30,600);ring(p.x,p.y,140,'#ffd27a');ring(p.x,p.y,90,'#e2435a');banner('¡Segunda vida!'+(G.revives?' Te queda'+(G.revives>1?'n '+G.revives:' 1'):''));sfx('heal');G.shake=.3;return true;}
 function gameOver(){
   state='over';clearRun();joy.active=false;
   const DF=DIFFS[G.diff],timeBonus=Math.floor(G.t/30),dawnBonus=G.dawn?50:0,base=G.coins+timeBonus+dawnBonus,diffBonus=Math.round(base*(DF.coin*mapMul('coin')-1)),earned=base+diffBonus;
