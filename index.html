@@ -804,7 +804,7 @@ const WDEF={
     up:['Dispara al enemigo más cercano.','+1 proyectil','+5 de daño y recarga más rápida','Atraviesa 1 enemigo más','+1 proyectil y +5 de daño'],
     dmg:[10,10,15,15,20],cd:[0.95,0.9,0.8,0.75,0.65],n:[1,2,2,2,3],pierce:[0,0,0,1,1]},
   daga:{name:'Daga plateada',col:'#cfd6ff',
-    up:['Lanza dagas hacia donde caminás.','+3 de daño','+1 daga y recarga más rápida','Atraviesa 1 más y +4 de daño','+1 daga y +4 de daño'],
+    up:['Lanza dagas hacia el enemigo más cercano.','+3 de daño','+1 daga y recarga más rápida','Atraviesa 1 más y +4 de daño','+1 daga y +4 de daño'],
     dmg:[9,12,12,16,20],cd:[0.8,0.75,0.62,0.62,0.52],n:[1,1,2,2,3],pierce:[1,1,1,2,2]},
   incienso:{name:'Incienso de cripta',col:'#b38cff',
     up:['Quema a los enemigos que te rodean. La velocidad de ataque hace que queme más seguido.','Más radio, daño y quema más rápido','+2 de daño y quema más rápido','Más radio y quema más rápido','Más radio, +3 de daño y quema más rápido'],
@@ -822,7 +822,7 @@ const WDEF={
     up:['Lanza hachas en arco que atraviesan todo.','+10 de daño','+1 hacha','+10 de daño','+1 hacha y +10 de daño'],
     dmg:[20,30,30,40,50],cd:[1.4,1.35,1.3,1.2,1.1],n:[1,1,2,2,3]},
   latigo:{name:'Látigo de espinas',col:'#d06bff',
-    up:['Azota de golpe hacia donde mirás.','También azota hacia atrás','+6 de daño y más largo','+6 de daño','Más largo y +8 de daño'],
+    up:['Azota de golpe hacia el enemigo más cercano.','También azota hacia atrás','+6 de daño y más largo','+6 de daño','Más largo y +8 de daño'],
     dmg:[14,14,20,26,34],cd:[1.3,1.3,1.2,1.1,1],len:[80,80,95,95,115],both:[false,true,true,true,true]},
   cruz:{name:'Cruz bumerán',col:'#f4f0d0',
     up:['Va hacia el enemigo más cercano y vuelve.','+1 cruz','+8 de daño','Más rápida y +8 de daño','+1 cruz'],
@@ -878,7 +878,7 @@ const WDEF={
     up:['Arroja cráneos que explotan donde caen.','+10 de daño','+1 cráneo y explosión más grande','+12 de daño y recarga más rápida','+1 cráneo y +15 de daño'],
     dmg:[28,38,38,50,65],cd:[2.2,2.1,2,1.8,1.7],n:[1,1,2,2,3],r:[36,36,44,44,50]},
   remolino:{name:'Remolino de cenizas',col:'#a79fc4',
-    up:['Lanza un remolino lento hacia donde mirás que lastima una y otra vez a todo lo que atrapa.','+4 de daño','Remolino más grande y dura más','+1 remolino y +4 de daño','+1 remolino, más grande y +6 de daño'],
+    up:['Lanza un remolino lento hacia el enemigo más cercano que lastima una y otra vez a todo lo que atrapa.','+4 de daño','Remolino más grande y dura más','+1 remolino y +4 de daño','+1 remolino, más grande y +6 de daño'],
     dmg:[8,12,12,16,22],cd:[2.6,2.5,2.4,2.2,2],n:[1,1,1,2,3],r:[20,20,26,26,32],life:[2.2,2.2,2.8,2.8,3.2]},
   cetro:{name:'Cetro de sangre',col:'#e2435a',
     up:['Un rayo de sangre atraviesa en línea al enemigo más cercano y te cura por cada enemigo que toca.','+6 de daño','+1 rayo','+8 de daño y recarga más rápida','+1 rayo y cura el doble'],
@@ -889,7 +889,7 @@ const WDEF={
     up:['Descarga rayos sobre los enemigos más cercanos y los empuja.','+8 de daño','+1 rayo y recarga más rápida','+10 de daño y más área','+1 rayo y +12 de daño'],
     dmg:[22,30,30,40,52],cd:[1.5,1.4,1.3,1.2,1.05],n:[1,1,2,2,3],splash:[34,34,40,44,50]},
   hojas:{name:'Hojas de arce',col:'#7be08a',excl:'kitsune',
-    up:['Lanza un abanico de hojas filosas hacia donde mirás.','+2 de daño y atraviesan 1 enemigo','+1 hoja y recarga más rápida','+1 hoja y +3 de daño','+1 hoja, atraviesan 1 más y +3 de daño'],
+    up:['Lanza un abanico de hojas filosas hacia el enemigo más cercano.','+2 de daño y atraviesan 1 enemigo','+1 hoja y recarga más rápida','+1 hoja y +3 de daño','+1 hoja, atraviesan 1 más y +3 de daño'],
     dmg:[8,10,10,13,16],cd:[.9,.85,.75,.7,.6],n:[3,3,4,5,6],pierce:[0,1,1,1,2]},
   lanzahielo:{name:'Lanzas de hielo',col:'#bfe8ff',excl:'lich',
     up:['Dispara lanzas de hielo que atraviesan y frenan a los enemigos. Cada golpe tiene 2% de chance de congelar 1 segundo.','+1 lanza','Atraviesan 1 más y frenan más','+1 lanza y +6 de daño','Atraviesan 1 más, frenan más y +6 de daño'],
@@ -898,7 +898,7 @@ const WDEF={
     up:['Un halo de luz sale de vos seguido y empuja a los enemigos. Cada proyectil extra suma otra onda detrás.','+4 de daño','Halo más grande y más seguido','+4 de daño y más seguido','Halo enorme y +6 de daño'],
     dmg:[10,14,14,18,24],cd:[1.6,1.5,1.4,1.3,1.1],R:[90,95,105,115,130]},
   grieta:{name:'Grieta sísmica',col:'#c9a27a',excl:'golem',
-    up:['Abre una grieta en línea recta hacia donde mirás.','+8 de daño','Grieta más larga y ancha','+12 de daño y recarga más rápida','Grieta enorme y +14 de daño'],
+    up:['Abre una grieta en línea recta hacia el enemigo más cercano.','+8 de daño','Grieta más larga y ancha','+12 de daño y recarga más rápida','Grieta enorme y +14 de daño'],
     dmg:[26,34,34,46,60],cd:[2,1.9,1.8,1.6,1.5],len:[180,200,220,240,280],w:[14,14,16,18,20]},
   hoces:{name:'Hoces gemelas',col:'#ff6b8a',excl:'parca',
     up:['Lanza hoces que van hacia los enemigos y vuelven a vos.','+4 de daño','Más rápidas y +4 de daño','+1 hoz y recarga más rápida','+1 hoz, más rápidas y +8 de daño'],
@@ -932,7 +932,7 @@ const WDEF={
     up:['Suelta almas en pena que salen girando en espiral y atraviesan a los enemigos.','+1 espectro','+4 de daño y atraviesan 1 más','+1 espectro y recarga más rápida','+2 espectros y +6 de daño'],
     dmg:[9,9,13,13,19],cd:[1.3,1.25,1.2,1.05,.95],n:[3,4,4,5,7],pierce:[1,1,2,2,2]},
   grito:{name:'Grito desgarrador',col:'#9ad0ff',excl:'banshee',
-    up:['Un grito en abanico hacia donde mirás: daña, empuja lejos y frena a los enemigos.','+8 de daño','Abanico más ancho y largo','+10 de daño y recarga más rápida','Grito enorme, frena más y +12 de daño'],
+    up:['Un grito en abanico hacia el enemigo más cercano: daña, empuja lejos y frena a los enemigos.','+8 de daño','Abanico más ancho y largo','+10 de daño y recarga más rápida','Grito enorme, frena más y +12 de daño'],
     dmg:[18,26,26,36,48],cd:[2.2,2.1,2,1.8,1.6],len:[150,150,180,190,220],rays:[3,3,5,5,7],slow:[1,1,1.2,1.2,2]},
   cartas:{name:'Cartas del destino',col:'#e8c8ff',excl:'vidente',
     up:['Lanza cartas filosas en cruz que van girando con cada tirada y atraviesan enemigos.','+3 de daño','+2 cartas','+4 de daño, atraviesan 1 más y recarga más rápida','+2 cartas y +5 de daño'],
@@ -941,7 +941,7 @@ const WDEF={
     up:['Cada giro sale algo distinto: rayos sobre los enemigos, una onda que te rodea o una lluvia de estrellas.','+8 de daño','+1 rayo o estrella y onda más grande','+10 de daño y gira más seguido','+2 rayos o estrellas y +12 de daño'],
     dmg:[20,28,28,38,50],cd:[2.4,2.3,2.2,1.9,1.8],n:[2,2,3,3,5],R:[110,110,130,130,150]},
   garras:{name:'Garras infernales',col:'#ff5a3d',excl:'demonio',
-    up:['Zarpazos de fuego hacia adelante, uno de cada lado, que destrozan lo que tengas cerca.','+6 de daño','Zarpazos más largos','+8 de daño y más seguido','Zarpazos enormes y +10 de daño'],
+    up:['Zarpazos de fuego hacia los enemigos más cercanos que destrozan lo que tengas cerca.','+6 de daño','Zarpazos más largos','+8 de daño y más seguido','Zarpazos enormes y +10 de daño'],
     dmg:[16,22,22,30,40],cd:[.9,.85,.8,.7,.65],len:[90,90,110,115,135]},
   circulo:{name:'Círculo de fuego',col:'#ff7a2a',excl:'demonio',
     up:['Marca a tus pies un círculo infernal que quema todo lo que entra durante unos segundos.','+4 de daño','Círculo más grande','+5 de daño y dura más','Círculo enorme y +6 de daño'],
@@ -1678,6 +1678,10 @@ const vacuumAll=()=>{for(const g of G.gems)g.fly=true;for(const c of G.coinsArr)
 // Configuración: curación, bombas e imanes se pueden apagar (SAVE.noDrop[tipo]); apagados no aparecen en ningún lado
 const dropItem=(x,y,kind)=>{if(!(SAVE.noDrop&&SAVE.noDrop[kind]))G.items.push({x,y,kind});};
 function dropGem(x,y,v){if(G.gems.length>420){G.gems[(Math.random()*G.gems.length)|0].v+=v;return;}G.gems.push({x,y,v,fly:false,sp:0});}
+// Hacia dónde apuntan las armas que antes iban hacia donde mirás: al enemigo más cercano en pantalla (si no hay, hacia donde mirás)
+function aimAng(k){const ts=nearestEnemies((k|0)+1),t=ts.length?ts[(k|0)%ts.length]:null,p=G.p;return t?Math.atan2(t.y-p.y,t.x-p.x):Math.atan2(p.fy,p.fx);}
+// Golpe en línea recta desde el jugador con ángulo a: largo len, medio ancho h
+function hitLine(a,len,h,fn){const p=G.p,cx=Math.cos(a),cy=Math.sin(a);near(p.x+cx*len/2,p.y+cy*len/2,len/2+h+24,e=>{if(e.dead)return;const rx=e.x-p.x,ry=e.y-p.y,al=rx*cx+ry*cy;if(al>-e.r&&al<len+e.r&&Math.abs(rx*cy-ry*cx)<h+e.r)fn(e,cx,cy);});}
 function nearestEnemies(n){
   const p=G.p,best=[],lim=(Math.hypot(VW,VH)/2+40)**2;
   for(const e of G.enemies){if(e.dead)continue;const d=(e.x-p.x)**2+(e.y-p.y)**2;if(d>lim)continue;
@@ -1712,7 +1716,7 @@ function updateWeapons(dt){
       w.timer=D.cd[L]*st.cd;
       for(let i=0;i<n;i++){const t=ts[i%ts.length];let a=Math.atan2(t.y-p.y,t.x-p.x);if(i>=ts.length)a+=rand(-.25,.25);
         G.shots.push({src:'varita',kind:'bolt',x:p.x,y:p.y,vx:Math.cos(a)*340,vy:Math.sin(a)*340,dmg:D.dmg[L],pierce:D.pierce[L],r:5,life:1.4,hit:new Set()});}
-    }else if(w.id==='daga'){w.timer=D.cd[L]*st.cd;const base=Math.atan2(p.fy,p.fx),n=D.n[L]+st.amount;
+    }else if(w.id==='daga'){w.timer=D.cd[L]*st.cd;const base=aimAng(),n=D.n[L]+st.amount;
       for(let i=0;i<n;i++){const a=base+(i-(n-1)/2)*.16;
         G.shots.push({src:'daga',kind:'knife',x:p.x,y:p.y,vx:Math.cos(a)*440,vy:Math.sin(a)*440,dmg:D.dmg[L],pierce:D.pierce[L],r:6,life:.85,hit:new Set()});}
     }else if(w.id==='rayo'){
@@ -1729,13 +1733,14 @@ function updateWeapons(dt){
       for(let i=0;i<n;i++){let tx,ty;if(vis.length){const t=vis[(Math.random()*vis.length)|0];tx=t.x;ty=t.y;}else{const a=Math.random()*TAU,r=rand(40,140);tx=p.x+Math.cos(a)*r;ty=p.y+Math.sin(a)*r;}
         G.flasks.push({sx:p.x,sy:p.y,tx,ty,t:0,r:D.r[L]*st.area,dmg:D.dmg[L],dur:D.dur[L]});}
     }else if(w.id==='hacha'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount;
-      for(let i=0;i<n;i++){const side=(i%2?-1:1)*(p.fx>=0?1:-1);
+      const tx=nearestEnemies(1)[0],sd0=tx?(tx.x>=p.x?1:-1):(p.fx>=0?1:-1);
+      for(let i=0;i<n;i++){const side=(i%2?-1:1)*sd0;
         G.shots.push({src:'hacha',kind:'axe',x:p.x,y:p.y,vx:side*rand(50,130),vy:-rand(300,360),grav:720,rot:0,dmg:D.dmg[L],pierce:99,r:9,life:1.8,hit:new Set()});}
     }else if(w.id==='latigo'){w.timer=D.cd[L]*st.cd;const len=D.len[L]*st.area,h=16*st.area;
       // Cada proyectil extra es otro latigazo seguido
-      volleys(1+st.amount,1,.18,()=>{const p=G.p,f=p.fx>=0?1:-1,wy=p.y-4;
-        for(const dir of (D.both[L]?[f,-f]:[f])){G.slashes.push({x:p.x,y:wy,dir,len,life:.2});
-          near(p.x+dir*len/2,wy,len/2+24,e=>{const rx=(e.x-p.x)*dir;if(rx>-e.r&&rx<len+e.r&&Math.abs(e.y-wy)<h+e.r)hurt(e,D.dmg[L],dir*160,0,'latigo');});}},w.timer);
+      volleys(1+st.amount,1,.18,()=>{const p=G.p,a0=aimAng();
+        for(const a of (D.both[L]?[a0,a0+Math.PI]:[a0])){G.slashes.push({x:p.x,y:p.y,dir:1,ang:a,len,life:.2});
+          hitLine(a,len,h,(e,cx,cy)=>hurt(e,D.dmg[L],cx*160,cy*160,'latigo'));}},w.timer);
     }else if(w.id==='murcielagos'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount;
       for(let i=0;i<n;i++){const a=Math.random()*TAU;G.shots.push({src:'murcielagos',kind:'batling',x:p.x,y:p.y,vx:Math.cos(a)*220,vy:Math.sin(a)*220,wob:Math.random()*TAU,dmg:D.dmg[L],pierce:1,r:6,life:1.6,hit:new Set()});}
     }else if(w.id==='meteoro'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount;
@@ -1783,14 +1788,14 @@ function updateWeapons(dt){
         G.bolts.push({x:t.x,y:t.y,pts,R,life:.25,col:D.col});
         near(t.x,t.y,R+24,e=>{const dx=e.x-t.x,dy=e.y-t.y,d=Math.hypot(dx,dy)||1;if(d<R+e.r)hurt(e,D.dmg[L],dx/d*180,dy/d*180,'martillo');});}
       sfx('zap');
-    }else if(w.id==='hojas'){w.timer=D.cd[L]*st.cd;const base=Math.atan2(p.fy,p.fx),n=D.n[L]+st.amount;
+    }else if(w.id==='hojas'){w.timer=D.cd[L]*st.cd;const base=aimAng(),n=D.n[L]+st.amount;
       for(let i=0;i<n;i++){const a=base+(i-(n-1)/2)*.22;
         G.shots.push({src:'hojas',kind:'bolt',col:D.col,x:p.x,y:p.y,vx:Math.cos(a)*380,vy:Math.sin(a)*380,dmg:D.dmg[L],pierce:D.pierce[L],r:5,life:.7,hit:new Set()});}
     }else if(w.id==='lanzahielo'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;
       for(let i=0;i<n;i++){const t=ts[i%ts.length],a=Math.atan2(t.y-p.y,t.x-p.x)+(i>=ts.length?rand(-.2,.2):0);
         G.shots.push({src:'lanzahielo',kind:'bolt',col:D.col,x:p.x,y:p.y,vx:Math.cos(a)*420,vy:Math.sin(a)*420,dmg:D.dmg[L],pierce:D.pierce[L],slow:D.slow[L],r:6,life:1.2,hit:new Set()});}
     }else if(w.id==='halo'){w.timer=D.cd[L]*st.cd;pushWaves({x:p.x,y:p.y,max:D.R[L]*st.area,dmg:D.dmg[L],col:D.col,src:'halo'});
-    }else if(w.id==='grieta'){w.timer=D.cd[L]*st.cd;const len=D.len[L]*st.area,wd=D.w[L]*st.area,base=Math.atan2(p.fy,p.fx),n=1+st.amount;
+    }else if(w.id==='grieta'){w.timer=D.cd[L]*st.cd;const len=D.len[L]*st.area,wd=D.w[L]*st.area,base=aimAng(),n=1+st.amount;
       for(let i=0;i<n;i++){const a=base+(i-(n-1)/2)*.5,cx=Math.cos(a),cy=Math.sin(a);G.beams.push({x:p.x,y:p.y,a,len,w:wd,life:.22,col:D.col});
         for(const e of G.enemies){if(e.dead)continue;const rx=e.x-p.x,ry=e.y-p.y,al=rx*cx+ry*cy;if(al<0||al>len+e.r)continue;if(Math.abs(rx*cy-ry*cx)<wd+e.r)hurt(e,D.dmg[L],cx*140,cy*140,'grieta');}}
       G.shake=Math.max(G.shake,.08);
@@ -1821,7 +1826,7 @@ function updateWeapons(dt){
       for(let i=0;i<n;i++){const t=ts[i%ts.length];if(G.zones.length>=120)break;G.zones.push({x:t.x+(i>=ts.length?rand(-30,30):0),y:t.y+(i>=ts.length?rand(-30,30):0),r:D.r[L]*st.area,dmg:D.dmg[L],life:D.dur[L],tick:0,src:'cirios',fire:true});}
     }else if(w.id==='espectros'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount,a0=Math.random()*TAU,sp=Math.random()<.5?2.2:-2.2;
       for(let i=0;i<n;i++){const a=a0+i/n*TAU;G.shots.push({src:'espectros',kind:'bolt',col:D.col,x:p.x,y:p.y,vx:Math.cos(a)*230,vy:Math.sin(a)*230,spin:sp,dmg:D.dmg[L],pierce:D.pierce[L],r:6,life:1.6,hit:new Set()});}
-    }else if(w.id==='grito'){w.timer=D.cd[L]*st.cd;const len=D.len[L]*st.area,wd=9*st.area,base=Math.atan2(p.fy,p.fx),n=D.rays[L]+st.amount,hit=new Set();
+    }else if(w.id==='grito'){w.timer=D.cd[L]*st.cd;const len=D.len[L]*st.area,wd=9*st.area,base=aimAng(),n=D.rays[L]+st.amount,hit=new Set();
       for(let i=0;i<n;i++){const a=base+(i-(n-1)/2)*.2,cx=Math.cos(a),cy=Math.sin(a);G.beams.push({x:p.x,y:p.y,a,len,w:wd,life:.22,col:D.col});
         for(const e of G.enemies){if(e.dead||hit.has(e))continue;const rx=e.x-p.x,ry=e.y-p.y,al=rx*cx+ry*cy;if(al<0||al>len+e.r)continue;if(Math.abs(rx*cy-ry*cx)<wd+e.r){hit.add(e);hurt(e,D.dmg[L],cx*320,cy*320,'grito');if(!e.dead)e.slowT=Math.max(e.slowT||0,D.slow[L]);}}}
       sfx('zap');
@@ -1833,8 +1838,9 @@ function updateWeapons(dt){
       else{const ts=nearestEnemies(n);for(let i=0;i<n;i++){const t=ts[i%Math.max(1,ts.length)],a=Math.random()*TAU,r=rand(40,140);
         G.meteors.push({x:t?t.x+rand(-14,14):p.x+Math.cos(a)*r,y:t?t.y+rand(-14,14):p.y+Math.sin(a)*r,t:0,dur:.5+i*.08,R:36*st.area,dmg:D.dmg[L],src:'fortuna',col:D.col});}}
     }else if(w.id==='garras'){w.timer=D.cd[L]*st.cd;const len=D.len[L]*st.area;
-      volleys(1+st.amount,1,.14,(k,vi)=>{const p=G.p,dir=(vi%2?-1:1)*(p.fx<0?-1:1);G.slashes.push({x:p.x,y:p.y,dir,len,life:.2});
-        near(p.x+dir*len/2,p.y,len/2+30,e=>{const rx=(e.x-p.x)*dir;if(rx>-e.r&&rx<len+e.r&&Math.abs(e.y-p.y)<26*st.area+e.r)hurt(e,D.dmg[L],dir*150,0,'garras');});},w.timer);
+      // Cada zarpazo va a uno de los enemigos más cercanos (el 1.º al más cercano, el 2.º al que sigue…)
+      volleys(1+st.amount,1,.14,(k,vi)=>{const p=G.p,a=aimAng(vi);G.slashes.push({x:p.x,y:p.y,dir:1,ang:a,len,life:.2});
+        hitLine(a,len,26*st.area,(e,cx,cy)=>hurt(e,D.dmg[L],cx*150,cy*150,'garras'));},w.timer);
     }else if(w.id==='circulo'){w.timer=D.cd[L]*st.cd;const n=1+st.amount,r=D.r[L]*st.area;
       for(let i=0;i<n;i++){if(G.zones.length>=120)break;const a=i/n*TAU,o=i?r*1.4:0;G.zones.push({x:p.x+Math.cos(a)*o,y:p.y+Math.sin(a)*o,r,dmg:D.dmg[L],life:D.dur[L],tick:0,src:'circulo',fire:true});}
       ring(p.x,p.y,r,D.col);
@@ -1859,7 +1865,7 @@ function updateWeapons(dt){
     }else if(w.id==='craneos'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount,ts=nearestEnemies(n);
       for(let i=0;i<n;i++){const t=ts[i%Math.max(1,ts.length)],a=Math.random()*TAU,r=rand(50,140);
         G.meteors.push({x:t?t.x+rand(-10,10):p.x+Math.cos(a)*r,y:t?t.y+rand(-10,10):p.y+Math.sin(a)*r,t:0,dur:.6+i*.1,R:D.r[L]*st.area,dmg:D.dmg[L],src:'craneos',col:D.col});}
-    }else if(w.id==='remolino'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount,base=Math.atan2(p.fy,p.fx),r=D.r[L]*st.area;
+    }else if(w.id==='remolino'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount,base=aimAng(),r=D.r[L]*st.area;
       for(let i=0;i<n;i++){const a=base+(i-(n-1)/2)*.45;
         G.shots.push({src:'remolino',kind:'whirl',x:p.x,y:p.y,vx:Math.cos(a)*85,vy:Math.sin(a)*85,dmg:D.dmg[L],pierce:1e9,r,life:D.life[L],rehit:.35,rt:.35,ang:0,hit:new Set()});}
     }else if(w.id==='cetro'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;const len=230*st.area,wd=6*st.area;
@@ -2498,9 +2504,10 @@ function draw(now){
     // flasks + whip slashes
     for(const f of G.flasks){const x=f.sx+(f.tx-f.sx)*f.t,y=f.sy+(f.ty-f.sy)*f.t-Math.sin(Math.PI*f.t)*50;
       ctx.fillStyle='#7ac8ff';ctx.beginPath();ctx.arc(x,y,4,0,TAU);ctx.fill();ctx.fillStyle='#e8f6ff';ctx.fillRect(x-1,y-7,2,4);}
-    for(const sl of G.slashes){const a=sl.life/.2;ctx.globalAlpha=a;ctx.strokeStyle='#d06bff';ctx.lineWidth=6*a+1;ctx.lineCap='round';ctx.beginPath();
-      ctx.moveTo(sl.x+sl.dir*8,sl.y+6);ctx.quadraticCurveTo(sl.x+sl.dir*sl.len*.55,sl.y-18,sl.x+sl.dir*sl.len,sl.y+2);ctx.stroke();
-      ctx.strokeStyle='#f3dcff';ctx.lineWidth=1.5;ctx.stroke();ctx.lineCap='butt';ctx.globalAlpha=1;}
+    for(const sl of G.slashes){const a=sl.life/.2;ctx.save();ctx.translate(sl.x,sl.y);if(sl.ang!==undefined)ctx.rotate(sl.ang);const d=sl.ang!==undefined?1:sl.dir;
+      ctx.globalAlpha=a;ctx.strokeStyle='#d06bff';ctx.lineWidth=6*a+1;ctx.lineCap='round';ctx.beginPath();
+      ctx.moveTo(d*8,6);ctx.quadraticCurveTo(d*sl.len*.55,-18,d*sl.len,2);ctx.stroke();
+      ctx.strokeStyle='#f3dcff';ctx.lineWidth=1.5;ctx.stroke();ctx.lineCap='butt';ctx.globalAlpha=1;ctx.restore();}
     // lightning
     for(const b of G.bolts){const a=b.life/.25;
       ctx.globalAlpha=a;ctx.strokeStyle=b.col||'#ffe27a';ctx.lineWidth=4;ctx.beginPath();b.pts.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.stroke();
