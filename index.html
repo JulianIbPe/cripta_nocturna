@@ -55,11 +55,14 @@ button:focus-visible{outline:2px solid var(--ember);outline-offset:3px}
 #pauseBtn{pointer-events:auto;width:42px;height:42px;border-radius:50%;border:1px solid rgba(236,230,255,.25);background:rgba(12,10,24,.7);display:grid;place-items:center}
 #pauseBtn svg{width:16px;height:16px}
 /* Mapas */
-.maplist{display:grid;gap:6px}
-.maplist button{appearance:none;display:grid;gap:2px;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid var(--ml);background:linear-gradient(90deg,var(--mb),rgba(12,10,24,.9));color:var(--ink)}
-.maplist button b{font-size:17px}.maplist button small{color:var(--muted);font-size:13px;line-height:1.25}
-.maplist button[aria-checked="true"]{outline:2px solid var(--ember);outline-offset:1px}
-.maplist button:disabled{opacity:.5}
+.char.mapcard{grid-template-columns:120px 1fr}
+.char.mapcard .portrait.mapprev{width:120px;height:80px;border-radius:10px;grid-row:span 4}
+.char.mapcard.locked .portrait{filter:saturate(.6) brightness(.8)}
+.mapcard.confirm{border-color:#ffd27a;box-shadow:0 0 0 1px #ffd27a}
+.mapcard .mapmods{color:var(--muted);font-size:13px}
+.mappick{appearance:none;display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:8px;border-radius:14px;border:1px solid var(--stone-2);background:linear-gradient(180deg,var(--stone),#14112a);color:var(--ink)}
+.mappick canvas{width:90px;height:60px;border-radius:8px;flex:none}
+.mappick span{display:grid;gap:2px}.mappick b{font-size:18px}.mappick small{color:var(--muted);font-size:13px}
 .mapchip{appearance:none;justify-self:center;margin:2px auto 6px;display:block;padding:6px 14px;border-radius:999px;border:1px solid rgba(236,230,255,.25);background:rgba(12,10,24,.6);color:var(--ink);font-weight:700;font-size:15px}
 /* Avisos del Imán de reliquias: una línea por reliquia, se van solos */
 #relNotes{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 168px);transform:translateX(-50%);z-index:3;display:grid;gap:6px;width:min(340px,calc(100% - 32px));pointer-events:none}
@@ -622,7 +625,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
     </div>
     <p class="diffdesc" id="diffDesc"></p>
     <div class="dtitle">Mapa</div>
-    <div class="maplist" id="mapSel" role="radiogroup" aria-label="Mapa"></div>
+    <button class="mappick" id="mapPick"><canvas width="120" height="80"></canvas><span><b></b><small>Tocá para ver y elegir los mapas</small></span></button>
     <div class="dtitle">Personaje</div>
     <div class="chars" id="charList"></div>
     <div class="charup" id="charUp" hidden></div>
@@ -630,6 +633,18 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
       <button class="btn" id="startBtn">Empezar</button>
       <button class="btn ghost backBtn" id="charsBack">Volver</button>
     </div>
+  </div>
+</section>
+
+<section id="maps" class="screen" hidden>
+  <div class="panel">
+    <div class="eyebrow">Elegí dónde cazar</div>
+    <h2>Mapas</h2>
+    <div class="wallet"><span class="coinline"><i class="coin"></i><span id="mapCoins">0</span></span><span class="gemline"><i class="gemi"></i><span id="mapGems">0</span></span></div>
+    <p>Cada mapa tiene enemigos más duros, pero paga más. Los que no tenés se compran tocándolos dos veces.</p>
+    <div class="chars" id="mapList"></div>
+    <p class="toast" id="mapToast" aria-live="polite"></p>
+    <button class="btn ghost backBtn" id="mapsBack">Volver</button>
   </div>
 </section>
 
@@ -1493,10 +1508,11 @@ const MAP_PRE=(id)=>{const M=MAPS[id],m=M.mods,o=[],pc_=v=>'+'+Math.round((v-1)*
   return o.length?o.join(' · '):'Sin cambios';};
 const mapOwned=id=>id==='cripta'||SAVE.maps.includes(id);
 const TILE=256;
-const patCache={};
+const patCache={},tileCache={};
 function groundPat(id){if(patCache[id])return patCache[id];const M=MAPS[id]||MAPS.cripta;
   const c=document.createElement('canvas');c.width=c.height=TILE;const g=c.getContext('2d');
   let seed=7;const r=()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};
+  tileCache[id]=c;
   g.fillStyle=M.bg;g.fillRect(0,0,TILE,TILE);
   if(M.deco==='pillar'){g.strokeStyle='rgba(0,0,0,0.35)';g.lineWidth=1.5;for(let i=0;i<=TILE;i+=32){g.beginPath();g.moveTo(i,0);g.lineTo(i,TILE);g.moveTo(0,i);g.lineTo(TILE,i);g.stroke();}}
   for(let i=0;i<220;i++){g.fillStyle=r()<.5?'rgba(255,255,255,0.035)':'rgba(0,0,0,0.18)';g.fillRect(r()*TILE,r()*TILE,2+r()*3,2+r()*3);}
@@ -2740,7 +2756,7 @@ function renderBoardList(){
 }
 
 /* ---------- Screens ---------- */
-const screens=['menu','config','chars','howto','arsenal','records','board','shop','missions','account','levelup','chest','pause','over','mod'];
+const screens=['menu','config','chars','maps','howto','arsenal','records','board','shop','missions','account','levelup','chest','pause','over','mod'];
 function show(name){for(const sc of screens)$('#'+sc).hidden=sc!==name;const h=!(G&&(state==='play'||state==='levelup'||state==='chest'||state==='paused'));$('#hud').hidden=h;$('#hud').classList.toggle('top',state==='levelup'||state==='chest');$('#abBtn').hidden=h||state!=='play';}
 const SAVE_KEY='cripta-save';
 function loadSave(){let sv=null;try{sv=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');}catch(e){}return normalizeSave(sv);}
@@ -3131,12 +3147,33 @@ function tryStartOrBuy(){
   if(SAVE.unlocked.includes(pickSel)){SAVE.sel=pickSel;persist();start(pickSel);}
   else if(costOf(c).have>=costOf(c).n){if(c.gems)SAVE.gems-=c.gems;else SAVE.coins-=c.price;SAVE.unlocked.push(pickSel);SAVE.sel=pickSel;persist();sfx('level');if(!$('#chars').hidden)renderChars();renderMenu();}
 }
-function renderMaps(){const box=$('#mapSel');
-  if(box)box.innerHTML=Object.keys(MAPS).map(id=>{const M=MAPS[id],own=mapOwned(id);
-    return `<button role="radio" data-map="${id}" aria-checked="${SAVE.map===id}"${own?'':' disabled'} style="--mb:${M.bg};--ml:${M.dl}"><b>${M.name}</b><small>${own?MAP_PRE(id):'Se compra en la tienda · '+(M.gems?M.gems+' gemas':M.coins.toLocaleString('es-AR')+' monedas')}</small></button>`;}).join('');
-  const mb=$('#menuMap'),owned=Object.keys(MAPS).filter(mapOwned);mb.hidden=owned.length<2;mb.textContent='Mapa: '+MAPS[SAVE.map].name+' ▸';}
-$('#mapSel').addEventListener('click',e=>{const b=e.target.closest('[data-map]');if(!b||b.disabled)return;SAVE.map=b.dataset.map;persist();sfx('gem');renderMaps();});
-$('#menuMap').addEventListener('click',()=>{const o=Object.keys(MAPS).filter(mapOwned);SAVE.map=o[(o.indexOf(SAVE.map)+1)%o.length];persist();sfx('gem');renderMaps();});
+// Vista previa de un mapa: su suelo con el personaje elegido parado en el medio
+function drawMapPreview(cv,id){const g=cv.getContext('2d'),w=cv.width,h=cv.height;groundPat(id);
+  const k=w/240*.75;g.save();g.scale(k,k);g.fillStyle=g.createPattern(tileCache[id],'repeat');g.fillRect(0,0,w/k,h/k);g.restore();
+  const v=g.createRadialGradient(w/2,h*.55,h*.15,w/2,h*.55,w*.7);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.35)');g.fillStyle=v;g.fillRect(0,0,w,h);
+  g.save();g.setTransform(h/75,0,0,h/75,w/2,h*.6);drawHero(g,0,0,SAVE.sel,0,.4,1);g.restore();}
+let mapsFrom='menu',mapConfirm=null,mapConfirmT=null;
+function openMaps(from){initAudio();mapsFrom=from||'menu';mapConfirm=null;$('#mapToast').textContent='';renderMapScreen();show('maps');$('#maps').scrollTop=0;}
+function renderMapScreen(){$('#mapCoins').textContent=SAVE.coins;$('#mapGems').textContent=SAVE.gems;
+  const box=$('#mapList');box.innerHTML='';const N=v=>v.toLocaleString('es-AR');
+  for(const id in MAPS){const M=MAPS[id],own=mapOwned(id),sel=SAVE.map===id,g=!!M.gems,pr=g?M.gems:M.coins,can=own||(g?SAVE.gems>=pr:SAVE.coins>=pr),conf=mapConfirm===id;
+    const b=document.createElement('button');b.className='char mapcard'+(own?'':' locked')+(sel?' sel':'')+(conf?' confirm':'');b.id='map-'+id;
+    b.innerHTML=`<canvas class="portrait mapprev" width="240" height="160"></canvas>
+      <div class="ch-head"><h3>${M.name}</h3>${own?(sel?'<span class="chlv">✓ Elegido</span>':''):`<span class="price">${g?'<i class="gemi"></i>':'<i class="coin"></i>'}${N(pr)}</span>`}</div>
+      <p class="ab">${M.desc}</p><p class="ab mapmods">${MAP_PRE(id)}</p>
+      ${own?'':`<span class="startw">${conf?'Tocá de nuevo para comprarlo':can?'Tocá para comprarlo':'Te faltan '+(g?N(pr-SAVE.gems)+' gemas':N(pr-SAVE.coins)+' monedas')}</span>`}`;
+    b.addEventListener('click',()=>mapClick(id));box.appendChild(b);drawMapPreview(b.querySelector('canvas'),id);}}
+function mapClick(id){const M=MAPS[id];
+  if(mapOwned(id)){SAVE.map=id;persist();sfx('gem');renderMapScreen();renderMaps();return;}
+  const g=!!M.gems,pr=g?M.gems:M.coins;if(g?SAVE.gems<pr:SAVE.coins<pr){$('#mapToast').textContent='Todavía no te alcanza para '+M.name+'.';return;}
+  if(mapConfirm!==id){mapConfirm=id;clearTimeout(mapConfirmT);mapConfirmT=setTimeout(()=>{mapConfirm=null;if(!$('#maps').hidden)renderMapScreen();},3500);$('#mapToast').textContent='';renderMapScreen();return;}
+  mapConfirm=null;clearTimeout(mapConfirmT);if(g)SAVE.gems-=pr;else SAVE.coins-=pr;SAVE.maps.push(id);SAVE.map=id;persist();sfx('level');
+  $('#mapToast').textContent='Listo: '+M.name+'. Ya está elegido para tu próxima partida.';renderMapScreen();renderMaps();}
+$('#mapsBack').addEventListener('click',()=>{if(mapsFrom==='chars'){renderChars();show('chars');}else goMenu();});
+function renderMaps(){const mp=$('#mapPick');if(mp){mp.querySelector('b').textContent=MAPS[SAVE.map].name;drawMapPreview(mp.querySelector('canvas'),SAVE.map);}
+  const mb=$('#menuMap');mb.hidden=false;mb.textContent='Mapa: '+MAPS[SAVE.map].name+' ▸';}
+$('#mapPick').addEventListener('click',()=>openMaps('chars'));
+$('#menuMap').addEventListener('click',()=>openMaps('menu'));
 function renderDiff(){renderMaps();
   document.querySelectorAll('[data-d]').forEach(b=>b.setAttribute('aria-checked',String(b.dataset.d===SAVE.diff)));
   $('#diffDesc').textContent=$('#menuDiffDesc').textContent=diffChanges(SAVE.diff);
@@ -3312,7 +3349,7 @@ $('#tShop').addEventListener('click',()=>{initAudio();shopConfirm=null;$('#shopT
 $('#tArsenal').addEventListener('click',()=>{renderArsenal();show('arsenal');$('#arsenal').scrollTop=0;});
 $('#tRecords').addEventListener('click',()=>{renderRecords();show('records');$('#records').scrollTop=0;});
 $('#tHow').addEventListener('click',()=>{renderDiffTables();show('howto');$('#howto').scrollTop=0;});
-document.querySelectorAll('.backBtn').forEach(b=>b.addEventListener('click',goMenu));
+document.querySelectorAll('.backBtn').forEach(b=>{if(b.id!=='mapsBack')b.addEventListener('click',goMenu);});
 $('#startBtn').addEventListener('click',tryStartOrBuy);
 document.querySelectorAll('[data-d]').forEach(b=>b.addEventListener('click',()=>{SAVE.diff=b.dataset.d;persist();sfx('gem');if(!$('#chars').hidden)renderChars();renderMenu();}));
 
