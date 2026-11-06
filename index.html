@@ -2161,7 +2161,7 @@ function update(dt){
       if(e.cd<=0){const a=acts[e.actI=((e.actI|0)+1)%acts.length];
         if(a==='reina'){e.cd=3.5*q;if(G.enemies.length<450)for(let i=0;i<3;i++){const a=Math.random()*TAU;spawnEnemy('arana',e.x+Math.cos(a)*30,e.y+Math.sin(a)*30);}}
         else if(a==='conde'){e.cd=4*q;e.dashT=.7;sfx('zap');}
-        else if(a==='coloso'){e.cd=5*q;G.slams.push({x:e.x,y:e.y,R:115*(e.r/34),t:0,dur:1,dmg:e.dmg*1.2});}}
+        else if(a==='coloso'){e.cd=5*q;G.slams.push({x:e.x,y:e.y,R:115*(e.r/34),t:0,dur:1,dmg:e.dmg*1.2,who:e.type});}}
       if(e.dashT>0){e.dashT-=dt;mv*=3.2;if(G.parts.length<PCAP())G.parts.push({x:e.x,y:e.y,vx:0,vy:0,life:.35,max:.35,col:ETYPES[e.type].col,sz:5});}}if(st.slowAura&&d<95*st.area)mv*=.65;if(e.slowT>0){e.slowT-=dt;mv*=.4;}
     e.x+=(dx/d*e.spd*mv+sx*70+e.kx)*dt;e.y+=(dy/d*e.spd*mv+sy*70+e.ky)*dt;
     const k=Math.min(1,dt*9);e.kx-=e.kx*k;e.ky-=e.ky*k;
@@ -2172,13 +2172,13 @@ function update(dt){
       if(G.texts.length<60)G.texts.push({x:p.x,y:p.y-18,txt:ex>0?'Contraataque':'Esquivado',life:.6,heal:true});}
     else if(p.inv<=0&&d<e.r+p.r-2&&shieldBlock()){}
     else if(p.inv<=0&&d<e.r+p.r-2){
-      const dmg=Math.max(1,Math.round(e.dmg-st.armor));if(!G.god)p.hp-=dmg;if(st.thorns)hurt(e,st.thorns,-dx/d*150,-dy/d*150);p.inv=.45;G.shake=.18;sfx('hurt');
+      const dmg=Math.max(1,Math.round(e.dmg-st.armor));if(!G.god)p.hp-=dmg;G.killer=e.type;if(st.thorns)hurt(e,st.thorns,-dx/d*150,-dy/d*150);p.inv=.45;G.shake=.18;sfx('hurt');
       if(G.texts.length<60)G.texts.push({x:p.x,y:p.y-18,txt:'-'+dmg,life:.7,hurt:true});
       if(p.hp<=0&&!G.infHp){gameOver();return;}
     }
   }
   for(const sl of G.slams){sl.t+=dt;if(sl.t>=sl.dur&&!sl.done){sl.done=true;G.shake=Math.max(G.shake,.35);sfx('boss');
-      if(Math.hypot(p.x-sl.x,p.y-sl.y)<sl.R&&p.inv<=0&&!shieldBlock()){const dmg=Math.max(1,Math.round(sl.dmg-st.armor));if(!G.god)p.hp-=dmg;p.inv=.45;sfx('hurt');
+      if(Math.hypot(p.x-sl.x,p.y-sl.y)<sl.R&&p.inv<=0&&!shieldBlock()){const dmg=Math.max(1,Math.round(sl.dmg-st.armor));if(!G.god)p.hp-=dmg;G.killer=sl.who;p.inv=.45;sfx('hurt');
         if(G.texts.length<60)G.texts.push({x:p.x,y:p.y-18,txt:'-'+dmg,life:.7,hurt:true});if(p.hp<=0&&!G.infHp){gameOver();return;}}}}
   G.slams=G.slams.filter(sl=>!sl.done);
   updateWeapons(dt);
@@ -2925,6 +2925,7 @@ const APP_VER='dev'; // el workflow lo reemplaza por 1.0.<n> al compilar
 const RELEASES='https://github.com/JulianIbPe/cripta_nocturna/releases/latest';
 // Registro de cambios para todos los jugadores (lo de una sola cuenta, como el menú de pruebas, no va). El más nuevo arriba
 const CHANGELOG=[
+['1.0.58','6 nov',['La pantalla de muerte dice qué enemigo o jefe te mató.']],
 ['1.0.57','6 nov',['Las partidas largas con mucha área y muchos proyectiles extra ya no se traban: la Campana, la Nova de escarcha y las demás armas de área se calculan y se dibujan mucho más rápido.']],
 ['1.0.56','6 nov',['En PC, el botón de actualizar baja la versión nueva y el juego se reinicia actualizado.']],
 ['1.0.55','6 nov',['En el celular, el botón de actualizar baja la versión nueva y abre el instalador, sin pasar por GitHub.']],
@@ -3542,6 +3543,8 @@ function pause(why){if(state!=='play'&&state!=='levelup'&&state!=='chest')return
 function resume(){const s=G&&G.pauseFrom;if(G)G.pauseFrom=null;if(s==='levelup'){state='levelup';renderLevelUp(false);show('levelup');}else if(s==='chest'){state='chest';show('chest');}else{state='play';show(null);}last=performance.now();renderAfk();}
 function renderAfk(){const b=$('#afkBtn');if(b&&G)b.setAttribute('aria-pressed',String(!!G.afk));}
 function toggleAfk(){if(!G||(state!=='play'&&state!=='levelup'&&state!=='chest'))return;G.afk=!G.afk;renderAfk();sfx('gem');banner(G.afk?'AFK activado: la experiencia y los cofres se guardan':'AFK desactivado');}
+// Nombre de quien te mató; los jefes usan su `name` de ETYPES
+const KILLER={bat:'Un murciélago',zombie:'Un zombi',ghost:'Un fantasma',skel:'Un esqueleto',pumpkin:'Una calabaza maldita',arana:'Una araña',vampiro:'Un vampiro',gargola:'Una gárgola'};
 function gameOver(){
   state='over';clearRun();joy.active=false;
   const DF=DIFFS[G.diff],timeBonus=Math.floor(G.t/30),dawnBonus=G.dawn?50:0,base=G.coins+timeBonus+dawnBonus,diffBonus=Math.round(base*(DF.coin*mapMul('coin')-1)),earned=base+diffBonus;
@@ -3558,7 +3561,7 @@ function gameOver(){
   $('#overPanel').className='panel '+(G.dawn?'win':'lose');
   $('#overEyebrow').textContent=(record?'¡Nuevo récord!':G.dawn?'Sobreviviste la noche':'Fin de la noche')+' · '+DF.name;
   $('#overTitle').textContent=G.dawn?'¡Viste el amanecer!':G.ended?'Terminaste la partida':'Te alcanzaron';
-  $('#overSub').textContent=G.dawn?'Pasaste el amanecer y aguantaste hasta '+fmt(G.t)+' con '+CHARS[G.char].short+'.':'Sobreviviste '+fmt(G.t)+' con '+CHARS[G.char].short+'. El amanecer llega a los 10:00.';
+  $('#overSub').textContent=(G.killer&&!G.ended?'Te mató: '+(KILLER[G.killer]||(ETYPES[G.killer]&&ETYPES[G.killer].name)||'algo en la oscuridad')+'. ':'')+(G.dawn?'Pasaste el amanecer y aguantaste hasta '+fmt(G.t)+' con '+CHARS[G.char].short+'.':'Sobreviviste '+fmt(G.t)+' con '+CHARS[G.char].short+'. El amanecer llega a los 10:00.');
   G.score=Math.floor(G.score);
   $('#stScore').textContent=fmtPts(G.score);
   $('#stMult').textContent='Bajas y jefes · llegaste a '+fmtMult(timeMult(G.t))+' por tiempo · '+fmtMult(DF.pts)+' por '+DF.name;
