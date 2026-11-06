@@ -2916,6 +2916,7 @@ const APP_VER='dev'; // el workflow lo reemplaza por 1.0.<n> al compilar
 const RELEASES='https://github.com/JulianIbPe/cripta_nocturna/releases/latest';
 // Registro de cambios para todos los jugadores (lo de una sola cuenta, como el menú de pruebas, no va). El más nuevo arriba
 const CHANGELOG=[
+['1.0.54','6 nov',['La PC trae la partida del celular al volver a la ventana y cada 30 segundos en el menú o en pausa.']],
 ['1.0.53','6 nov',['La partida en curso se comparte entre PC y celular con tu cuenta: queda la que lleva más tiempo vivo.','En PC la partida sigue aunque cambies de ventana o la minimices.','Nueva sección Registro con los cambios de cada versión y acceso a las descargas.']],
 ['1.0.52','6 nov',['Mejor rendimiento a ×10 en partidas largas.','Opción para elegir sola la mejora del medio.']],
 ['1.0.51','6 nov',['Las armas que iban hacia donde mirás ahora apuntan al enemigo más cercano.']],
@@ -3613,10 +3614,13 @@ initOnline();pullCloud();checkUpdate();checkDev();loadUsername();
 // Sin conexión se juega igual; al volver internet se sincroniza (gana el progreso más nuevo)
 window.addEventListener('online',()=>{if(cloudState.status==='error'||cloudState.status==='idle')pullCloud();});
 setInterval(()=>{if(!cloudRef()||cloudState.status==='denied'||cloudState.status==='saving')return;
-  if(cloudState.status==='error'||cloudState.status==='idle')pullCloud();else{if(cloudDirty())pushCloud();if(runDirty&&!pulling)syncRun(true).catch(()=>{});}flushScore();},30000);
+  if(cloudState.status==='error'||cloudState.status==='idle')pullCloud();else{if(cloudDirty())pushCloud();if((runDirty||state==='menu'||state==='paused')&&!pulling)syncRun(true).catch(()=>{});}flushScore();},30000);
 const flushCloud=()=>{if(cloudRef()&&cloudState.status!=='denied'){if(cloudDirty())pushCloud();if(runDirty)syncRun(false).catch(()=>{});}};
 // Al volver a la app se trae lo del otro dispositivo (progreso y partida), salvo en medio de una partida
-document.addEventListener('visibilitychange',()=>{if(document.hidden)flushCloud();else if(state!=='play'&&cloudState.status!=='denied'&&cloudState.status!=='saving'&&!pulling)pullCloud();});
+const pullBack=()=>{if(state!=='play'&&cloudState.status!=='denied'&&cloudState.status!=='saving'&&!pulling)pullCloud();};
+document.addEventListener('visibilitychange',()=>{if(document.hidden)flushCloud();else pullBack();});
+// En PC volver a la ventana no cambia la visibilidad: sin esto, el .exe abierto nunca trae la partida del celular
+window.addEventListener('focus',pullBack);
 window.addEventListener('pagehide',flushCloud);
 
 /* ---------- Loop ---------- */
