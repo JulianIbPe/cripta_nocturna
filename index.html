@@ -503,7 +503,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
       <p><b>Pasarte del máximo también sirve</b>: más de 100% de crítico da overcrit (×2,5, ×3…), la velocidad de ataque de más se vuelve daño (Sobrecarga), el esquivar por encima del 60% se vuelve contraataque, y más de 100% de suerte hace aparecer mejoras míticas.</p>
       <p><b>Cumplí misiones</b> para desbloquear armas nuevas.</p>
       <p><b>En la Tienda comprás mejoras permanentes</b>: usos de Cambiar, Bloquear y Saltar en cada subida de nivel, y más gemas por partida.</p>
-      <p><b>Las gemas rosas son raras</b>: casi nunca caen de enemigos comunes, cada calabaza maldita tiene la mitad de chances de soltar una y el amanecer te da 2. Con gemas desbloqueás a los 6 personajes élite.</p>
+      <p><b>Las gemas rosas son raras</b>: casi nunca caen de enemigos comunes, cada calabaza maldita tiene la mitad de chances de soltar una y el amanecer te da 2. Con gemas desbloqueás a los 7 personajes élite.</p>
       <p><b>En compu:</b> WASD o flechas para moverte (o arrastrá con el mouse), E o Shift para la habilidad, espacio, P o Esc para pausar y V para la velocidad. Al subir de nivel elegís con 1, 2, 3… y usás Cambiar, Bloquear y Saltar con R, B y X. Esc vuelve atrás en los menús, Enter juega o arranca otra partida, y en el menú cambiás de personaje con las flechas.</p>
     </div>
     <button class="btn ghost backBtn">Volver</button>
@@ -856,7 +856,7 @@ const WDEF={
     up:['Un rayo de sangre atraviesa en línea al enemigo más cercano y te cura por cada enemigo que toca.','+6 de daño','+1 rayo','+8 de daño y recarga más rápida','+1 rayo y cura el doble'],
     dmg:[14,20,20,28,34],cd:[1.5,1.45,1.4,1.25,1.15],n:[1,1,2,2,3],heal:[.5,.5,.5,.5,1]},
   // Exclusivas de los élite: arrancan con ella y solo a ese personaje le aparece al subir de nivel.
-  // Las seis primeras son además su arma inicial, así ningún personaje repite arma.
+  // Las seis primeras son además su arma inicial, así ningún personaje repite arma. Al final, las de Fray Anselmo, Aine, Zora y Asmodeo.
   martillo:{name:'Martillo de trueno',col:'#8fd3ff',excl:'valkiria',
     up:['Descarga rayos sobre los enemigos más cercanos y los empuja.','+8 de daño','+1 rayo y recarga más rápida','+10 de daño y más área','+1 rayo y +12 de daño'],
     dmg:[22,30,30,40,52],cd:[1.5,1.4,1.3,1.2,1.05],n:[1,1,2,2,3],splash:[34,34,40,44,50]},
@@ -893,6 +893,31 @@ const WDEF={
   siegaalmas:{name:'Siega de almas',col:'#ff4d6d',excl:'parca',
     up:['Un tajo circular que remata a los enemigos comunes con poca vida.','+10 de daño','Remata con más vida','+12 de daño y más alcance','Remata con mucha más vida y +15 de daño'],
     dmg:[24,34,34,46,61],cd:[2,1.9,1.8,1.7,1.5],r:[90,90,95,110,120],exe:[.15,.15,.22,.22,.3]},
+  // Propias de Fray Anselmo, Aine, Zora y Asmodeo: la primera de cada uno es su arma inicial
+  incensario:{name:'Incensario bendito',col:'#ffe0a0',excl:'fraile',
+    up:['Hace girar un incensario a tu alrededor: daña lo cercano y te cura un poco por cada enemigo que toca.','+5 de daño','Más alcance y cura más','+6 de daño y recarga más rápida','Alcance enorme, cura el doble y +8 de daño'],
+    dmg:[12,17,17,23,31],cd:[1.6,1.55,1.45,1.3,1.2],r:[70,70,82,88,100],heal:[.25,.25,.4,.4,.8]},
+  cirios:{name:'Cirios del altar',col:'#ffcf6b',excl:'fraile',
+    up:['Enciende cirios bajo los enemigos más cercanos: dejan fuego santo que quema un rato.','+1 cirio','+4 de daño y queman más tiempo','+1 cirio y fuego más grande','+2 cirios y +6 de daño'],
+    dmg:[6,6,10,10,16],cd:[2.4,2.3,2.2,2,1.8],n:[2,3,3,4,6],r:[30,30,30,38,42],dur:[2,2,2.6,2.6,3]},
+  espectros:{name:'Espectros errantes',col:'#cfe0ff',excl:'banshee',
+    up:['Suelta almas en pena que salen girando en espiral y atraviesan a los enemigos.','+1 espectro','+4 de daño y atraviesan 1 más','+1 espectro y recarga más rápida','+2 espectros y +6 de daño'],
+    dmg:[9,9,13,13,19],cd:[1.3,1.25,1.2,1.05,.95],n:[3,4,4,5,7],pierce:[1,1,2,2,2]},
+  grito:{name:'Grito desgarrador',col:'#9ad0ff',excl:'banshee',
+    up:['Un grito en abanico hacia donde mirás: daña, empuja lejos y frena a los enemigos.','+8 de daño','Abanico más ancho y largo','+10 de daño y recarga más rápida','Grito enorme, frena más y +12 de daño'],
+    dmg:[18,26,26,36,48],cd:[2.2,2.1,2,1.8,1.6],len:[150,150,180,190,220],rays:[3,3,5,5,7],slow:[1,1,1.2,1.2,2]},
+  cartas:{name:'Cartas del destino',col:'#e8c8ff',excl:'vidente',
+    up:['Lanza cartas filosas en cruz que van girando con cada tirada y atraviesan enemigos.','+3 de daño','+2 cartas','+4 de daño, atraviesan 1 más y recarga más rápida','+2 cartas y +5 de daño'],
+    dmg:[9,12,12,16,21],cd:[1,.95,.9,.8,.72],n:[4,4,6,6,8],pierce:[1,1,1,2,2]},
+  fortuna:{name:'Rueda de la fortuna',col:'#ffd27a',excl:'vidente',
+    up:['Cada giro sale algo distinto: rayos sobre los enemigos, una onda que te rodea o una lluvia de estrellas.','+8 de daño','+1 rayo o estrella y onda más grande','+10 de daño y gira más seguido','+2 rayos o estrellas y +12 de daño'],
+    dmg:[20,28,28,38,50],cd:[2.4,2.3,2.2,1.9,1.8],n:[2,2,3,3,5],R:[110,110,130,130,150]},
+  garras:{name:'Garras infernales',col:'#ff5a3d',excl:'demonio',
+    up:['Zarpazos de fuego hacia adelante, uno de cada lado, que destrozan lo que tengas cerca.','+6 de daño','Zarpazos más largos','+8 de daño y más seguido','Zarpazos enormes y +10 de daño'],
+    dmg:[16,22,22,30,40],cd:[.9,.85,.8,.7,.65],len:[90,90,110,115,135]},
+  circulo:{name:'Círculo de fuego',col:'#ff7a2a',excl:'demonio',
+    up:['Marca a tus pies un círculo infernal que quema todo lo que entra durante unos segundos.','+4 de daño','Círculo más grande','+5 de daño y dura más','Círculo enorme y +6 de daño'],
+    dmg:[8,12,12,17,23],cd:[3.4,3.3,3.1,2.9,2.7],r:[60,60,78,82,100],dur:[2.4,2.4,2.4,3.2,3.4]},
 };
 const MISSIONS=[
   {id:'m_kills',name:'Segador',desc:'Matá 1.000 enemigos sumando todas tus partidas',goal:1000,prog:()=>SAVE.life.kills|0},
@@ -1146,6 +1171,14 @@ const ICON={
   ballesta:'<path d="M4 20 20 4"/><path d="M14 4h6v6"/><path d="M5 9c3 0 7 4 10 10"/>',
   tridente:'<path d="M12 22V6M6 4v5a6 6 0 0 0 12 0V4M12 2v4"/>',
   fuegofatuo:'<path d="M12 21a5 5 0 0 0 5-5c0-4-5-6-3-12-4 2-7 6-7 12a5 5 0 0 0 5 5z"/><circle cx="12" cy="16" r="2"/>',
+  incensario:'<path d="M12 2v6"/><circle cx="12" cy="13" r="5"/><path d="M9 21c1-2 5-2 6 0M7 13h10"/>',
+  cirios:'<path d="M7 21V11h4v10M13 21V8h4v13"/><path d="M9 8c-1-2 0-3 0-4 1 1 2 2 0 4zM15 5c-1-2 0-3 0-4 1 1 2 2 0 4z"/>',
+  espectros:'<path d="M6 20V10a6 6 0 0 1 12 0v10l-2-2-2 2-2-2-2 2-2-2z"/><circle cx="10" cy="10" r="1"/><circle cx="14" cy="10" r="1"/>',
+  grito:'<path d="M4 12h3l5-5v10l-5-5"/><path d="M15 8c2 2 2 6 0 8M18 5c4 4 4 10 0 14"/>',
+  cartas:'<rect x="4" y="5" width="10" height="14" rx="1.5" transform="rotate(-12 9 12)"/><rect x="10" y="5" width="10" height="14" rx="1.5" transform="rotate(10 15 12)"/>',
+  fortuna:'<circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16M6.5 6.5l11 11M17.5 6.5l-11 11"/>',
+  garras:'<path d="M5 20C8 14 9 8 8 3M10 21c3-6 4-12 3-18M15 21c3-5 4-10 4-15"/>',
+  circulo:'<circle cx="12" cy="12" r="9"/><path d="M12 3l5.3 16.3L3.4 9.2h17.2L6.7 19.3z"/>',
   cadenas:'<rect x="3" y="9" width="8" height="6" rx="3"/><rect x="13" y="9" width="8" height="6" rx="3"/><path d="M9 12h6"/>',
   ataud:'<path d="M9 2h6l3 6-2 14H8L6 8z"/><path d="M12 7v8M9.5 10h5"/>',
   cuervos:'<path d="M3 12c3-1 5-4 9-4 2 0 3 1 4 2l5-1-4 3c0 3-3 5-7 5l-3 3v-4c-2 0-3-1-4-4z"/>',
@@ -1253,12 +1286,18 @@ const CHARS={
     active:{name:'Calabomba',icon:'calabomba',cd:14,desc:'Explosión enorme que arrasa todo a tu alrededor.'},
     grow:{d:n=>'+'+(20*n)+'% de monedas',f:(G,n)=>{G.st.coinMul+=.2*n;}},
     setup(G){G.st.amount+=1;G.st.coinMul+=1;}},
-  fraile:{name:'Fray Anselmo',short:'Fray Anselmo',price:1600,weapon:'agua',hat:'brim',
+  fraile:{name:'Fray Anselmo',short:'Fray Anselmo',price:1600,weapon:'incensario',hat:'brim',
     col:{cloak:'#4a3a2a',hood:'#33281c',face:'#f0d8bc',lamp:'#7ac8ff'},
     passive:{name:'Fe inquebrantable',desc:'+0,5 de vida por segundo, +2 de armadura y +10% de área.'},
     active:{name:'Bendición',icon:'agua',cd:16,desc:'Recuperás 25% de tu vida y una onda santa daña y empuja todo lo cercano.'},
     grow:{d:n=>'+'+dec(n*.15)+' de regeneración y +'+(2*n)+'% de área',f:(G,n)=>{G.st.regen+=.15*n;G.st.area+=.02*n;}},
     setup(G){G.st.regen+=.5;G.st.armor+=2;G.st.area+=.1;}},
+  vidente:{name:'Zora la Vidente',short:'Zora',price:2200,weapon:'cartas',hat:'witch',
+    col:{cloak:'#4a2a6e',hood:'#2e1a48',face:'#f2dcc8',lamp:'#e8c8ff'},
+    passive:{name:'Tercer ojo',desc:'+30% de suerte, +10% de crítico y +10% de experiencia.'},
+    active:{name:'Profecía',icon:'ojo',cd:16,desc:'Le hace 70 de daño a todo lo que hay en pantalla y te da 1 moneda por cada enemigo que toca (hasta 30).'},
+    grow:{d:n=>'+'+(4*n)+'% de suerte',f:(G,n)=>{G.st.luck+=.04*n;}},
+    setup(G){G.st.luck+=.3;G.st.crit+=.1;G.st.xpMul+=.1;}},
   valkiria:{name:'Brunhild la Valquiria',short:'Brunhild',gems:20,weapon:'martillo',hat:'helm',
     col:{cloak:'#3d4f6e',hood:'#2a3850',face:'#f0e0d0',lamp:'#9ad0ff'},
     passive:{name:'Furia del norte',desc:'+25% de daño, +30 de vida máxima y +5% de velocidad.'},
@@ -1295,12 +1334,18 @@ const CHARS={
     active:{name:'Siega',icon:'siega',cd:20,desc:'Un tajo circular que mata al instante a los enemigos comunes cercanos y hace 200 a las calabazas.'},
     grow:{d:n=>'+'+dec(n*.5)+'% de matar al instante',f:(G,n)=>{G.st.exec+=.005*n;}},
     setup(G){G.st.dmg+=.3;G.st.crit+=.15;G.st.exec=.04;G.st.killHeal=8;}},
-  banshee:{name:'Aine la Banshee',short:'Aine',gems:150,weapon:'latigo',hat:'collar',
+  banshee:{name:'Aine la Banshee',short:'Aine',gems:150,weapon:'espectros',hat:'collar',
     col:{cloak:'#c9d6e8',hood:'#8fa3c0',face:'#eef4ff',lamp:'#9ad0ff'},
     passive:{name:'Lamento eterno',desc:'+20% de velocidad de ataque, +15% de área, +10% de esquivar y +10% de velocidad.'},
     active:{name:'Alarido',icon:'campana',cd:18,desc:'Un grito que ralentiza 4 segundos todo lo que hay en pantalla y le hace 90 de daño.'},
     grow:{d:n=>'+'+(2*n)+'% de esquivar y +'+(2*n)+'% de área',f:(G,n)=>{G.st.evade+=.02*n;G.st.area+=.02*n;}},
     setup(G){const st=G.st;st.cdRaw=(st.cdRaw||st.cd)/1.2;st.cd=Math.max(.3,st.cdRaw);st.area+=.15;st.evade+=.1;st.spd+=.1;}},
+  demonio:{name:'Asmodeo el Demonio',short:'Asmodeo',gems:180,weapon:'garras',hat:'horns',
+    col:{cloak:'#5a1010',hood:'#2a0606',face:'#ff9a7a',lamp:'#ff5a3d'},
+    passive:{name:'Pacto infernal',desc:'+35% de daño, +20% de área y +10% de velocidad de ataque, pero 25 de vida máxima menos.'},
+    active:{name:'Infierno',icon:'meteoro',cd:18,desc:'Llueven 10 bolas de fuego sobre los enemigos en pantalla, de 120 de daño cada una.'},
+    grow:{d:n=>'+'+(3*n)+'% de daño y +'+(2*n)+'% de área',f:(G,n)=>{G.st.dmg+=.03*n;G.st.area+=.02*n;}},
+    setup(G){const st=G.st;st.dmg+=.35;st.area+=.2;st.cdRaw=(st.cdRaw||st.cd)/1.1;st.cd=Math.max(.3,st.cdRaw);G.p.maxHp=Math.max(40,G.p.maxHp-25);G.p.hp=Math.min(G.p.hp,G.p.maxHp);}},
 };
 
 const ETYPES={
@@ -1637,6 +1682,31 @@ function updateWeapons(dt){
     }else if(w.id==='avalancha'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount;
       const ts=nearestEnemies(n);
       for(let i=0;i<n;i++){const t=ts[i],a=Math.random()*TAU,r=rand(40,150);G.meteors.push({x:t?t.x+rand(-12,12):p.x+Math.cos(a)*r,y:t?t.y+rand(-12,12):p.y+Math.sin(a)*r,t:0,dur:.55+i*.1,R:D.r[L]*st.area,dmg:D.dmg[L],src:'avalancha',col:D.col});}
+    }else if(w.id==='incensario'){w.timer=D.cd[L]*st.cd;const R=D.r[L]*st.area,hl=D.heal[L];
+      volleys(1+st.amount,1,.22,()=>{const p=G.p;let hits=0;G.sweeps.push({x:p.x,y:p.y,R,life:.3,a0:Math.atan2(p.fy,p.fx),col:D.col});
+        near(p.x,p.y,R+24,e=>{const dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy)||1;if(d>=R+e.r)return;hurt(e,D.dmg[L],dx/d*160,dy/d*160,'incensario');hits++;});
+        if(hits)p.hp=Math.min(p.maxHp,p.hp+Math.min(8,hits*hl));},w.timer);
+    }else if(w.id==='cirios'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;
+      for(let i=0;i<n;i++){const t=ts[i%ts.length];if(G.zones.length>=120)break;G.zones.push({x:t.x+(i>=ts.length?rand(-30,30):0),y:t.y+(i>=ts.length?rand(-30,30):0),r:D.r[L]*st.area,dmg:D.dmg[L],life:D.dur[L],tick:0,src:'cirios',fire:true});}
+    }else if(w.id==='espectros'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount,a0=Math.random()*TAU,sp=Math.random()<.5?2.2:-2.2;
+      for(let i=0;i<n;i++){const a=a0+i/n*TAU;G.shots.push({src:'espectros',kind:'bolt',col:D.col,x:p.x,y:p.y,vx:Math.cos(a)*230,vy:Math.sin(a)*230,spin:sp,dmg:D.dmg[L],pierce:D.pierce[L],r:6,life:1.6,hit:new Set()});}
+    }else if(w.id==='grito'){w.timer=D.cd[L]*st.cd;const len=D.len[L]*st.area,wd=9*st.area,base=Math.atan2(p.fy,p.fx),n=D.rays[L]+st.amount,hit=new Set();
+      for(let i=0;i<n;i++){const a=base+(i-(n-1)/2)*.2,cx=Math.cos(a),cy=Math.sin(a);G.beams.push({x:p.x,y:p.y,a,len,w:wd,life:.22,col:D.col});
+        for(const e of G.enemies){if(e.dead||hit.has(e))continue;const rx=e.x-p.x,ry=e.y-p.y,al=rx*cx+ry*cy;if(al<0||al>len+e.r)continue;if(Math.abs(rx*cy-ry*cx)<wd+e.r){hit.add(e);hurt(e,D.dmg[L],cx*320,cy*320,'grito');if(!e.dead)e.slowT=Math.max(e.slowT||0,D.slow[L]);}}}
+      sfx('zap');
+    }else if(w.id==='cartas'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount;w.ang=(w.ang||0)+.35;
+      for(let i=0;i<n;i++){const a=w.ang+i/n*TAU;G.shots.push({src:'cartas',kind:'card',x:p.x,y:p.y,vx:Math.cos(a)*400,vy:Math.sin(a)*400,rot:0,dmg:D.dmg[L],pierce:D.pierce[L],r:7,life:.8,hit:new Set()});}
+    }else if(w.id==='fortuna'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount,roll=Math.random();
+      if(roll<.4){const ts=nearestEnemies(n);for(let i=0;i<n;i++){const t=ts[i%Math.max(1,ts.length)];if(t)strike(t.x,t.y,32*st.area,D.dmg[L],D.col);}sfx('zap');}
+      else if(roll<.75){pushWaves({x:p.x,y:p.y,max:D.R[L]*st.area,dmg:D.dmg[L],col:D.col,src:'fortuna'});}
+      else{const ts=nearestEnemies(n);for(let i=0;i<n;i++){const t=ts[i%Math.max(1,ts.length)],a=Math.random()*TAU,r=rand(40,140);
+        G.meteors.push({x:t?t.x+rand(-14,14):p.x+Math.cos(a)*r,y:t?t.y+rand(-14,14):p.y+Math.sin(a)*r,t:0,dur:.5+i*.08,R:36*st.area,dmg:D.dmg[L],src:'fortuna',col:D.col});}}
+    }else if(w.id==='garras'){w.timer=D.cd[L]*st.cd;const len=D.len[L]*st.area;
+      volleys(1+st.amount,1,.14,(k,vi)=>{const p=G.p,dir=(vi%2?-1:1)*(p.fx<0?-1:1);G.slashes.push({x:p.x,y:p.y,dir,len,life:.2});
+        near(p.x+dir*len/2,p.y,len/2+30,e=>{const rx=(e.x-p.x)*dir;if(rx>-e.r&&rx<len+e.r&&Math.abs(e.y-p.y)<26*st.area+e.r)hurt(e,D.dmg[L],dir*150,0,'garras');});},w.timer);
+    }else if(w.id==='circulo'){w.timer=D.cd[L]*st.cd;const n=1+st.amount,r=D.r[L]*st.area;
+      for(let i=0;i<n;i++){if(G.zones.length>=120)break;const a=i/n*TAU,o=i?r*1.4:0;G.zones.push({x:p.x+Math.cos(a)*o,y:p.y+Math.sin(a)*o,r,dmg:D.dmg[L],life:D.dur[L],tick:0,src:'circulo',fire:true});}
+      ring(p.x,p.y,r,D.col);
     }else if(w.id==='siegaalmas'){w.timer=D.cd[L]*st.cd;const R=D.r[L]*st.area,ex=D.exe[L];
       volleys(1+st.amount,1,.25,()=>{const p=G.p;G.sweeps.push({x:p.x,y:p.y,R,life:.3,a0:Math.atan2(p.fy,p.fx),col:D.col});
         near(p.x,p.y,R+24,e=>{const dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy)||1;if(d>=R+e.r)return;hurt(e,D.dmg[L],dx/d*200,dy/d*200,'siegaalmas');
@@ -1697,6 +1767,13 @@ function useAbility(){
     case 'fraile':{p.hp=Math.min(p.maxHp,p.hp+p.maxHp*.25);const R=110*st.area;blast(R,70,450);ring(p.x,p.y,R,'#7ac8ff');sfx('heal');break;}
     case 'banshee':{for(const e of G.enemies)if(!e.dead&&Math.abs(e.x-G.cam.x)<VW/2+30&&Math.abs(e.y-G.cam.y)<VH/2+30){e.slowT=Math.max(e.slowT||0,4);hurt(e,90,0,0);}
       ring(p.x,p.y,90,'#c9d6e8');ring(p.x,p.y,60,'#9ad0ff');G.shake=.3;sfx('boss');break;}
+    case 'vidente':{let n=0;for(const e of G.enemies)if(!e.dead&&Math.abs(e.x-G.cam.x)<VW/2+30&&Math.abs(e.y-G.cam.y)<VH/2+30){hurt(e,70,0,0);n++;}
+      n=Math.min(30,n);if(n){G.coins+=n;G.texts.push({x:p.x,y:p.y-26,txt:'+'+n+' monedas',life:1.1,gem:true});}
+      ring(p.x,p.y,70,'#e8c8ff');ring(p.x,p.y,40,'#ffd27a');sfx('zap');break;}
+    case 'demonio':{const vis=G.enemies.filter(e=>!e.dead&&Math.abs(e.x-G.cam.x)<VW/2&&Math.abs(e.y-G.cam.y)<VH/2);
+      for(let i=0;i<10;i++){let x,y;if(vis.length){const t=vis[(Math.random()*vis.length)|0];x=t.x+rand(-10,10);y=t.y+rand(-10,10);}else{x=p.x+rand(-VW/3,VW/3);y=p.y+rand(-VH/3,VH/3);}
+        G.meteors.push({x,y,t:0,dur:.45+i*.07,R:40*st.area,dmg:120,src:'infierno',col:'#ff5a3d'});}
+      G.shake=.25;sfx('boss');break;}
     case 'parca':{const R=140*st.area;near(p.x,p.y,R+24,e=>{if(e.dead)return;const d=Math.hypot(e.x-p.x,e.y-p.y);if(d<R+e.r){if(e.elite)hurt(e,200,0,0);else hurt(e,e.hp/st.dmg*1.2+1,0,0);}});
       ring(p.x,p.y,R,'#b38cff');ring(p.x,p.y,R*.85,'#e6dcc4');G.shake=.35;sfx('boss');break;}
   }
@@ -1946,6 +2023,7 @@ function update(dt){
     if(s.grav)s.vy+=s.grav*sd;
     if(s.ax!==undefined){s.vx+=s.ax*sd;s.vy+=s.ay*sd;if(!s.flip&&s.vx*s.vx0+s.vy*s.vy0<0){s.flip=true;s.hit.clear();}}
     if(s.rot!==undefined)s.rot+=sd*14;
+    if(s.spin){const c=Math.cos(s.spin*sd),n=Math.sin(s.spin*sd),vx=s.vx;s.vx=vx*c-s.vy*n;s.vy=vx*n+s.vy*c;}
     if(s.rehit){s.ang+=sd*9;s.rt-=dt;if(s.rt<=0){s.rt=s.rehit;s.hit.clear();}}
     if(s.home){if(!s.tgt||s.tgt.dead){let bd=1e9;s.tgt=null;near(s.x,s.y,220,e=>{if(e.dead)return;const dd=(e.x-s.x)**2+(e.y-s.y)**2;if(dd<bd){bd=dd;s.tgt=e;}});}
       if(s.tgt){const dx=s.tgt.x-s.x,dy=s.tgt.y-s.y,dd=Math.hypot(dx,dy)||1,v=260;s.vx+=(dx/dd*v-s.vx)*Math.min(1,sd*5);s.vy+=(dy/dd*v-s.vy)*Math.min(1,sd*5);}}
@@ -2247,6 +2325,8 @@ function draw(now){
         for(let k=0;k<6;k++){const a=k/6*TAU;ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*8,Math.sin(a)*8);}ctx.stroke();ctx.beginPath();ctx.arc(0,0,4,0,TAU);ctx.arc(0,0,7,0,TAU);ctx.stroke();ctx.restore();}
       else if(s.kind==='axe'){ctx.save();ctx.translate(s.x,s.y);ctx.rotate(s.rot);ctx.fillStyle='#6b4a2a';ctx.fillRect(-1.5,-9,3,18);
         ctx.fillStyle='#ff9b8a';ctx.beginPath();ctx.moveTo(1,-9);ctx.quadraticCurveTo(12,-6,9,4);ctx.lineTo(1,-1);ctx.closePath();ctx.fill();ctx.restore();}
+      else if(s.kind==='card'){ctx.save();ctx.translate(s.x,s.y);ctx.rotate(s.rot);ctx.fillStyle='#f6eefe';ctx.fillRect(-4.5,-6.5,9,13);ctx.strokeStyle='#8a5ad8';ctx.lineWidth=1.2;ctx.strokeRect(-4.5,-6.5,9,13);
+        ctx.fillStyle='#c0304a';ctx.beginPath();ctx.moveTo(0,-3.5);ctx.lineTo(2.5,0);ctx.lineTo(0,3.5);ctx.lineTo(-2.5,0);ctx.closePath();ctx.fill();ctx.restore();}
       else if(s.kind==='cross'){ctx.save();ctx.translate(s.x,s.y);ctx.rotate(s.rot);ctx.fillStyle='rgba(244,240,208,0.2)';ctx.beginPath();ctx.arc(0,0,11,0,TAU);ctx.fill();
         ctx.fillStyle='#f4f0d0';ctx.fillRect(-2,-9,4,18);ctx.fillRect(-7,-4,14,4);ctx.restore();}
       else{const a=Math.atan2(s.vy,s.vx);ctx.save();ctx.translate(s.x,s.y);ctx.rotate(a);
