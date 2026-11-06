@@ -1434,9 +1434,14 @@ const MAPS={
   cripta:{name:'Cementerio',desc:'El cementerio de siempre.',bg:'#15122a',grass:'rgba(80,120,100,0.22)',deco:'tomb',dc:'#231d3e',dl:'#2e2752',mods:{}},
   pantano:{name:'Pantano de las ánimas',coins:15000,desc:'Agua podrida y niebla verde.',bg:'#0e1a15',grass:'rgba(90,160,90,0.3)',deco:'pool',dc:'#123326',dl:'#1d4a36',mods:{hp:1.25,coin:1.25,xp:.1,pts:1.15}},
   bosque:{name:'Bosque de los ahorcados',coins:35000,desc:'Árboles secos que no dejan ver el cielo.',bg:'#17120c',grass:'rgba(120,100,60,0.28)',deco:'tree',dc:'#3d2c1a',dl:'#4a3520',mods:{hp:1.5,dmg:1.2,coin:1.5,pts:1.3}},
+  hongos:{name:'Jardín de hongos venenosos',coins:50000,desc:'Hongos que brillan en la oscuridad.',bg:'#130f1c',grass:'rgba(170,120,255,0.18)',deco:'mush',dc:'#5a2a7a',dl:'#c06bff',mods:{hp:1.6,dmg:1.25,coin:1.6,xp:.15,pts:1.4}},
   catedral:{name:'Catedral en ruinas',coins:70000,desc:'Baldosas rotas y columnas caídas.',bg:'#1a1820',grass:'rgba(140,130,160,0.12)',deco:'pillar',dc:'#2c2934',dl:'#3d3948',mods:{hp:1.8,dmg:1.35,coin:1.8,gem:1.25,pts:1.6}},
+  osario:{name:'Osario de las catacumbas',coins:100000,desc:'Pilas de huesos hasta donde llega la vista.',bg:'#18150f',grass:'rgba(200,190,160,0.12)',deco:'bone',dc:'#cfc4a8',dl:'#8a8068',mods:{hp:2,dmg:1.45,coin:2,gem:1.3,pts:1.8}},
+  desierto:{name:'Desierto de los huesos',coins:150000,desc:'Arena seca y cráneos al sol de la luna.',bg:'#2a2014',grass:'rgba(255,220,150,0.1)',deco:'sand',dc:'#3d2e1c',dl:'#d8c49a',mods:{hp:2.4,dmg:1.6,spd:1.05,coin:2.5,gem:1.4,pts:2.2}},
   glaciar:{name:'Glaciar de los olvidados',gems:350,desc:'Hielo eterno; los enemigos van un poco más lento.',bg:'#0e1826',grass:'rgba(160,210,255,0.16)',deco:'ice',dc:'#1d3550',dl:'#3a6a90',mods:{hp:2.2,dmg:1.5,spd:.9,coin:2.2,gem:1.6,pts:2}},
+  cristales:{name:'Cueva de cristales',gems:500,desc:'Cristales que cantan cuando los rozás.',bg:'#0c1420',grass:'rgba(90,230,200,0.14)',deco:'crystal',dc:'#1e5a6a',dl:'#5ee6c4',mods:{hp:2.6,dmg:1.6,coin:2.6,gem:2,pts:2.4}},
   infierno:{name:'Abismo infernal',gems:700,desc:'Lava y azufre; lo más difícil y lo que más paga.',bg:'#1c0a08',grass:'rgba(255,110,50,0.14)',deco:'lava',dc:'#3a120a',dl:'#ff5a2a',mods:{hp:3,dmg:1.8,spd:1.15,coin:3,gem:2.2,xp:.2,pts:3}},
+  vacio:{name:'Vacío astral',gems:1000,desc:'Más allá de las estrellas no hay piedad.',bg:'#05040c',grass:'rgba(180,140,255,0.1)',deco:'void',dc:'#2a1a5a',dl:'#e8dcff',mods:{hp:4,dmg:2.2,spd:1.2,coin:4,gem:2.8,xp:.3,pts:4}},
 };
 const mapMul=k=>{const M=G&&MAPS[G.map];return (M&&M.mods[k])||1;};
 const MAP_PRE=(id)=>{const M=MAPS[id],m=M.mods,o=[],pc_=v=>'+'+Math.round((v-1)*100)+'%';
@@ -1463,6 +1468,17 @@ function groundPat(id){if(patCache[id])return patCache[id];const M=MAPS[id]||MAP
       g.strokeStyle='rgba(0,0,0,0.3)';g.lineWidth=1;g.beginPath();g.moveTo(x-3*s,y-22*s);g.lineTo(x-3*s,y-3*s);g.moveTo(x+3*s,y-22*s);g.lineTo(x+3*s,y-3*s);g.stroke();},
     ice:(x,y,s)=>{g.fillStyle=M.dc;g.beginPath();g.moveTo(x-9*s,y);g.lineTo(x-4*s,y-22*s);g.lineTo(x+1*s,y-6*s);g.lineTo(x+5*s,y-16*s);g.lineTo(x+10*s,y);g.closePath();g.fill();
       g.strokeStyle=M.dl;g.lineWidth=1.2;g.beginPath();g.moveTo(x-4*s,y-22*s);g.lineTo(x-3*s,y-6*s);g.stroke();},
+    mush:(x,y,s)=>{for(const [dx,k] of [[0,1],[-9,.7],[8,.55]]){const X=x+dx*s,K=k*s;g.fillStyle='#d8cfe8';g.fillRect(X-1.6*K,y-9*K,3.2*K,9*K);
+      g.fillStyle=M.dc;g.shadowColor=M.dl;g.shadowBlur=8;g.beginPath();g.ellipse(X,y-9*K,8*K,5*K,0,Math.PI,0);g.fill();g.shadowBlur=0;
+      g.fillStyle=M.dl;g.beginPath();g.arc(X-3*K,y-11*K,1.3*K,0,TAU);g.arc(X+2.5*K,y-12*K,1*K,0,TAU);g.fill();}},
+    bone:(x,y,s)=>{g.strokeStyle=M.dc;g.lineCap='round';g.lineWidth=3*s;g.beginPath();g.moveTo(x-12*s,y-3*s);g.lineTo(x+10*s,y+3*s);g.moveTo(x-8*s,y+5*s);g.lineTo(x+9*s,y-6*s);g.stroke();g.lineCap='butt';
+      g.fillStyle=M.dc;g.beginPath();g.arc(x+2*s,y-10*s,6*s,0,TAU);g.fill();g.fillRect(x-1.5*s,y-6*s,7*s,4*s);g.fillStyle='#18150f';g.beginPath();g.arc(x,y-10*s,1.6*s,0,TAU);g.arc(x+4*s,y-10*s,1.6*s,0,TAU);g.fill();},
+    sand:(x,y,s)=>{g.strokeStyle='rgba(255,230,180,0.12)';g.lineWidth=2*s;g.beginPath();g.moveTo(x-30*s,y+6*s);g.quadraticCurveTo(x,y-4*s,x+30*s,y+6*s);g.stroke();
+      g.fillStyle=M.dl;g.beginPath();g.arc(x,y-6*s,6*s,0,TAU);g.fill();g.fillRect(x-3.5*s,y-2*s,7*s,4*s);g.fillStyle=M.bg;g.beginPath();g.arc(x-2.2*s,y-6*s,1.6*s,0,TAU);g.arc(x+2.2*s,y-6*s,1.6*s,0,TAU);g.fill();},
+    crystal:(x,y,s)=>{g.shadowColor=M.dl;g.shadowBlur=10;for(const [dx,h,a] of [[0,24,0],[-7,15,-.35],[7,17,.35]]){g.save();g.translate(x+dx*s,y);g.rotate(a);g.fillStyle=M.dc;g.beginPath();g.moveTo(-3.5*s,0);g.lineTo(-3.5*s,-h*s*.7);g.lineTo(0,-h*s);g.lineTo(3.5*s,-h*s*.7);g.lineTo(3.5*s,0);g.closePath();g.fill();
+      g.strokeStyle=M.dl;g.lineWidth=1;g.beginPath();g.moveTo(0,-h*s);g.lineTo(0,-2*s);g.stroke();g.restore();}g.shadowBlur=0;},
+    void:(x,y,s)=>{g.fillStyle=M.dl;g.shadowColor='#b38cff';g.shadowBlur=8;for(let i=0;i<7;i++){g.beginPath();g.arc(x+(r()-.5)*70,y+(r()-.5)*70,(.6+r()*1.4)*s,0,TAU);g.fill();}g.shadowBlur=0;
+      g.strokeStyle='rgba(180,140,255,0.25)';g.lineWidth=1.2;g.beginPath();g.arc(x,y,14*s,0,TAU);g.stroke();},
     lava:(x,y,s)=>{g.strokeStyle=M.dl;g.lineWidth=2.5*s;g.lineCap='round';g.shadowColor=M.dl;g.shadowBlur=6;g.beginPath();g.moveTo(x-16*s,y);g.lineTo(x-6*s,y-4*s);g.lineTo(x+2*s,y+3*s);g.lineTo(x+14*s,y-2*s);g.moveTo(x-6*s,y-4*s);g.lineTo(x-4*s,y-12*s);g.stroke();g.shadowBlur=0;g.lineCap='butt';},
   };
   if(M.deco!=='tomb'){for(const [x,y,sz] of spots)deco[M.deco](x,y,sz);return patCache[id]=ctx.createPattern(c,'repeat');}
