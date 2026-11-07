@@ -27,10 +27,10 @@
       }
     },
     "devs": {
-      ".read": "auth != null && auth.token.email_verified === true && auth.token.email === 'saebijulian@gmail.com'",
+      ".read": "auth != null && auth.token.email_verified === true && auth.uid === 'BsUJqgOzl4ghpUxclcqnuISrlH92'",
       "$h": {
         ".read": true,
-        ".write": "auth != null && auth.token.email_verified === true && auth.token.email === 'saebijulian@gmail.com'",
+        ".write": "auth != null && auth.token.email_verified === true && auth.uid === 'BsUJqgOzl4ghpUxclcqnuISrlH92'",
         ".validate": "newData.isString() && $h.matches(/^[0-9a-f]{64}$/)"
       }
     },
