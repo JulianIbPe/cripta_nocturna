@@ -3,6 +3,7 @@ const { app, BrowserWindow, Menu, shell, net } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
+const crypto = require('crypto');
 
 const EXE_RE = /^https:\/\/github\.com\/JulianIbPe\/cripta_nocturna\/releases\/download\/[^/]+\/criptanocturna-[\d.]+\.exe$/;
 // Se actualiza solo: baja el .exe nuevo al lado del actual y un .bat lo reemplaza cuando este se cierra y lo vuelve a abrir.
@@ -13,9 +14,18 @@ async function selfUpdate(win, url) {
   const tmp = exe + '.new', bat = path.join(app.getPath('temp'), 'cripta-update.bat');
   try {
     win.setProgressBar(2); // barra de la barra de tareas en modo "cargando"
+    // GitHub publica el SHA-256 de cada archivo del Release: si el .exe bajado no coincide, no se instala
+    const [, tag, name] = url.match(/\/download\/([^/]+)\/([^/]+)$/);
+    const rel = await net.fetch('https://api.github.com/repos/JulianIbPe/cripta_nocturna/releases/tags/' + tag, { headers: { 'User-Agent': 'CriptaNocturna' } });
+    if (!rel.ok) throw new Error('HTTP ' + rel.status);
+    const asset = ((await rel.json()).assets || []).find(a => a.name === name);
+    const want = asset && /^sha256:([0-9a-f]{64})$/.exec(asset.digest || '');
+    if (!want) throw new Error('sin hash');
     const r = await net.fetch(url);
     if (!r.ok) throw new Error('HTTP ' + r.status);
-    fs.writeFileSync(tmp, Buffer.from(await r.arrayBuffer()));
+    const buf = Buffer.from(await r.arrayBuffer());
+    if (crypto.createHash('sha256').update(buf).digest('hex') !== want[1]) throw new Error('hash distinto');
+    fs.writeFileSync(tmp, buf);
     // Reintenta mover hasta 60 s: el .exe sigue bloqueado unos instantes después de cerrar
     fs.writeFileSync(bat, ['@echo off', 'set n=0', ':w', 'timeout /t 1 /nobreak >nul', 'set /a n+=1',
       `move /y "${tmp}" "${exe}" >nul 2>&1 || (if %n% lss 60 goto w)`, `start "" "${exe}"`, 'del "%~f0"'].join('\r\n'));

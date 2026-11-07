@@ -3,12 +3,16 @@
     "saves": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid && auth.token.email_verified === true",
-        ".write": "auth != null && auth.uid === $uid && auth.token.email_verified === true"
+        ".write": "auth != null && auth.uid === $uid && auth.token.email_verified === true",
+        "at": { ".validate": "newData.isNumber()" },
+        "data": { ".validate": "newData.isString() && newData.val().length < 1000000" },
+        "run": { ".validate": "newData.isString() && newData.val().length < 1000000" },
+        "$other": { ".validate": false }
       }
     },
     "usernames": {
-      ".read": true,
       "$name": {
+        ".read": true,
         ".write": "auth != null && auth.token.email_verified === true && ((!data.exists() && newData.val() === auth.uid) || (data.val() === auth.uid && (!newData.exists() || newData.val() === auth.uid)))",
         ".validate": "$name.matches(/^[a-z0-9_-]{3,16}$/)"
       }
@@ -27,7 +31,7 @@
       "$h": {
         ".read": true,
         ".write": "auth != null && auth.token.email_verified === true && auth.token.email === 'saebijulian@gmail.com'",
-        ".validate": "newData.isString()"
+        ".validate": "newData.isString() && $h.matches(/^[0-9a-f]{64}$/)"
       }
     },
     "scores": {
@@ -35,7 +39,19 @@
       ".indexOn": ["score"],
       "$uid": {
         ".write": "auth != null && auth.uid === $uid && auth.token.email_verified === true",
-        ".validate": "newData.hasChildren(['name', 'score']) && newData.child('score').isNumber() && newData.child('score').val() >= 0 && newData.child('name').val() === newData.parent().parent().child('users').child($uid).child('name').val()"
+        ".validate": "newData.hasChildren(['name', 'score', 'best', 'at']) && newData.child('score').val() <= newData.child('best').child('k').val() * 1000000 + 100000 && newData.child('best').child('k').val() <= newData.child('best').child('t').val() * 20000 + 1000",
+        "name": { ".validate": "newData.isString() && newData.val() === newData.parent().parent().parent().child('users').child($uid).child('name').val()" },
+        "score": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "at": { ".validate": "newData.isNumber() && newData.val() <= now + 600000" },
+        "best": {
+          ".validate": "newData.hasChildren(['t', 'k', 'c', 'd'])",
+          "t": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000" },
+          "k": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+          "c": { ".validate": "newData.isString() && newData.val().length <= 20" },
+          "d": { ".validate": "newData.isString() && newData.val().length <= 12" },
+          "$other": { ".validate": false }
+        },
+        "$other": { ".validate": false }
       }
     }
   }

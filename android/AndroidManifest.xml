@@ -10,7 +10,8 @@
         android:label="Cripta Nocturna"
         android:icon="@drawable/icon"
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
-        android:hardwareAccelerated="true">
+        android:hardwareAccelerated="true"
+        android:allowBackup="false">
         <activity
             android:name=".MainActivity"
             android:exported="true"

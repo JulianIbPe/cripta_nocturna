@@ -569,6 +569,9 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
     <div class="dtitle">Mapas</div>
     <p class="cfgnote">Cada mapa tiene su suelo y enemigos más duros, pero paga más. Se elige en Personajes o tocando el mapa en el menú.</p>
     <div class="shoplist" id="shopMapList"></div>
+    <div class="dtitle">Skins</div>
+    <p class="cfgnote">Cambian cómo se ven el personaje y sus armas iniciales; no cambian sus estadísticas. Tocá una comprada para ponértela o sacártela.</p>
+    <div class="shoplist" id="shopSkinList"></div>
     <div class="dtitle">Comprar monedas con gemas</div>
     <div class="shoplist" id="shopCoinsList"></div>
     <p class="toast" id="shopToast" aria-live="polite"></p>
@@ -1504,6 +1507,12 @@ try{if(localStorage.getItem('cripta-muted')==='1')setMuted(true);}catch(e){}
 
 /* ---------- Mapas y suelo ---------- */
 // mods: hp/dmg/spd de enemigos, coin/gem/pts multiplican el botín y los puntos, xp se suma a la experiencia
+const CHAR_UP=[600,1200,2500,4000,6000],CHAR_GEM=[30,60],CHAR_MAX=CHAR_UP.length+CHAR_GEM.length;
+/* ---- Skins: ch = personaje, col/hat reemplazan los de CHARS al dibujar, wcol = colores de sus armas. Se compran en la tienda (SAVE.skins) y se eligen ahí (SAVE.skin[ch]) ---- */
+const SKINS={frutillin:{ch:'lobo',name:'Frutillín',gems:120,desc:'Bram vestido de frutilla: pelaje rojo con semillitas, hojas en la cabeza y mordiscos y lunas de frutilla.',
+  col:{cloak:'#d8233f',hood:'#b01830',face:'#ffd6dc',lamp:'#ff6b88'},hat:'berry',wcol:{mordisco:'#ff3d6b',lunallena:'#ffa3b8'}}};
+const skinOf=ch=>{const id=SAVE.skin&&SAVE.skin[ch],S=SKINS[id];return S&&S.ch===ch&&SAVE.skins.includes(id)?S:null;};
+const wCol=id=>{const S=G&&skinOf(G.char);return S&&S.wcol[id]||WDEF[id].col;};
 const MAPS={
   cripta:{name:'Cementerio',desc:'El cementerio de siempre.',bg:'#15122a',grass:'rgba(80,120,100,0.22)',deco:'tomb',dc:'#231d3e',dl:'#2e2752',mods:{}},
   pantano:{name:'Pantano de las ánimas',coins:15000,desc:'Agua podrida y niebla verde.',bg:'#0e1a15',grass:'rgba(90,160,90,0.3)',deco:'pool',dc:'#123326',dl:'#1d4a36',mods:{hp:1.25,coin:1.25,xp:.1,pts:1.15}},
@@ -1879,8 +1888,8 @@ function updateWeapons(dt){
     }else if(w.id==='nubetox'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount,r=D.r[L]*st.area;
       for(let i=0;i<n;i++){if(G.zones.length>=120)break;const a=Math.random()*TAU,d=rand(30,120);G.zones.push({x:p.x+Math.cos(a)*d,y:p.y+Math.sin(a)*d,r,dmg:D.dmg[L],life:D.dur[L],tick:0,src:'nubetox',col:D.col});}
     }else if(w.id==='mordisco'){const n=D.n[L]+st.amount,ts=nearestEnemies(n).filter(e=>Math.hypot(e.x-p.x,e.y-p.y)<240*st.area);if(!ts.length){w.timer=.15;continue;}w.timer=D.cd[L]*st.cd;
-      for(const t of ts){hurt(t,D.dmg[L],(t.x-p.x)*2,(t.y-p.y)*2,'mordisco');ring(t.x,t.y,16,D.col);p.hp=Math.min(p.maxHp,p.hp+D.heal[L]);}
-    }else if(w.id==='lunallena'){w.timer=D.cd[L]*st.cd;pushWaves({x:p.x,y:p.y,max:D.R[L]*st.area,dmg:D.dmg[L],col:D.col,src:'lunallena'});
+      for(const t of ts){hurt(t,D.dmg[L],(t.x-p.x)*2,(t.y-p.y)*2,'mordisco');ring(t.x,t.y,16,wCol('mordisco'));p.hp=Math.min(p.maxHp,p.hp+D.heal[L]);}
+    }else if(w.id==='lunallena'){w.timer=D.cd[L]*st.cd;pushWaves({x:p.x,y:p.y,max:D.R[L]*st.area,dmg:D.dmg[L],col:wCol('lunallena'),src:'lunallena'});
     }else if(w.id==='antorcha'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;
       for(let i=0;i<n;i++){const t=ts[i%ts.length],a=Math.atan2(t.y-p.y,t.x-p.x)+(i>=ts.length?rand(-.25,.25):0);
         G.shots.push({src:'antorcha',kind:'bolt',col:D.col,x:p.x,y:p.y,vx:Math.cos(a)*360,vy:Math.sin(a)*360,dmg:D.dmg[L],pierce:D.pierce[L],r:6,life:.9,burn:{dmg:Math.round(D.dmg[L]*.35),r:26*st.area},hit:new Set()});}
@@ -2361,7 +2370,7 @@ function drawEnemyBase(e){
     const w=r*2.2;ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(x-w/2,y-r-14,w,4);ctx.fillStyle='#ff8a3d';ctx.fillRect(x-w/2,y-r-14,w*Math.max(0,e.hp/e.max),4);
   }}
 function drawHero(g,x,y,ch,b,fx,lampSide){
-  const C=CHARS[ch],c=C.col,hat=C.hat;
+  const C=CHARS[ch],S=skinOf(ch),c=S?S.col:C.col,hat=S?S.hat:C.hat;
   g.fillStyle='rgba(0,0,0,0.4)';g.beginPath();g.ellipse(x,y+11,10,4,0,0,TAU);g.fill();
   if(hat==='halo'){g.fillStyle='rgba(255,255,255,0.85)';for(const sd of[-1,1]){g.beginPath();g.moveTo(x+sd*6,y-4+b);g.quadraticCurveTo(x+sd*22,y-14+b,x+sd*20,y+4+b);g.quadraticCurveTo(x+sd*14,y+2+b,x+sd*6,y+4+b);g.closePath();g.fill();}}
   if(hat==='reaper'){g.strokeStyle='#6b5a3a';g.lineWidth=1.8;g.beginPath();g.moveTo(x-12,y+12);g.lineTo(x-12,y-22+b);g.stroke();g.fillStyle='#d8dbe8';g.beginPath();g.moveTo(x-12,y-22+b);g.quadraticCurveTo(x+2,y-26+b,x+6,y-16+b);g.quadraticCurveTo(x-2,y-21+b,x-12,y-19+b);g.closePath();g.fill();}
@@ -2380,7 +2389,7 @@ function drawHero(g,x,y,ch,b,fx,lampSide){
     const eye={collar:'#c4123a',stone:'#7dffb0',reaper:'#b38cff',crown:'#7ad8ff'}[hat]||'#14112a';
     if(hat==='reaper'){g.fillStyle='#14112a';g.beginPath();g.arc(hx-2,hy-.5,1.8,0,TAU);g.arc(hx+2,hy-.5,1.8,0,TAU);g.fill();g.fillStyle=eye;g.fillRect(hx-2.5,hy-1,1,1);g.fillRect(hx+1.5,hy-1,1,1);g.fillStyle='#14112a';g.fillRect(hx-2,hy+2.5,4,1);}
     else{g.fillStyle=eye;g.fillRect(hx-3,hy-1,2,2);g.fillRect(hx+1,hy-1,2,2);}
-    if(hat==='fox'){g.fillStyle='#e2435a';g.fillRect(hx-4.5,hy+1,2.5,1);g.fillRect(hx+2,hy+1,2.5,1);}
+    if(hat==='fox'||hat==='berry'){g.fillStyle='#e2435a';g.fillRect(hx-4.5,hy+1,2.5,1);g.fillRect(hx+2,hy+1,2.5,1);}
   }
   if(hat==='witch'){g.fillStyle='#14231c';g.beginPath();g.ellipse(x,y-10+b,12,3,0,0,TAU);g.fill();
     g.beginPath();g.moveTo(x-7,y-11+b);g.lineTo(x+7,y-11+b);g.lineTo(x+4,y-22+b);g.lineTo(x+9,y-27+b);g.closePath();g.fill();
@@ -2390,6 +2399,9 @@ function drawHero(g,x,y,ch,b,fx,lampSide){
   else if(hat==='collar'){g.fillStyle='#120408';g.beginPath();g.arc(hx,hy-3,5.4,Math.PI,0);g.fill();}
   else if(hat==='helm'){g.fillStyle='#c9d1e0';g.beginPath();g.arc(hx,hy-1.5,6,Math.PI,0);g.fill();g.fillRect(hx-.8,hy-2,1.6,4.5);g.fillStyle='#fff';for(const sd of[-1,1]){g.beginPath();g.moveTo(hx+sd*5,hy-4);g.lineTo(hx+sd*13,hy-12);g.lineTo(hx+sd*11,hy-4);g.closePath();g.fill();}}
   else if(hat==='fox'){for(const sd of[-1,1]){g.fillStyle='#e8742a';g.beginPath();g.moveTo(x+sd*3,y-11+b);g.lineTo(x+sd*8,y-20+b);g.lineTo(x+sd*9,y-9+b);g.closePath();g.fill();g.fillStyle='#fff4e8';g.beginPath();g.moveTo(x+sd*5,y-11+b);g.lineTo(x+sd*7.5,y-16+b);g.lineTo(x+sd*8,y-10+b);g.closePath();g.fill();}}
+  else if(hat==='berry'){for(const sd of[-1,1]){g.fillStyle='#e8233f';g.beginPath();g.moveTo(x+sd*3,y-11+b);g.lineTo(x+sd*8,y-20+b);g.lineTo(x+sd*9,y-9+b);g.closePath();g.fill();g.fillStyle='#ffb3c1';g.beginPath();g.moveTo(x+sd*5,y-11+b);g.lineTo(x+sd*7.5,y-16+b);g.lineTo(x+sd*8,y-10+b);g.closePath();g.fill();}
+    g.fillStyle='#3fae4a';for(let i=-2;i<=2;i++){g.beginPath();g.moveTo(x+i*2.6-2,y-12+b);g.lineTo(x+i*3.4,y-17+b+Math.abs(i));g.lineTo(x+i*2.6+2,y-12+b);g.closePath();g.fill();}g.fillRect(x-.8,y-20+b,1.6,4);
+    g.fillStyle='#ffe27a';for(const[sx,sy]of[[-6,-2],[-2,1],[3,-1],[7,2],[-7,5],[-3,6],[2,4],[6,7],[-1,9]])g.fillRect(x+sx-.6,y+sy+b-.6,1.3,1.6);}
   else if(hat==='crown'){g.fillStyle='#ffd27a';g.beginPath();g.moveTo(x-7,y-10+b);g.lineTo(x-7,y-16+b);g.lineTo(x-3.5,y-13+b);g.lineTo(x,y-18+b);g.lineTo(x+3.5,y-13+b);g.lineTo(x+7,y-16+b);g.lineTo(x+7,y-10+b);g.closePath();g.fill();g.fillStyle='#7ad8ff';g.fillRect(x-1,y-14+b,2,2);}
   else if(hat==='halo'){g.strokeStyle='#ffe27a';g.lineWidth=1.8;g.beginPath();g.ellipse(x,y-16+b,7,2.2,0,0,TAU);g.stroke();}
   else if(hat==='stone'){g.strokeStyle='rgba(30,30,40,.6)';g.lineWidth=1;g.beginPath();g.moveTo(x-6,y+2+b);g.lineTo(x-2,y+6+b);g.lineTo(x-4,y+10);g.moveTo(x+5,y-1+b);g.lineTo(x+7,y+4+b);g.stroke();g.fillStyle='#45454f';g.fillRect(x-10,y-8+b,4,5);g.fillRect(x+6,y-8+b,4,5);}
@@ -2817,7 +2829,7 @@ function normalizeSave(sv){
   if(!sv||typeof sv!=='object'){sv={coins:0,unlocked:['sepulturero'],sel:'sepulturero',best:null};try{const b=JSON.parse(localStorage.getItem('cripta-best')||'null');if(b)sv.best=b;}catch(e){}}
   if(!Array.isArray(sv.unlocked))sv.unlocked=[];if(!sv.unlocked.includes('sepulturero'))sv.unlocked.push('sepulturero');
   if(!CHARS[sv.sel])sv.sel='sepulturero';if(!DIFFS[sv.diff])sv.diff='facil';if(!sv.life||typeof sv.life!=='object')sv.life={runs:0,kills:0,time:0,coins:0,dawns:0};if(!sv.bestBy||typeof sv.bestBy!=='object'){sv.bestBy={};if(sv.best)sv.bestBy.facil=sv.best;}sv.coins=sv.coins|0;sv.gems=sv.gems|0;if(!sv.buffs||typeof sv.buffs!=='object')sv.buffs={};if(!sv.charLv||typeof sv.charLv!=='object')sv.charLv={};if((sv.buffs.revivir|0)>0){sv.gems=(sv.gems|0)+[0,150,550][Math.min(2,sv.buffs.revivir|0)];}delete sv.buffs.revivir; // Segunda vida se sacó de la tienda: se devuelven las gemas
-  for(const k in BUFFS)sv.buffs[k]=Math.max(0,sv.buffs[k]|0);if(!Array.isArray(sv.maps))sv.maps=[];sv.maps=sv.maps.filter(k=>MAPS[k]&&k!=='cripta');if(!MAPS[sv.map]||(sv.map!=='cripta'&&!sv.maps.includes(sv.map)))sv.map='cripta';if(typeof sv.life.gems!=='number')sv.life.gems=0;return sv;}
+  for(const k in BUFFS)sv.buffs[k]=Math.min(buffMax(k),Math.max(0,sv.buffs[k]|0));sv.unlocked=sv.unlocked.filter(id=>CHARS[id]);for(const id in sv.charLv){if(!CHARS[id])delete sv.charLv[id];else sv.charLv[id]=Math.min(CHAR_MAX,Math.max(0,sv.charLv[id]|0));}if(!Array.isArray(sv.misPaid))sv.misPaid=[];sv.misPaid=sv.misPaid.filter(id=>MISSIONS.some(m=>m.id===id&&m.reward));for(const k in sv.life)if(typeof sv.life[k]==='number')sv.life[k]=Math.max(0,sv.life[k]);if(!Array.isArray(sv.skins))sv.skins=[];sv.skins=sv.skins.filter(id=>SKINS[id]);if(!sv.skin||typeof sv.skin!=='object')sv.skin={};for(const ch in sv.skin)if(!sv.skins.includes(sv.skin[ch]))delete sv.skin[ch];if(!Array.isArray(sv.maps))sv.maps=[];sv.maps=sv.maps.filter(k=>MAPS[k]&&k!=='cripta');if(!MAPS[sv.map]||(sv.map!=='cripta'&&!sv.maps.includes(sv.map)))sv.map='cripta';if(typeof sv.life.gems!=='number')sv.life.gems=0;return sv;}
 let SAVE=loadSave();
 function persist(){SAVE.savedAt=Date.now();try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE));}catch(e){}scheduleCloud();}
 /* ---- Account: cloud save (Firebase, mail y contraseña por REST) + file backup ---- */
@@ -2925,6 +2937,7 @@ const APP_VER='dev'; // el workflow lo reemplaza por 1.0.<n> al compilar
 const RELEASES='https://github.com/JulianIbPe/cripta_nocturna/releases/latest';
 // Registro de cambios para todos los jugadores (lo de una sola cuenta, como el menú de pruebas, no va). El más nuevo arriba
 const CHANGELOG=[
+['1.0.59','7 nov',['Skin nueva en la tienda: Frutillín, Bram el Hombre Lobo vestido de frutilla, con sus mordiscos y su Luna llena de color frutilla.','La clasificación y el guardado en la nube rechazan datos falsos o demasiado grandes.','Un progreso guardado editado a mano ya no puede tener mejoras o niveles por encima del máximo.']],
 ['1.0.58','6 nov',['La pantalla de muerte dice qué enemigo o jefe te mató.']],
 ['1.0.57','6 nov',['Las partidas largas con mucha área y muchos proyectiles extra ya no se traban: la Campana, la Nova de escarcha y las demás armas de área se calculan y se dibujan mucho más rápido.']],
 ['1.0.56','6 nov',['En PC, el botón de actualizar baja la versión nueva y el juego se reinicia actualizado.']],
@@ -3110,7 +3123,7 @@ function renderAcct(){
 }
 /* ---- Menú de pruebas: solo para la cuenta dueña (hash SHA-256 del mail, para no publicarlo) ---- */
 // shortcut: el chequeo es del lado del cliente; alcanza para que no lo vea nadie más, no para impedir que alguien edite el juego
-const DEV_HASHES=['842985e128aa4f898b629990dbe6de9a9ec0236f6a085118d7b7663fa000f796','50caa529cb02eb7ad9a8859013ade86c45443fff34e6c63c26cdb89387991f3c','629f1a623dd34afb2b6a42ea3022bb13050edabd0be0bbefbec058b08e8aeef0'];
+const DEV_HASHES=['842985e128aa4f898b629990dbe6de9a9ec0236f6a085118d7b7663fa000f796','50caa529cb02eb7ad9a8859013ade86c45443fff34e6c63c26cdb89387991f3c','629f1a623dd34afb2b6a42ea3022bb13050edabd0be0bbefbec058b08e8aeef0','dabf7dc78855d44ec327ff5afcf32fd8150dda0eecf66b6ad1967feb2a493b93'];
 let IS_DEV=false,IS_OWNER=false;
 const sha256=async t=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))].map(b=>b.toString(16).padStart(2,'0')).join('');
 // La cuenta dueña (DEV_HASHES[0]) habilita el menú de pruebas a otros mails desde Cuenta: devs/<sha256 del mail> = mail
@@ -3125,13 +3138,13 @@ function devAdmin(){const box=document.createElement('div');box.className='devop
     const ks=Object.keys(devList);if(!ks.length){const p_=document.createElement('p');p_.className='hint';p_.textContent='Todavía no habilitaste a nadie.';list.appendChild(p_);}
     for(const h of ks){const row=document.createElement('div');row.className='btnrow';const sp=document.createElement('span');sp.textContent=devList[h];
       const q=document.createElement('button');q.className='btn ghost';q.textContent='Quitar';
-      q.onclick=async()=>{q.disabled=true;try{await fbDb('DELETE','devs/'+h,undefined,true);delete devList[h];draw();out('Listo: le sacaste el menú de pruebas.');}catch(e){q.disabled=false;out(e.code==='denied'?'El servidor no lo permite: faltan las reglas de devs/ en Firebase.':'No se pudo quitar. Probá de nuevo.');}};
+      q.onclick=async()=>{q.disabled=true;try{await fbDb('DELETE','devs/'+h,undefined,true);delete devList[h];draw();out('Listo: le sacaste el menú de pruebas.');}catch(e){q.disabled=false;out(e.code==='denied'?'El servidor no lo permite: pegá firebase-rules.json en Firebase → Realtime Database → Reglas.':'No se pudo quitar. Probá de nuevo.');}};
       row.append(sp,q);list.appendChild(row);}};
   f.onsubmit=async e=>{e.preventDefault();const m=f.devMail.value.trim().toLowerCase();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)){out('Escribí un mail válido.');return;}
     const b=f.querySelector('#devAdd');b.disabled=true;out('Guardando…');
     try{const h=await sha256(m);await fbDb('PUT','devs/'+h,m,true);devList=devList||{};devList[h]=m;f.reset();draw();out('Listo: '+m+' ve el menú de pruebas la próxima vez que abra el juego.');}
-    catch(er){out(er.code==='denied'?'El servidor no lo permite: faltan las reglas de devs/ en Firebase.':'No se pudo guardar. Probá de nuevo.');}b.disabled=false;};
-  if(!devList)fbDb('GET','devs',undefined,true).then(v=>{devList=v||{};draw();}).catch(()=>{devList={};draw();out('No se pudo leer la lista.');});
+    catch(er){out(er.code==='denied'?'El servidor no lo permite: pegá firebase-rules.json en Firebase → Realtime Database → Reglas.':'No se pudo guardar. Probá de nuevo.');}b.disabled=false;};
+  if(!devList)fbDb('GET','devs',undefined,true).then(v=>{devList=v||{};draw();}).catch(e=>{devList={};draw();out(e.code==='denied'?'El servidor no deja leer la lista: pegá firebase-rules.json en Firebase → Realtime Database → Reglas.':'No se pudo leer la lista.');});
   draw();return box;}
 // El menú de pruebas es una opción de la cuenta dueña: activado, sus partidas no cuentan para la clasificación; desactivado, sí.
 const devActive=()=>IS_DEV&&!!SAVE.devOn;
@@ -3150,7 +3163,7 @@ function renderCfgDev(){const el=$('#cfgDev');if(!el)return;el.hidden=!IS_DEV;el
   if(SAVE.devOn){const md=document.createElement('button');md.className='btn ghost';md.id='modOpen';md.textContent='Abrir menú de pruebas';md.onclick=()=>{modFrom='config';openMod();};box.appendChild(md);}
   el.appendChild(box);}
 async function checkDev(){
-  try{if(!AUTH){IS_DEV=false;syncDevUi();renderAcctIfOpen();return;}const h=await sha256(AUTH.email.toLowerCase());IS_OWNER=h===DEV_HASHES[0];IS_DEV=DEV_HASHES.includes(h);
+  try{if(!AUTH){IS_DEV=false;syncDevUi();renderAcctIfOpen();return;}const u=FB.apiKey&&await fbAuth('lookup',{idToken:await fbToken()}).catch(()=>null),us=u&&u.users&&u.users[0];if(!us||!us.email||!us.emailVerified)throw 0;const h=await sha256(us.email.toLowerCase());IS_OWNER=h===DEV_HASHES[0];IS_DEV=DEV_HASHES.includes(h);
     if(!IS_DEV&&FB.apiKey)IS_DEV=!!(await fbDb('GET','devs/'+h).catch(()=>null));}catch(e){IS_DEV=false;IS_OWNER=false;}
   syncDevUi();renderAcctIfOpen();}
 const ST_NAMES={dmg:'Daño ×',cd:'Enfriamiento ×',cdRaw:'Enfriamiento base ×',area:'Área ×',spd:'Velocidad ×',projSpd:'Vel. de proyectiles ×',amount:'Proyectiles extra',shield:'Escudo',magnet:'Imán (px)',regen:'Regeneración',armor:'Armadura',crit:'Crítico',leech:'Robo de vida',killHeal:'Cura por baja',evade:'Esquivar',thorns:'Espinas',exec:'Ejecución',slowAura:'Aura lenta',curse:'Maldición',luck:'Suerte',xpMul:'Experiencia ×',coinMul:'Monedas ×',kb:'Empuje ×'};
@@ -3237,7 +3250,7 @@ function renderChars(){
   startLabel($('#startBtn'),'Empezar con ');
   renderCharUp();
 }
-const CHAR_UP=[600,1200,2500,4000,6000],CHAR_GEM=[30,60],CHAR_MAX=CHAR_UP.length+CHAR_GEM.length,CU=document.getElementById('charUp');
+const CU=document.getElementById('charUp');
 // Del 1 al 5 se paga con monedas; el 6 y el 7, con gemas
 const charUpCost=lv=>lv<CHAR_UP.length?{n:CHAR_UP[lv],gem:false}:lv<CHAR_MAX?{n:CHAR_GEM[lv-CHAR_UP.length],gem:true}:null;
 let cuConfirm=false,cuTimer=null;
@@ -3446,8 +3459,17 @@ function renderShop(){
   $('#shopMapList').innerHTML=Object.keys(MAPS).filter(k=>k!=='cripta').map(id=>{const M=MAPS[id],own=mapOwned(id),g=!!M.gems,pr=g?M.gems:M.coins,can=g?SAVE.gems>=pr:SAVE.coins>=pr,conf=shopConfirm==='m-'+id;
     return `<div class="buff"><span class="ic" style="background:${M.bg};border-color:${M.dl}">${svg('pergamino',M.dl)}</span><strong>${M.name}</strong><p>${M.desc} ${MAP_PRE(id)}.</p>`+
       (own?`<p class="maxed">Comprado</p>`:`<button class="shopitem${conf?' confirm':''}" data-k="m" data-id="${id}" id="shop-m-${id}"${can?'':' disabled'}><strong>Comprar mapa</strong><small>${g?'Se paga con gemas':'Se paga con monedas'}</small><span class="pr">${conf?'Confirmar':(g?'<i class="gemi"></i>':'<i class="coin"></i>')+N(pr)}</span></button>`)+'</div>';}).join('');
+  $('#shopSkinList').innerHTML=Object.keys(SKINS).map(id=>{const K=SKINS[id],C=CHARS[K.ch],own=SAVE.skins.includes(id),on=own&&SAVE.skin[K.ch]===id,has=SAVE.unlocked.includes(K.ch),can=has&&SAVE.gems>=K.gems,conf=shopConfirm==='s-'+id;
+    return `<div class="buff"><span class="ic" style="border-color:${K.col.lamp}">${svg('colmillo',K.col.cloak)}</span><strong>${K.name} · ${C.short}</strong><p>${K.desc}</p>`+
+      (own?`<button class="shopitem" data-k="s" data-id="${id}" id="shop-s-${id}"><strong>${on?'Puesta':'Comprada'}</strong><small>${on?'Tocá para volver al aspecto normal':'Tocá para ponértela'}</small><span class="pr">${on?'Sacar':'Usar'}</span></button>`
+        :`<button class="shopitem${conf?' confirm':''}" data-k="s" data-id="${id}" id="shop-s-${id}"${can?'':' disabled'}><strong>Comprar skin</strong><small>${has?'Se paga con gemas':'Primero desbloqueá a '+C.short}</small><span class="pr">${conf?'Confirmar':'<i class="gemi"></i>'+N(K.gems)}</span></button>`)+'</div>';}).join('');
 }
 function shopClick(btn){
+  if(btn.dataset.k==='s'){const id=btn.dataset.id,K=SKINS[id],key='s-'+id;if(!K)return;
+    if(SAVE.skins.includes(id)){if(SAVE.skin[K.ch]===id)delete SAVE.skin[K.ch];else SAVE.skin[K.ch]=id;persist();$('#shopToast').textContent=SAVE.skin[K.ch]?'Listo: '+CHARS[K.ch].short+' usa '+K.name+'.':'Listo: '+CHARS[K.ch].short+' vuelve a su aspecto normal.';renderShop();return;}
+    if(!SAVE.unlocked.includes(K.ch))return;
+    if(shopConfirm!==key){shopConfirm=key;clearTimeout(shopTimer);shopTimer=setTimeout(()=>{shopConfirm=null;if(!$('#shop').hidden)renderShop();},3500);$('#shopToast').textContent='';renderShop();return;}
+    shopConfirm=null;clearTimeout(shopTimer);if(SAVE.gems<K.gems)return;SAVE.gems-=K.gems;SAVE.skins.push(id);SAVE.skin[K.ch]=id;persist();sfx('level');$('#shopToast').textContent='Listo: '+K.name+'. Ya la tiene puesta '+CHARS[K.ch].short+'.';renderShop();return;}
   if(btn.dataset.k==='m'){const id=btn.dataset.id,M=MAPS[id],key='m-'+id;if(!M||mapOwned(id))return;
     if(shopConfirm!==key){shopConfirm=key;clearTimeout(shopTimer);shopTimer=setTimeout(()=>{shopConfirm=null;if(!$('#shop').hidden)renderShop();},3500);$('#shopToast').textContent='';renderShop();return;}
     shopConfirm=null;clearTimeout(shopTimer);
@@ -3465,7 +3487,7 @@ function shopClick(btn){
   else{if(SAVE.gems<it.pay)return;SAVE.gems-=it.pay;SAVE.coins+=it.get;}
   persist();sfx('level');$('#shopToast').textContent='Listo: +'+it.get.toLocaleString('es-AR')+' '+(kind==='g'?(it.get>1?'gemas':'gema'):'monedas')+'.';renderShop();
 }
-['#shopBuffList','#shopCoinsList','#shopMapList'].forEach(sel=>$(sel).addEventListener('click',e=>{const b=e.target.closest('.shopitem');if(b&&!b.disabled)shopClick(b);}));
+['#shopBuffList','#shopCoinsList','#shopMapList','#shopSkinList'].forEach(sel=>$(sel).addEventListener('click',e=>{const b=e.target.closest('.shopitem');if(b&&!b.disabled)shopClick(b);}));
 $('#tShop').addEventListener('click',()=>{initAudio();shopConfirm=null;$('#shopToast').textContent='';renderShop();show('shop');$('#shop').scrollTop=0;});
 $('#tArsenal').addEventListener('click',()=>{renderArsenal();show('arsenal');$('#arsenal').scrollTop=0;});
 $('#tRecords').addEventListener('click',()=>{renderRecords();show('records');$('#records').scrollTop=0;});

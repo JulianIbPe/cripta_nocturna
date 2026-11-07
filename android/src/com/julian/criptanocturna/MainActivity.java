@@ -7,22 +7,17 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.content.ClipboardManager;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends Activity {
     private static final int PICK_FILE = 1;
@@ -101,7 +96,11 @@ public class MainActivity extends Activity {
         // Baja el APK de la versión nueva con DownloadManager y al terminar abre el instalador de Android
         @JavascriptInterface
         public boolean downloadApk(String url) {
-            if (!url.startsWith("https://github.com/JulianIbPe/cripta_nocturna/releases/download/") || !url.endsWith(".apk")) return false;
+            // Se compara el host y el camino ya parseados: un startsWith se podía esquivar con "../"
+            Uri u = Uri.parse(url);
+            String path = u.getPath();
+            if (!"https".equals(u.getScheme()) || !"github.com".equals(u.getHost()) || path == null || path.contains("..")
+                || !path.startsWith("/JulianIbPe/cripta_nocturna/releases/download/") || !path.endsWith(".apk")) return false;
             try {
                 File old = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "cripta-update.apk");
                 if (old.exists()) old.delete();
@@ -129,6 +128,7 @@ public class MainActivity extends Activity {
                     }
                 };
                 IntentFilter f = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+                // Exportado a propósito: DOWNLOAD_COMPLETE lo manda el proceso de DownloadManager, no el sistema; se ignora todo lo que no sea esta descarga
                 if (Build.VERSION.SDK_INT >= 33) registerReceiver(done, f, Context.RECEIVER_EXPORTED);
                 else registerReceiver(done, f);
                 return true;
@@ -150,26 +150,5 @@ public class MainActivity extends Activity {
             }
         }
 
-        // Guarda la copia del progreso en Descargas (Android 10+) o en la carpeta de la app.
-        @JavascriptInterface
-        public boolean saveFile(String name, String data) {
-            byte[] bytes = data.getBytes(StandardCharsets.UTF_8);
-            try {
-                if (Build.VERSION.SDK_INT >= 29) {
-                    ContentValues v = new ContentValues();
-                    v.put(MediaStore.Downloads.DISPLAY_NAME, name);
-                    v.put(MediaStore.Downloads.MIME_TYPE, "application/json");
-                    Uri uri = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, v);
-                    if (uri == null) return false;
-                    try (OutputStream o = getContentResolver().openOutputStream(uri)) { o.write(bytes); }
-                } else {
-                    File f = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), name);
-                    try (OutputStream o = new FileOutputStream(f)) { o.write(bytes); }
-                }
-                return true;
-            } catch (Exception e) {
-                return false;
-            }
-        }
     }
 }
