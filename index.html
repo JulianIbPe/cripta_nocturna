@@ -862,15 +862,14 @@ const WDEF={
     up:['Dispara un rayo que atraviesa todo en línea recta.','+6 de daño','+1 rayo','+8 de daño','+1 rayo y +10 de daño'],
     dmg:[18,24,24,32,42],cd:[1.6,1.5,1.4,1.3,1.1],n:[1,1,2,2,3]},
   campana:{name:'Campana de difuntos',col:'#ffd27a',mission:'m_elite',
-    up:['Cada campanada suelta una onda que empuja y daña. Cada proyectil extra suma otra onda detrás.','+4 de daño y onda más grande','Onda más grande','+6 de daño y recarga más rápida','Onda enorme y +8 de daño'],
-    dmg:[12,16,16,22,30],cd:[2.5,2.3,2.2,2,1.8],R:[120,140,150,165,190]},
+    up:['Cada campanada suelta una onda que empuja, daña y frena un poco. Cada proyectil extra suma otra onda detrás.','+7 de daño y onda más grande','Onda más grande','+10 de daño y recarga más rápida','Onda enorme y +13 de daño'],
+    dmg:[20,27,27,37,50],cd:[2.1,1.95,1.85,1.65,1.45],R:[150,170,185,200,230]},
   linterna:{name:'Linterna maldita',col:'#ff9a3d',mission:'m_dawn',
     up:['Deja un rastro de fuego por donde caminás.','El fuego dura más y quema más','Llamas más grandes','El fuego dura más y quema más','Llamas enormes y +2 de daño'],
     dmg:[4,5,6,7,9],dur:[1.5,1.8,2,2.3,2.6],r:[16,18,20,22,26]},
   ballesta:{name:'Ballesta de plata',col:'#d8dbe8',mission:'m_lvl',
     up:['Dispara virotes rapidísimos al enemigo más cercano.','+2 de daño y más rápida','Atraviesa 1 más','+1 virote','+1 virote y +3 de daño'],
     dmg:[9,11,13,13,16],cd:[.55,.5,.45,.42,.38],n:[1,1,1,2,3],pierce:[2,2,3,3,4]},
-  // Armas que se desbloquean con misiones (segunda tanda)
   tridente:{name:'Tridente infernal',col:'#ff6a3d',mission:'m_boss',
     up:['Lanza tres puntas ardientes en abanico que atraviesan enemigos.','+6 de daño','Atraviesan 1 más y recarga más rápida','+1 punta y +8 de daño','+1 punta, atraviesan 1 más y +10 de daño'],
     dmg:[16,22,22,30,40],cd:[1.2,1.15,1.05,1,.9],n:[3,3,3,4,5],pierce:[2,2,3,3,4]},
@@ -889,7 +888,6 @@ const WDEF={
   sello:{name:'Sello rúnico',col:'#c06bff',mission:'m_imp',
     up:['Dibuja runas en el suelo que explotan cuando un enemigo las pisa.','+10 de daño','+1 runa y explosión más grande','+15 de daño','+1 runa, explosión más grande y +20 de daño'],
     dmg:[35,45,45,60,80],cd:[1.8,1.7,1.6,1.5,1.3],n:[1,1,2,2,3],r:[45,45,55,55,70]},
-  // Tercera tanda: aparecen desde el principio
   estacas:{name:'Estacas de fresno',col:'#c8a27a',
     up:['Dispara estacas en todas las direcciones que atraviesan enemigos.','+2 estacas','+4 de daño y recarga más rápida','+2 estacas y atraviesan 1 más','+2 estacas y +5 de daño'],
     dmg:[9,9,13,13,18],cd:[1.5,1.45,1.3,1.25,1.15],n:[6,8,8,10,12],pierce:[1,1,1,2,2]},
@@ -902,88 +900,69 @@ const WDEF={
   cetro:{name:'Cetro de sangre',col:'#e2435a',
     up:['Un rayo de sangre atraviesa en línea al enemigo más cercano y te cura por cada enemigo que toca.','+6 de daño','+1 rayo','+8 de daño y recarga más rápida','+1 rayo y cura el doble'],
     dmg:[14,20,20,28,34],cd:[1.5,1.45,1.4,1.25,1.15],n:[1,1,2,2,3],heal:[.5,.5,.5,.5,1]},
-  // Exclusivas de los élite: arrancan con ella y solo a ese personaje le aparece al subir de nivel.
-  // Las seis primeras son además su arma inicial, así ningún personaje repite arma. Al final, las de Fray Anselmo, Aine, Zora y Asmodeo.
-  martillo:{name:'Martillo de trueno',col:'#8fd3ff',excl:'valkiria',
-    up:['Descarga rayos sobre los enemigos más cercanos y los empuja.','+8 de daño','+1 rayo y recarga más rápida','+10 de daño y más área','+1 rayo y +12 de daño'],
-    dmg:[22,30,30,40,52],cd:[1.5,1.4,1.3,1.2,1.05],n:[1,1,2,2,3],splash:[34,34,40,44,50]},
-  hojas:{name:'Hojas de arce',col:'#7be08a',excl:'kitsune',
+  hojas:{name:'Hojas de arce',col:'#7be08a',
     up:['Lanza un abanico de hojas filosas hacia el enemigo más cercano.','+2 de daño y atraviesan 1 enemigo','+1 hoja y recarga más rápida','+1 hoja y +3 de daño','+1 hoja, atraviesan 1 más y +3 de daño'],
     dmg:[8,10,10,13,16],cd:[.9,.85,.75,.7,.6],n:[3,3,4,5,6],pierce:[0,1,1,1,2]},
-  lanzahielo:{name:'Lanzas de hielo',col:'#bfe8ff',excl:'lich',
+  lanzahielo:{name:'Lanzas de hielo',col:'#bfe8ff',
     up:['Dispara lanzas de hielo que atraviesan y frenan a los enemigos. Cada golpe tiene 2% de chance de congelar 1 segundo.','+1 lanza','Atraviesan 1 más y frenan más','+1 lanza y +6 de daño','Atraviesan 1 más, frenan más y +6 de daño'],
     dmg:[12,16,16,22,28],cd:[1.1,1.05,.95,.9,.8],n:[1,2,2,3,3],pierce:[1,1,2,2,3],slow:[1.5,1.5,2,2,2.5]},
-  halo:{name:'Halo sagrado',col:'#fff6d6',excl:'angel',
+  halo:{name:'Halo sagrado',col:'#fff6d6',
     up:['Un halo de luz sale de vos seguido y empuja a los enemigos. Cada proyectil extra suma otra onda detrás.','+4 de daño','Halo más grande y más seguido','+4 de daño y más seguido','Halo enorme y +6 de daño'],
     dmg:[10,14,14,18,24],cd:[1.6,1.5,1.4,1.3,1.1],R:[90,95,105,115,130]},
-  grieta:{name:'Grieta sísmica',col:'#c9a27a',excl:'golem',
+  grieta:{name:'Grieta sísmica',col:'#c9a27a',
     up:['Abre una grieta en línea recta hacia el enemigo más cercano.','+8 de daño','Grieta más larga y ancha','+12 de daño y recarga más rápida','Grieta enorme y +14 de daño'],
     dmg:[26,34,34,46,60],cd:[2,1.9,1.8,1.6,1.5],len:[180,200,220,240,280],w:[14,14,16,18,20]},
-  hoces:{name:'Hoces gemelas',col:'#ff6b8a',excl:'parca',
+  hoces:{name:'Hoces gemelas',col:'#ff6b8a',
     up:['Lanza hoces que van hacia los enemigos y vuelven a vos.','+4 de daño','Más rápidas y +4 de daño','+1 hoz y recarga más rápida','+1 hoz, más rápidas y +8 de daño'],
     dmg:[16,20,24,24,32],cd:[1.4,1.35,1.25,1.15,1],n:[2,2,2,3,4],spd:[320,320,360,360,400]},
-  lanzaodin:{name:'Lanza de Odín',col:'#ffd27a',excl:'valkiria',
-    up:['Arroja una lanza dorada que atraviesa a todos los enemigos en línea.','+10 de daño','+1 lanza y recarga más rápida','Atraviesa 3 más y +10 de daño','+1 lanza y +15 de daño'],
-    dmg:[30,40,40,50,65],cd:[1.4,1.35,1.2,1.15,1],n:[1,1,2,2,3],pierce:[4,4,4,7,7]},
-  fuegozorro:{name:'Llamas de zorro',col:'#ff9a3d',excl:'kitsune',
-    up:['Suelta llamas fatuas que zigzaguean hacia los enemigos.','+1 llama','+6 de daño','+1 llama y recarga más rápida','+2 llamas y +8 de daño'],
-    dmg:[14,14,20,20,28],cd:[1.1,1.05,1,.85,.8],n:[2,3,3,4,6],pierce:[1,1,1,2,2]},
-  novahelada:{name:'Nova de escarcha',col:'#9ad0ff',excl:'lich',
+  novahelada:{name:'Nova de escarcha',col:'#9ad0ff',
     up:['Una onda de escarcha sale de vos, daña y ralentiza mucho a los enemigos. Cada golpe tiene 2% de chance de congelar 1 segundo. Cada proyectil extra suma otra onda detrás.','+6 de daño','Onda más grande y ralentiza más','+8 de daño y recarga más rápida','Onda enorme y +10 de daño'],
     dmg:[14,20,20,28,38],cd:[3,2.8,2.6,2.3,2.1],R:[130,140,160,170,200],frz:[.6,.6,1,1,1.3]},
-  luzdivina:{name:'Cruz de luz',col:'#fff2b0',excl:'angel',
+  luzdivina:{name:'Cruz de luz',col:'#fff2b0',
     up:['Rayos de luz salen de vos en cruz y atraviesan todo.','+8 de daño','Rayos más largos','+10 de daño y recarga más rápida','Ocho rayos y +12 de daño'],
     dmg:[16,24,24,34,46],cd:[1.8,1.7,1.6,1.4,1.3],dirs:[4,4,4,4,8],len:[200,200,260,260,300]},
-  avalancha:{name:'Avalancha de lápidas',col:'#a89a8a',excl:'golem',
-    up:['Caen lápidas alrededor tuyo que aplastan a los enemigos.','+15 de daño','+1 lápida','Lápidas más grandes y +15 de daño','+2 lápidas y +20 de daño'],
-    dmg:[35,50,50,65,85],cd:[2.6,2.5,2.3,2.2,2],n:[2,2,3,3,5],r:[38,38,40,48,52]},
-  siegaalmas:{name:'Siega de almas',col:'#ff4d6d',excl:'parca',
+  siegaalmas:{name:'Siega de almas',col:'#ff4d6d',
     up:['Un tajo circular que remata a los enemigos comunes con poca vida.','+10 de daño','Remata con más vida','+12 de daño y más alcance','Remata con mucha más vida y +15 de daño'],
     dmg:[24,34,34,46,61],cd:[2,1.9,1.8,1.7,1.5],r:[90,90,95,110,120],exe:[.15,.15,.22,.22,.3]},
-  // Propias de Fray Anselmo, Aine, Zora y Asmodeo: la primera de cada uno es su arma inicial
-  incensario:{name:'Incensario bendito',col:'#ffe0a0',excl:'fraile',
-    up:['Hace girar un incensario a tu alrededor: daña lo cercano y te cura un poco por cada enemigo que toca.','+5 de daño','Más alcance y cura más','+6 de daño y recarga más rápida','Alcance enorme, cura el doble y +8 de daño'],
-    dmg:[12,17,17,23,31],cd:[1.6,1.55,1.45,1.3,1.2],r:[70,70,82,88,100],heal:[.25,.25,.4,.4,.8]},
-  cirios:{name:'Cirios del altar',col:'#ffcf6b',excl:'fraile',
+  incensario:{name:'Incensario bendito',col:'#ffe0a0',
+    up:['Un incensario se balancea como un péndulo delante tuyo: golpea lo que toca y deja humo sagrado que frena y quema. Cada proyectil extra suma otro incensario.','+5 de daño','Cadena más larga y humo más denso','+6 de daño y se balancea más rápido','Cadena enorme, el humo frena más y +8 de daño'],
+    dmg:[14,19,19,25,33],r:[64,64,78,84,98],sw:[2.4,2.4,2.6,3,3.2],smoke:[5,5,7,8,11],slow:[.8,.8,1,1,1.6]},
+  cirios:{name:'Cirios del altar',col:'#ffcf6b',
     up:['Enciende cirios bajo los enemigos más cercanos: dejan fuego santo que quema un rato.','+1 cirio','+4 de daño y queman más tiempo','+1 cirio y fuego más grande','+2 cirios y +6 de daño'],
     dmg:[6,6,10,10,16],cd:[2.4,2.3,2.2,2,1.8],n:[2,3,3,4,6],r:[30,30,30,38,42],dur:[2,2,2.6,2.6,3]},
-  espectros:{name:'Espectros errantes',col:'#cfe0ff',excl:'banshee',
+  espectros:{name:'Espectros errantes',col:'#cfe0ff',
     up:['Suelta almas en pena que salen girando en espiral y atraviesan a los enemigos.','+1 espectro','+4 de daño y atraviesan 1 más','+1 espectro y recarga más rápida','+2 espectros y +6 de daño'],
     dmg:[9,9,13,13,19],cd:[1.3,1.25,1.2,1.05,.95],n:[3,4,4,5,7],pierce:[1,1,2,2,2]},
-  grito:{name:'Grito desgarrador',col:'#9ad0ff',excl:'banshee',
-    up:['Un grito en abanico hacia el enemigo más cercano: daña, empuja lejos y frena a los enemigos.','+8 de daño','Abanico más ancho y largo','+10 de daño y recarga más rápida','Grito enorme, frena más y +12 de daño'],
-    dmg:[18,26,26,36,48],cd:[2.2,2.1,2,1.8,1.6],len:[150,150,180,190,220],rays:[3,3,5,5,7],slow:[1,1,1.2,1.2,2]},
-  cartas:{name:'Cartas del destino',col:'#e8c8ff',excl:'vidente',
+  cartas:{name:'Cartas del destino',col:'#e8c8ff',
     up:['Lanza cartas filosas en cruz que van girando con cada tirada y atraviesan enemigos.','+3 de daño','+2 cartas','+4 de daño, atraviesan 1 más y recarga más rápida','+2 cartas y +5 de daño'],
     dmg:[9,12,12,16,21],cd:[1,.95,.9,.8,.72],n:[4,4,6,6,8],pierce:[1,1,1,2,2]},
-  fortuna:{name:'Rueda de la fortuna',col:'#ffd27a',excl:'vidente',
-    up:['Cada giro sale algo distinto: rayos sobre los enemigos, una onda que te rodea o una lluvia de estrellas.','+8 de daño','+1 rayo o estrella y onda más grande','+10 de daño y gira más seguido','+2 rayos o estrellas y +12 de daño'],
-    dmg:[20,28,28,38,50],cd:[2.4,2.3,2.2,1.9,1.8],n:[2,2,3,3,5],R:[110,110,130,130,150]},
-  garras:{name:'Garras infernales',col:'#ff5a3d',excl:'demonio',
-    up:['Zarpazos de fuego hacia los enemigos más cercanos que destrozan lo que tengas cerca.','+6 de daño','Zarpazos más largos','+8 de daño y más seguido','Zarpazos enormes y +10 de daño'],
-    dmg:[16,22,22,30,40],cd:[.9,.85,.8,.7,.65],len:[90,90,110,115,135]},
-  circulo:{name:'Círculo de fuego',col:'#ff7a2a',excl:'demonio',
-    up:['Marca a tus pies un círculo infernal que quema todo lo que entra durante unos segundos.','+4 de daño','Círculo más grande','+5 de daño y dura más','Círculo enorme y +6 de daño'],
-    dmg:[8,12,12,17,23],cd:[3.4,3.3,3.1,2.9,2.7],r:[60,60,78,82,100],dur:[2.4,2.4,2.4,3.2,3.4]},
-  // Propias de Elena, Bram y Sor Ignis
-  redomas:{name:'Redomas explosivas',col:'#9ae07a',excl:'alquimista',
-    up:['Arroja redomas que estallan sobre los enemigos más cercanos.','+8 de daño','+1 redoma','Explosión más grande y +10 de daño','+2 redomas y +12 de daño'],
-    dmg:[22,30,30,40,52],cd:[1.8,1.75,1.65,1.55,1.4],n:[1,1,2,2,4],r:[34,34,36,44,48]},
-  nubetox:{name:'Nube tóxica',col:'#7dff6a',excl:'alquimista',
-    up:['Deja nubes venenosas alrededor tuyo que dañan a todo lo que pasa.','+3 de daño','+1 nube y duran más','Nubes más grandes y +4 de daño','+2 nubes y +5 de daño'],
-    dmg:[5,8,8,12,17],cd:[3,2.9,2.8,2.6,2.4],n:[2,2,3,3,5],r:[38,38,40,48,52],dur:[2.5,2.5,3.2,3.2,3.6]},
-  mordisco:{name:'Mordisco salvaje',col:'#e2435a',excl:'lobo',
+  circulo:{name:'Círculo de fuego',col:'#ff7a2a',
+    up:['Marca a tus pies un círculo infernal que quema todo lo que entra durante unos segundos.','+5 de daño','Círculo más grande','+8 de daño y dura más','Círculo enorme y +9 de daño'],
+    dmg:[14,19,19,27,36],cd:[2.8,2.7,2.5,2.3,2.1],r:[70,70,88,94,115],dur:[3,3,3,3.8,4.2]},
+  mordisco:{name:'Mordisco salvaje',col:'#e2435a',
     up:['Salta a morder al enemigo más cercano con mucha fuerza y te cura un poco.','+10 de daño','Cura más y recarga más rápida','+14 de daño y muerde a 1 más','+18 de daño y cura el doble'],
     dmg:[30,40,40,54,72],cd:[1,.95,.85,.8,.75],n:[1,1,1,2,2],heal:[1,1,1.5,1.5,3]},
-  lunallena:{name:'Luna llena',col:'#e8ecff',excl:'lobo',
+  lunallena:{name:'Luna llena',col:'#e8ecff',
     up:['Una onda de luz de luna sale de vos y empuja a los enemigos. Cada proyectil extra suma otra onda detrás.','+6 de daño','Onda más grande','+8 de daño y más seguido','Onda enorme y +10 de daño'],
     dmg:[14,20,20,28,38],cd:[2.6,2.5,2.4,2.1,1.9],R:[110,110,135,140,165]},
-  antorcha:{name:'Antorcha sagrada',col:'#ffb36b',excl:'inquisidora',
-    up:['Lanza llamaradas hacia el enemigo más cercano que atraviesan y dejan fuego donde terminan.','+6 de daño','+1 llamarada','Atraviesan 1 más y +8 de daño','+1 llamarada y +10 de daño'],
-    dmg:[16,22,22,30,40],cd:[1.3,1.25,1.15,1.05,.95],n:[1,1,2,2,3],pierce:[1,1,1,2,2]},
-  hoguera:{name:'Hoguera purificadora',col:'#ff7a2a',excl:'inquisidora',
+  hoguera:{name:'Hoguera purificadora',col:'#ff7a2a',
     up:['Prende un anillo de fuego que gira a tu alrededor y quema a los que se acercan.','+4 de daño','+1 llama','Anillo más grande y +5 de daño','+2 llamas y +6 de daño'],
     dmg:[7,11,11,16,22],cd:[2.8,2.7,2.6,2.4,2.2],n:[4,4,5,5,7],r:[70,70,70,85,90]},
+  pala:{name:'Pala del enterrador',col:'#c9b08a',
+    up:['Da palazos de frente que pegan fuerte y empujan lejos a lo que tengas cerca.','+8 de daño','Palazo más ancho y recarga más rápida','+10 de daño y también golpea para atrás','Palazo enorme y +14 de daño'],
+    dmg:[22,30,30,40,54],cd:[1.15,1.1,1,.95,.85],len:[70,70,80,85,100],w:[26,26,32,34,40],both:[false,false,false,true,true]},
+  matraz:{name:'Matraz volátil',col:'#9ae07a',
+    up:['Arroja matraces a los enemigos más cercanos. Cada uno estalla distinto: charco de veneno, charco de ácido que frena o explosión en cadena.','+1 matraz','+6 de daño y charcos más grandes','+1 matraz y recarga más rápida','+2 matraces, +8 de daño y charcos más grandes'],
+    dmg:[14,14,20,20,28],cd:[1.7,1.6,1.6,1.45,1.35],n:[1,2,2,3,5],r:[30,30,36,36,42],dur:[2.4,2.4,2.8,2.8,3.2]},
+  einherjar:{name:'Lanza de Einherjar',col:'#ffe9a8',
+    up:['Embiste con una lanza celestial hacia el enemigo más cercano y caen lanzas de luz en abanico delante tuyo.','+8 de daño','+1 lanza de luz y embestida más larga','+10 de daño y recarga más rápida','+2 lanzas de luz y +14 de daño'],
+    dmg:[24,32,32,42,56],cd:[1.6,1.55,1.5,1.35,1.25],len:[150,150,175,180,210],n:[2,2,3,3,5]},
+  azufre:{name:'Marca de azufre',col:'#ff5a1f',
+    up:['Lanza brasas que prenden fuego a los enemigos: se queman de a poco y, si mueren ardiendo, explotan y le contagian el fuego a los de al lado.','+1 brasa','La quemadura dura más y pega más','+1 brasa y explosión más grande','+2 brasas y la quemadura pega mucho más'],
+    dmg:[8,8,10,10,14],cd:[1.2,1.15,1.1,1,.9],n:[1,2,2,3,5],burn:[6,6,9,9,16],bt:[3,3,4,4,4.5],R:[50,50,56,66,74]},
+  saeta:{name:'Saeta de la conquista',col:'#ffcf6b',
+    up:['Dispara saetas ardientes al enemigo más cercano que atraviesan y, al terminar, dejan un fuego chico y concentrado.','+6 de daño','+1 saeta','Atraviesan 1 más y el fuego quema más','+1 saeta y +10 de daño'],
+    dmg:[18,24,24,32,42],cd:[1.05,1,.95,.9,.8],n:[1,1,2,2,3],pierce:[1,1,1,2,2],fire:[.5,.5,.5,.7,.7]},
 };
 const MISSIONS=[
   {id:'m_kills',name:'Segador',desc:'Matá 1.000 enemigos sumando todas tus partidas',goal:1000,prog:()=>SAVE.life.kills|0},
@@ -1222,34 +1201,29 @@ const ICON={
   ojo:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
   campana:'<path d="M6 17v-6a6 6 0 0 1 12 0v6l2 2H4z"/><path d="M10 21h4"/>',
   linterna:'<path d="M9 3h6M8 7h8v11a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2z"/><path d="M12 11c1.5 1.5 1.5 3 0 4-1.5-1-1.5-2.5 0-4z"/>',
-  martillo:'<path d="M4 20 13 11"/><path d="M11 5l8 8-3 3-8-8z"/>',
   hojas:'<path d="M5 19C5 10 10 5 19 5c0 9-5 14-14 14z"/><path d="M5 19 13 11"/>',
   lanzahielo:'<path d="M4 20 16 8"/><path d="m14 4 6 0 0 6z"/><path d="M8 12l4 4M6 18l-2-2"/>',
   halo:'<ellipse cx="12" cy="8" rx="8" ry="3"/><path d="M12 13v8M8 17h8"/>',
   grieta:'<path d="M4 20 9 13l-2-3 5-3-1-3 3-2"/><path d="M14 20l2-4 4-1"/>',
   hoces:'<path d="M4 12c0-5 4-8 9-8-3 2-4 5-4 8"/><path d="M20 12c0 5-4 8-9 8 3-2 4-5 4-8"/>',
-  lanzaodin:'<path d="M4 20 18 6"/><path d="m14 4 6 0 0 6z"/><path d="M7 14l3 3"/>',
-  fuegozorro:'<path d="M12 21c-4 0-6-3-6-6 0-4 4-6 3-11 3 2 6 5 6 9 1-1 1-3 1-4 2 2 2 4 2 6 0 3-2 6-6 6z"/>',
   novahelada:'<path d="M12 2v20M2 12h20M5 5l14 14M19 5 5 19"/><circle cx="12" cy="12" r="3"/>',
   luzdivina:'<path d="M12 2v20M5 9h14"/><circle cx="12" cy="9" r="2"/>',
-  avalancha:'<path d="M6 21V9a6 6 0 0 1 12 0v12z"/><path d="M10 13h4M12 11v6"/>',
   siegaalmas:'<path d="M4 20c6 0 12-5 14-14-5 3-10 4-14 2"/><circle cx="17" cy="17" r="3"/>',
   ballesta:'<path d="M4 20 20 4"/><path d="M14 4h6v6"/><path d="M5 9c3 0 7 4 10 10"/>',
   tridente:'<path d="M12 22V6M6 4v5a6 6 0 0 0 12 0V4M12 2v4"/>',
   fuegofatuo:'<path d="M12 21a5 5 0 0 0 5-5c0-4-5-6-3-12-4 2-7 6-7 12a5 5 0 0 0 5 5z"/><circle cx="12" cy="16" r="2"/>',
-  redomas:'<path d="M10 3h4M11 3v5L6 18a2 2 0 0 0 2 3h8a2 2 0 0 0 2-3l-5-10V3"/><path d="M8 15h8"/>',
-  nubetox:'<path d="M7 18a4 4 0 0 1 0-8 5 5 0 0 1 9.5-1.5A3.5 3.5 0 0 1 17 18z"/><path d="M9 14h.01M13 13h.01M15 15h.01"/>',
   mordisco:'<path d="M4 8c3-3 13-3 16 0M4 16c3 3 13 3 16 0"/><path d="M7 8l1 3 1-3M11 8l1 3 1-3M15 8l1 3 1-3M8 16l1-3 1 3M13 16l1-3 1 3"/>',
   lunallena:'<path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z"/>',
-  antorcha:'<path d="M10 22h4l1-10H9z"/><path d="M12 12c-3-2-3-5 0-9 3 4 3 7 0 9z"/>',
   hoguera:'<path d="M4 21h16M6 21l6-5 6 5"/><path d="M12 14c-3-2-3-5 0-9 3 4 3 7 0 9z"/>',
   incensario:'<path d="M12 2v6"/><circle cx="12" cy="13" r="5"/><path d="M9 21c1-2 5-2 6 0M7 13h10"/>',
   cirios:'<path d="M7 21V11h4v10M13 21V8h4v13"/><path d="M9 8c-1-2 0-3 0-4 1 1 2 2 0 4zM15 5c-1-2 0-3 0-4 1 1 2 2 0 4z"/>',
   espectros:'<path d="M6 20V10a6 6 0 0 1 12 0v10l-2-2-2 2-2-2-2 2-2-2z"/><circle cx="10" cy="10" r="1"/><circle cx="14" cy="10" r="1"/>',
-  grito:'<path d="M4 12h3l5-5v10l-5-5"/><path d="M15 8c2 2 2 6 0 8M18 5c4 4 4 10 0 14"/>',
   cartas:'<rect x="4" y="5" width="10" height="14" rx="1.5" transform="rotate(-12 9 12)"/><rect x="10" y="5" width="10" height="14" rx="1.5" transform="rotate(10 15 12)"/>',
-  fortuna:'<circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16M6.5 6.5l11 11M17.5 6.5l-11 11"/>',
-  garras:'<path d="M5 20C8 14 9 8 8 3M10 21c3-6 4-12 3-18M15 21c3-5 4-10 4-15"/>',
+  pala:'<path d="M5 19 15 9"/><path d="M14 5l5 5-3 3-5-5z"/><path d="M4 20l2-2"/>',
+  matraz:'<path d="M10 3h4M11 3v5L6 18a2 2 0 0 0 2 3h8a2 2 0 0 0 2-3l-5-10V3"/><path d="M8 15h8M12 12v.01"/>',
+  einherjar:'<path d="M4 20 18 6"/><path d="m14 4 6 0 0 6z"/><path d="M3 9h3M5 6l2 2M9 3v3"/>',
+  azufre:'<path d="M12 21c-4 0-6-3-6-6 0-4 4-6 3-11 3 2 6 5 6 9 1-1 1-3 1-4 2 2 2 4 2 6 0 3-2 6-6 6z"/><path d="M12 18a2 2 0 0 1-2-2c0-2 2-3 2-5 1 2 2 3 2 5a2 2 0 0 1-2 2z"/>',
+  saeta:'<path d="M4 20 17 7"/><path d="m13 5 6-1-1 6z"/><path d="M6 15l3 3M8 13l3 3"/>',
   circulo:'<circle cx="12" cy="12" r="9"/><path d="M12 3l5.3 16.3L3.4 9.2h17.2L6.7 19.3z"/>',
   cadenas:'<rect x="3" y="9" width="8" height="6" rx="3"/><rect x="13" y="9" width="8" height="6" rx="3"/><path d="M9 12h6"/>',
   ataud:'<path d="M9 2h6l3 6-2 14H8L6 8z"/><path d="M12 7v8M9.5 10h5"/>',
@@ -1331,7 +1305,7 @@ function buffNext(id){const B=BUFFS[id],lv=SAVE.buffs[id]|0;
   if(B.gemOnly)return lv<B.gemOnly.length?{gem:true,n:B.gemOnly[lv]}:null;
   const cn=B.coin.length,gn=(B.gem||[]).length;if(lv<cn)return{gem:false,n:B.coin[lv]};if(lv<cn+gn)return{gem:true,n:B.gem[lv-cn]};return null;}
 const CHARS={
-  sepulturero:{name:'El Sepulturero',short:'el Sepulturero',price:0,weapon:'varita',hat:'hood',
+  sepulturero:{name:'El Sepulturero',short:'el Sepulturero',price:0,weapon:'pala',hat:'hood',
     col:{cloak:'#3a2f6e',hood:'#4a3d8c',face:'#efe6d2',lamp:'#ffb36b'},
     passive:{name:'Tierra firme',desc:'+20 de vida máxima y recibís 1 de daño menos por golpe.'},
     active:{name:'Palazo',icon:'pala',cd:12,desc:'Golpe de pala que daña y empuja lejos a todo lo cercano.'},
@@ -1375,17 +1349,17 @@ const CHARS={
     setup(G){G.st.regen+=.5;G.st.armor+=2;G.st.area+=.1;}},
   vidente:{name:'Zora la Vidente',short:'Zora',price:2200,weapon:'cartas',hat:'witch',
     col:{cloak:'#4a2a6e',hood:'#2e1a48',face:'#f2dcc8',lamp:'#e8c8ff'},
-    passive:{name:'Tercer ojo',desc:'+30% de suerte, +10% de crítico y +10% de experiencia.'},
+    passive:{name:'Tercer ojo',desc:'+30% de suerte, +10% de crítico y +10% de experiencia. Cada 40 bajas tiene una Visión del destino: 6 s en que sus Cartas del destino tiran el doble de rápido, pegan 30% más y atraviesan 2 enemigos más.'},
     active:{name:'Profecía',icon:'ojo',cd:16,desc:'Le hace 70 de daño a todo lo que hay en pantalla y te da 1 moneda por cada enemigo que toca (hasta 30).'},
     grow:{d:n=>'+'+(4*n)+'% de suerte',f:(G,n)=>{G.st.luck+=.04*n;}},
     setup(G){G.st.luck+=.3;G.st.crit+=.1;G.st.xpMul+=.1;}},
-  alquimista:{name:'Elena la Alquimista',short:'Elena',price:3000,weapon:'redomas',hat:'brim',
+  alquimista:{name:'Elena la Alquimista',short:'Elena',price:3000,weapon:'matraz',hat:'brim',
     col:{cloak:'#2e4a2a',hood:'#1e3320',face:'#f0d8c0',lamp:'#9ae07a'},
     passive:{name:'Piedra filosofal',desc:'+20% de área, +15% de velocidad de proyectil y +25% de monedas.'},
     active:{name:'Elixir',icon:'agua',cd:20,desc:'Recuperás 30% de tu vida y durante 6 segundos hacés 40% más de daño.'},
     grow:{d:n=>'+'+(3*n)+'% de área y +'+(5*n)+'% de monedas',f:(G,n)=>{G.st.area+=.03*n;G.st.coinMul+=.05*n;}},
     setup(G){G.st.area+=.2;G.st.projSpd+=.15;G.st.coinMul+=.25;}},
-  valkiria:{name:'Brunhild la Valquiria',short:'Brunhild',gems:20,weapon:'martillo',hat:'helm',
+  valkiria:{name:'Brunhild la Valquiria',short:'Brunhild',gems:20,weapon:'einherjar',hat:'helm',
     col:{cloak:'#3d4f6e',hood:'#2a3850',face:'#f0e0d0',lamp:'#9ad0ff'},
     passive:{name:'Furia del norte',desc:'+25% de daño, +30 de vida máxima y +5% de velocidad.'},
     active:{name:'Lluvia de lanzas',icon:'lanza',cd:12,desc:'12 lanzas caen del cielo sobre los enemigos en pantalla.'},
@@ -1403,7 +1377,7 @@ const CHARS={
     active:{name:'Tumba de hielo',icon:'tumba',cd:22,desc:'Ralentiza mucho por 6 segundos todo lo que hay en pantalla y le hace 50 de daño.'},
     grow:{d:n=>'+'+dec(n*.3)+' de armadura y +'+(2*n)+'% de área',f:(G,n)=>{G.st.armor+=.3*n;G.st.area+=.02*n;}},
     setup(G){G.st.armor+=2;G.st.area+=.1;G.st.slowAura=1;}},
-  angel:{name:'Seraphiel la Caída',short:'Seraphiel',gems:65,weapon:'halo',hat:'halo',
+  angel:{name:'Seraphiel la Caída',short:'Seraphiel',gems:65,weapon:'luzdivina',hat:'halo',
     col:{cloak:'#e8e2f6',hood:'#bfb6dc',face:'#fff0e0',lamp:'#ffe27a'},
     passive:{name:'Gracia',desc:'Regenera 1 de vida por segundo, +1 proyectil y +15% de área.'},
     active:{name:'Juicio final',icon:'juicio',cd:16,desc:'Un pilar de luz que hace 150 de daño en un área enorme.'},
@@ -1415,7 +1389,7 @@ const CHARS={
     active:{name:'Terremoto',icon:'terremoto',cd:15,desc:'Tres sacudidas seguidas que dañan y ralentizan todo alrededor.'},
     grow:{d:n=>'+'+(3*n)+' de daño devuelto',f:(G,n)=>{G.st.thorns+=3*n;}},
     setup(G){G.p.maxHp+=100;G.p.hp+=100;G.st.armor+=3;G.st.dmg+=.1;G.st.thorns=12;G.st.spd-=.1;}},
-  parca:{name:'La Parca',short:'la Parca',gems:130,weapon:'hoces',hat:'reaper',
+  parca:{name:'La Parca',short:'la Parca',gems:130,weapon:'siegaalmas',hat:'reaper',
     col:{cloak:'#0e0b14',hood:'#06050a',face:'#e6dcc4',lamp:'#b38cff'},
     passive:{name:'Cosechadora',desc:'+30% de daño, +15% de crítico, 4% de matar al instante y se cura 8 cada 25 bajas.'},
     active:{name:'Siega',icon:'siega',cd:20,desc:'Un tajo circular que mata al instante a los enemigos comunes cercanos y hace 200 a las calabazas.'},
@@ -1427,7 +1401,7 @@ const CHARS={
     active:{name:'Alarido',icon:'campana',cd:18,desc:'Un grito que ralentiza 4 segundos todo lo que hay en pantalla y le hace 90 de daño.'},
     grow:{d:n=>'+'+(2*n)+'% de esquivar y +'+(2*n)+'% de área',f:(G,n)=>{G.st.evade+=.02*n;G.st.area+=.02*n;}},
     setup(G){const st=G.st;st.cdRaw=(st.cdRaw||st.cd)/1.2;st.cd=Math.max(.3,st.cdRaw);st.area+=.15;st.evade+=.1;st.spd+=.1;}},
-  demonio:{name:'Asmodeo el Demonio',short:'Asmodeo',gems:180,weapon:'garras',hat:'horns',
+  demonio:{name:'Asmodeo el Demonio',short:'Asmodeo',gems:180,weapon:'azufre',hat:'horns',
     col:{cloak:'#5a1010',hood:'#2a0606',face:'#ff9a7a',lamp:'#ff5a3d'},
     passive:{name:'Pacto infernal',desc:'+35% de daño, +20% de área y +10% de velocidad de ataque, pero 25 de vida máxima menos.'},
     active:{name:'Infierno',icon:'meteoro',cd:18,desc:'Llueven 10 bolas de fuego sobre los enemigos en pantalla, de 120 de daño cada una.'},
@@ -1439,8 +1413,8 @@ const CHARS={
     active:{name:'Aullido',icon:'colmillo',cd:22,desc:'Durante 7 segundos hacés 50% más de daño, atacás 30% más rápido y corrés 25% más.'},
     grow:{d:n=>'+'+(2*n)+'% de crítico y +'+dec(n*.4)+'% de robo de vida',f:(G,n)=>{G.st.crit+=.02*n;G.st.leech+=.004*n;}},
     setup(G){G.st.spd+=.2;G.st.crit+=.15;G.st.leech+=.03;G.p.maxHp+=40;G.p.hp+=40;}},
-  inquisidora:{name:'Sor Ignis la Inquisidora',short:'Sor Ignis',gems:260,weapon:'antorcha',hat:'collar',
-    col:{cloak:'#e8e0d0',hood:'#8a1a1a',face:'#f4e0cc',lamp:'#ffb36b'},
+  inquisidora:{name:'Sor Ignis la Conquistadora',short:'Sor Ignis',gems:260,weapon:'saeta',hat:'morion',
+    col:{cloak:'#8a1a1a',hood:'#5a1010',face:'#f4e0cc',lamp:'#ffcf6b'},
     passive:{name:'Fuego purificador',desc:'+25% de daño, +3 de armadura, +10% de área y +0,5 de vida por segundo.'},
     active:{name:'Auto de fe',icon:'fuego',cd:18,desc:'Prende fuego bajo todos los enemigos en pantalla: quema 3 segundos y les hace 60 de daño al instante.'},
     grow:{d:n=>'+'+(3*n)+'% de daño y +'+dec(n*.3)+' de armadura',f:(G,n)=>{G.st.dmg+=.03*n;G.st.armor+=.3*n;}},
@@ -1576,7 +1550,7 @@ function groundPat(id){if(patCache[id])return patCache[id];const M=MAPS[id]||MAP
 let G=null,state='menu',menuT=0;
 function newGame(ch,df,mp){
   if(!CHARS[ch])ch='sepulturero';if(!DIFFS[df])df='facil';if(mp===undefined)mp=SAVE.map;if(!MAPS[mp]||!mapOwned(mp))mp='cripta';
-  G={char:ch,diff:df,map:mp,zones:[],flasks:[],slashes:[],dmgBy:{},t:0,kills:0,lvl:1,xp:0,need:xpNeed(1),pending:0,
+  G={char:ch,diff:df,map:mp,pops:[],zoraT:0,zoraK:0,zones:[],flasks:[],slashes:[],dmgBy:{},t:0,kills:0,lvl:1,xp:0,need:xpNeed(1),pending:0,
     p:{x:0,y:0,r:11,hp:100,maxHp:100,inv:0,fx:1,fy:0,moving:false,anim:0,mist:0,shield:0,shT:0},
     st:{dmg:1,cd:1,area:1,spd:1,magnet:60,regen:0,armor:0,amount:0,crit:0,leech:0,xpMul:1,coinMul:1,killHeal:0,slowAura:0,thorns:0,exec:0,evade:0,curse:0,luck:0,projSpd:1,cdRaw:1,kb:1,shield:0},
     weapons:[],passives:{},
@@ -1586,7 +1560,6 @@ function newGame(ch,df,mp){
     cam:{x:0,y:0},shake:0,banner:null};
   const c=CHARS[ch];
   G.weapons.push({id:c.weapon,lvl:1,timer:0.4,ang:0});
-  for(const id in WDEF)if(WDEF[id].excl===ch&&!G.weapons.some(w=>w.id===id)){G.weapons.push({id,lvl:1,timer:0.8,ang:0});G.wLv[id]=1;}
   c.setup(G);
   G.st.xpMul+=DIFFS[df].xp;
   G.st.xpMul+=.05*(SAVE.buffs.sabiduria|0);
@@ -1663,11 +1636,14 @@ const FREEZE_CHANCE=.02;
 // Solo las armas de hielo pueden congelar
 const FREEZE_SRC=new Set(['lanzahielo','novahelada']);
 const overcharge=st=>st.cdRaw&&st.cdRaw<.3?1+(.3/st.cdRaw-1)*.5:1;
+const masterMul=lv=>1.2+.06*Math.min(5,Math.max(1,lv|0));
 function hurt(e,base,kx,ky,src){
   if(G.vScale)base*=G.vScale;
   if(e.dead)return;
   if(src&&G.wMult[src])base*=G.wMult[src];
   if(src&&G.wLv&&G.wLv[src]>5)base*=1+.12*(G.wLv[src]-5);
+  // Arma de maestro: el arma inicial del personaje pega +26% (nivel 1) a +50% (nivel 5 o más)
+  if(src&&src===CHARS[G.char].weapon)base*=masterMul(G.wLv[src]);
   if(G.maxDmg)base=Math.max(base,e.hp*10+1e5);
   const st=G.st;let tier=0;if(st.crit>0){tier=Math.floor(st.crit);if(Math.random()<st.crit-tier)tier++;}
   // Nerf: la Sobrecarga convierte en daño solo la mitad del exceso, y cada nivel de overcrit pasado el primero suma ×0,5 (×2, ×2,5, ×3…)
@@ -1685,6 +1661,9 @@ function hurt(e,base,kx,ky,src){
     for(let i=0;i<(e.elite?24:6);i++){const a=Math.random()*TAU,s=rand(30,e.elite?220:110);
       if(G.parts.length<PCAP())G.parts.push({x:e.x,y:e.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rand(.25,.55),max:.55,col:c,sz:rand(2,4)});}
     G.killsBy[e.type]=(G.killsBy[e.type]|0)+1;
+    if(e.burnT>0&&G.pops.length<30)G.pops.push({x:e.x,y:e.y,R:e.burnR||50,d:e.burnD||6,t:e.burnT});
+    // Zora: cada 40 bajas, Visión del destino (6 s de cartas más rápidas, fuertes y perforantes)
+    if(G.char==='vidente'&&++G.zoraK%40===0){G.zoraT=6;if(G.texts.length<60)G.texts.push({x:G.p.x,y:G.p.y-30,txt:'¡Visión del destino!',life:1.2,big:true});}
     G.score+=ETYPES[e.type].pts*DIFFS[G.diff].pts*mapMul('pts')*(1+st.curse)*timeMult(G.t);
     dropGem(e.x,e.y,e.xp);
     if(e.elite){for(let i=0;i<(e.boss?25:10)*st.coinMul;i++)addCoin(e.x+rand(-26,26),e.y+rand(-26,26));}
@@ -1750,8 +1729,29 @@ function updateWeapons(dt){
       for(let i=0;i<n;i++){const a=w.ang+i/n*TAU,ox=p.x+Math.cos(a)*R,oy=p.y+Math.sin(a)*R;
         near(ox,oy,32,e=>{if(e.oh>0||e.dead)return;const dx=e.x-ox,dy=e.y-oy;if(dx*dx+dy*dy<(e.r+9)**2){const d=Math.hypot(e.x-p.x,e.y-p.y)||1;hurt(e,D.dmg[L],(e.x-p.x)/d*220,(e.y-p.y)/d*220,'calaveras');e.oh=.45*st.cd;}});}
       continue;}
+    // Incensario: péndulo delante tuyo; golpea al pasar y deja humo que frena (z.slow)
+    if(w.id==='incensario'){const n=1+st.amount,R=D.r[L]*st.area;w.ph=(w.ph||0)+dt*D.sw[L]*(G.noCd?3:1);w.sa=Math.atan2(p.fy,p.fx)+Math.sin(w.ph)*1.3;w.smT=(w.smT||0)-dt;const sm=w.smT<=0;if(sm)w.smT=.35*st.cd;
+      for(let i=0;i<Math.min(n,8);i++){const a=w.sa+i/n*TAU,ox=p.x+Math.cos(a)*R,oy=p.y+Math.sin(a)*R;
+        near(ox,oy,36,e=>{if(e.ohI>G.t||e.dead)return;const dx=e.x-ox,dy=e.y-oy;if(dx*dx+dy*dy<(e.r+11)**2){const d=Math.hypot(e.x-p.x,e.y-p.y)||1;hurt(e,D.dmg[L],(e.x-p.x)/d*200,(e.y-p.y)/d*200,'incensario');e.ohI=G.t+.35*st.cd;}});
+        if(sm&&G.zones.length<120)G.zones.push({x:ox,y:oy,r:20*st.area,dmg:D.smoke[L],life:1.6,tick:0,slow:D.slow[L],col:'#e8dcc0',src:'incensario'});}
+      continue;}
     w.timer-=dt*(G.noCd?20:1);if(w.timer>0)continue;
-    if(w.id==='varita'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.15;continue;}
+    if(w.id==='pala'){w.timer=D.cd[L]*st.cd;const len=D.len[L]*st.area,h=D.w[L]*st.area;
+      volleys(1+st.amount,1,.16,(k,vi)=>{const p=G.p,a0=aimAng(vi);
+        for(const a of (D.both[L]?[a0,a0+Math.PI]:[a0])){G.slashes.push({x:p.x,y:p.y,dir:1,ang:a,len,life:.2,col:D.col,wd:h});
+          hitLine(a,len,h,(e,cx,cy)=>hurt(e,D.dmg[L],cx*300,cy*300,'pala'));}},w.timer);
+    }else if(w.id==='matraz'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;
+      for(let i=0;i<n;i++){const t=ts[i%ts.length];G.flasks.push({sx:p.x,sy:p.y,tx:t.x+(i>=ts.length?rand(-30,30):0),ty:t.y+(i>=ts.length?rand(-30,30):0),t:0,r:D.r[L]*st.area,dmg:D.dmg[L],dur:D.dur[L],fx:'matraz'});}
+    }else if(w.id==='einherjar'){w.timer=D.cd[L]*st.cd;const len=D.len[L]*st.area,n=D.n[L]+st.amount,a=aimAng();
+      G.beams.push({x:p.x,y:p.y,a,len,w:10*st.area,life:.22,col:D.col});hitLine(a,len,12*st.area,(e,cx,cy)=>hurt(e,D.dmg[L],cx*240,cy*240,'einherjar'));
+      for(let i=0;i<n;i++){const b=a+(i-(n-1)/2)*.3,d=len*rand(.55,.95);addMeteor({x:p.x+Math.cos(b)*d,y:p.y+Math.sin(b)*d,t:0,dur:.25+i*.05,R:30*st.area,dmg:D.dmg[L]*.8,src:'einherjar',col:D.col});}
+    }else if(w.id==='azufre'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;
+      for(let i=0;i<n;i++){const t=ts[i%ts.length],a=Math.atan2(t.y-p.y,t.x-p.x)+(i>=ts.length?rand(-.3,.3):0);
+        G.shots.push({src:'azufre',kind:'bolt',col:D.col,x:p.x,y:p.y,vx:Math.cos(a)*300,vy:Math.sin(a)*300,dmg:D.dmg[L],pierce:0,r:6,life:1.2,ign:{d:D.burn[L],t:D.bt[L],R:D.R[L]*st.area},hit:new Set()});}
+    }else if(w.id==='saeta'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;
+      for(let i=0;i<n;i++){const t=ts[i%ts.length],a=Math.atan2(t.y-p.y,t.x-p.x)+(i>=ts.length?rand(-.2,.2):0);
+        G.shots.push({src:'saeta',kind:'quarrel',col:D.col,x:p.x,y:p.y,vx:Math.cos(a)*460,vy:Math.sin(a)*460,dmg:D.dmg[L],pierce:D.pierce[L],r:6,life:.75,burn:{dmg:Math.round(D.dmg[L]*D.fire[L]),r:14*st.area},hit:new Set()});}
+    }else if(w.id==='varita'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.15;continue;}
       w.timer=D.cd[L]*st.cd;
       for(let i=0;i<n;i++){const t=ts[i%ts.length];let a=Math.atan2(t.y-p.y,t.x-p.x);if(i>=ts.length)a+=rand(-.25,.25);
         G.shots.push({src:'varita',kind:'bolt',x:p.x,y:p.y,vx:Math.cos(a)*340,vy:Math.sin(a)*340,dmg:D.dmg[L],pierce:D.pierce[L],r:5,life:1.4,hit:new Set()});}
@@ -1797,7 +1797,7 @@ function updateWeapons(dt){
       for(let i=0;i<n;i++){const t=ts[i%ts.length],a=Math.atan2(t.y-p.y,t.x-p.x)+(i>=ts.length?rand(-.3,.3):0),cx=Math.cos(a),cy=Math.sin(a);
         G.beams.push({x:p.x,y:p.y,a,len,w:wd,life:.22});
         for(const e of G.enemies){if(e.dead)continue;const rx=e.x-p.x,ry=e.y-p.y,al=rx*cx+ry*cy;if(al<0||al>len+e.r)continue;if(Math.abs(rx*cy-ry*cx)<wd+e.r)hurt(e,D.dmg[L],cx*80,cy*80,'ojo');}}
-    }else if(w.id==='campana'){w.timer=D.cd[L]*st.cd;pushWaves({x:p.x,y:p.y,max:D.R[L]*st.area,dmg:D.dmg[L]});
+    }else if(w.id==='campana'){w.timer=D.cd[L]*st.cd;pushWaves({x:p.x,y:p.y,max:D.R[L]*st.area,dmg:D.dmg[L],frz:.4});
     }else if(w.id==='linterna'){w.timer=.3*st.cd;const r=D.r[L]*st.area,n=1+Math.min(4,st.amount);
       // Hasta 4 llamas extra y nunca más de 120 charcos en pantalla: cada uno se dibuja con un degradado y con cientos el celular se trababa
       if(G.zones.length<120)
@@ -1822,11 +1822,6 @@ function updateWeapons(dt){
     }else if(w.id==='ballesta'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.15;continue;}w.timer=D.cd[L]*st.cd;
       for(let i=0;i<n;i++){const t=ts[i%ts.length],a=Math.atan2(t.y-p.y,t.x-p.x)+(i>=ts.length?rand(-.15,.15):0);
         G.shots.push({src:'ballesta',kind:'quarrel',x:p.x,y:p.y,vx:Math.cos(a)*560,vy:Math.sin(a)*560,dmg:D.dmg[L],pierce:D.pierce[L],r:5,life:.9,hit:new Set()});}
-    }else if(w.id==='martillo'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;
-      for(const t of ts){const R=D.splash[L]*st.area,pts=[];let x=t.x+rand(-30,30),y=t.y-VH*0.6;for(let k=0;k<=7;k++){const f=k/7;pts.push([t.x+(x-t.x)*(1-f)+(k<7?rand(-12,12):0),y+(t.y-y)*f]);}
-        G.bolts.push({x:t.x,y:t.y,pts,R,life:.25,col:D.col});
-        near(t.x,t.y,R+24,e=>{const dx=e.x-t.x,dy=e.y-t.y,d=Math.hypot(dx,dy)||1;if(d<R+e.r)hurt(e,D.dmg[L],dx/d*180,dy/d*180,'martillo');});}
-      sfx('zap');
     }else if(w.id==='hojas'){w.timer=D.cd[L]*st.cd;const base=aimAng(),n=D.n[L]+st.amount;
       for(let i=0;i<n;i++){const a=base+(i-(n-1)/2)*.22;
         G.shots.push({src:'hojas',kind:'bolt',col:D.col,x:p.x,y:p.y,vx:Math.cos(a)*380,vy:Math.sin(a)*380,dmg:D.dmg[L],pierce:D.pierce[L],r:5,life:.7,hit:new Set()});}
@@ -1844,55 +1839,22 @@ function updateWeapons(dt){
         for(let i=0;i<k;i++){let a;if(ts.length){const t=ts[i%ts.length];a=Math.atan2(t.y-p.y,t.x-p.x)+(k>1&&ts.length===1?(i?.12:-.12):0);}else a=Math.atan2(p.fy,p.fx)+i*Math.PI+vi*.5;
           const v=D.spd[L],vx=Math.cos(a)*v,vy=Math.sin(a)*v;
           G.shots.push({src:'hoces',kind:'bolt',col:D.col,x:p.x,y:p.y,vx,vy,ax:-vx*1.7,ay:-vy*1.7,vx0:vx,vy0:vy,dmg:D.dmg[L],pierce:99,r:7,life:1.6,hit:new Set()});}},w.timer);
-    }else if(w.id==='lanzaodin'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;
-      for(let i=0;i<n;i++){const t=ts[i%ts.length],a=Math.atan2(t.y-p.y,t.x-p.x)+(i>=ts.length?rand(-.2,.2):0);
-        G.shots.push({src:'lanzaodin',kind:'bolt',col:D.col,x:p.x,y:p.y,vx:Math.cos(a)*520,vy:Math.sin(a)*520,dmg:D.dmg[L],pierce:D.pierce[L],r:7,life:1.2,hit:new Set()});}
-    }else if(w.id==='fuegozorro'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;
-      for(let i=0;i<n;i++){const t=ts[i%ts.length],a=Math.atan2(t.y-p.y,t.x-p.x)+rand(-.35,.35);
-        G.shots.push({src:'fuegozorro',kind:'bolt',col:D.col,x:p.x,y:p.y,vx:Math.cos(a)*260,vy:Math.sin(a)*260,wob:Math.random()*TAU,dmg:D.dmg[L],pierce:D.pierce[L],r:6,life:1.8,hit:new Set()});}
     }else if(w.id==='novahelada'){w.timer=D.cd[L]*st.cd;pushWaves({x:p.x,y:p.y,max:D.R[L]*st.area,dmg:D.dmg[L],col:D.col,src:'novahelada',frz:D.frz[L]});
     }else if(w.id==='luzdivina'){w.timer=D.cd[L]*st.cd;const n=D.dirs[L]+st.amount,len=D.len[L]*st.area,wd=7*st.area;w.ang=(w.ang||0)+.4;
       for(let i=0;i<n;i++){const a=w.ang+i/n*TAU,cx=Math.cos(a),cy=Math.sin(a);G.beams.push({x:p.x,y:p.y,a,len,w:wd,life:.22,col:D.col});
         for(const e of G.enemies){if(e.dead)continue;const rx=e.x-p.x,ry=e.y-p.y,al=rx*cx+ry*cy;if(al<0||al>len+e.r)continue;if(Math.abs(rx*cy-ry*cx)<wd+e.r)hurt(e,D.dmg[L],cx*80,cy*80,'luzdivina');}}
-    }else if(w.id==='avalancha'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount;
-      const ts=nearestEnemies(n);
-      for(let i=0;i<n;i++){const t=ts[i],a=Math.random()*TAU,r=rand(40,150);addMeteor({x:t?t.x+rand(-12,12):p.x+Math.cos(a)*r,y:t?t.y+rand(-12,12):p.y+Math.sin(a)*r,t:0,dur:.55+i*.1,R:D.r[L]*st.area,dmg:D.dmg[L],src:'avalancha',col:D.col});}
-    }else if(w.id==='incensario'){w.timer=D.cd[L]*st.cd;const R=D.r[L]*st.area,hl=D.heal[L];
-      volleys(1+st.amount,1,.22,()=>{const p=G.p;let hits=0;G.sweeps.push({x:p.x,y:p.y,R,life:.3,a0:Math.atan2(p.fy,p.fx),col:D.col});
-        near(p.x,p.y,R+24,e=>{const dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy)||1;if(d>=R+e.r)return;hurt(e,D.dmg[L],dx/d*160,dy/d*160,'incensario');hits++;});
-        if(hits)p.hp=Math.min(p.maxHp,p.hp+Math.min(8,hits*hl));},w.timer);
     }else if(w.id==='cirios'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;
       for(let i=0;i<n;i++){const t=ts[i%ts.length];if(G.zones.length>=120)break;G.zones.push({x:t.x+(i>=ts.length?rand(-30,30):0),y:t.y+(i>=ts.length?rand(-30,30):0),r:D.r[L]*st.area,dmg:D.dmg[L],life:D.dur[L],tick:0,src:'cirios',fire:true});}
     }else if(w.id==='espectros'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount,a0=Math.random()*TAU,sp=Math.random()<.5?2.2:-2.2;
       for(let i=0;i<n;i++){const a=a0+i/n*TAU;G.shots.push({src:'espectros',kind:'bolt',col:D.col,x:p.x,y:p.y,vx:Math.cos(a)*230,vy:Math.sin(a)*230,spin:sp,dmg:D.dmg[L],pierce:D.pierce[L],r:6,life:1.6,hit:new Set()});}
-    }else if(w.id==='grito'){w.timer=D.cd[L]*st.cd;const len=D.len[L]*st.area,wd=9*st.area,base=aimAng(),n=D.rays[L]+st.amount,hit=new Set();
-      for(let i=0;i<n;i++){const a=base+(i-(n-1)/2)*.2,cx=Math.cos(a),cy=Math.sin(a);G.beams.push({x:p.x,y:p.y,a,len,w:wd,life:.22,col:D.col});
-        for(const e of G.enemies){if(e.dead||hit.has(e))continue;const rx=e.x-p.x,ry=e.y-p.y,al=rx*cx+ry*cy;if(al<0||al>len+e.r)continue;if(Math.abs(rx*cy-ry*cx)<wd+e.r){hit.add(e);hurt(e,D.dmg[L],cx*320,cy*320,'grito');if(!e.dead)e.slowT=Math.max(e.slowT||0,D.slow[L]);}}}
-      sfx('zap');
-    }else if(w.id==='cartas'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount;w.ang=(w.ang||0)+.35;
-      for(let i=0;i<n;i++){const a=w.ang+i/n*TAU;G.shots.push({src:'cartas',kind:'card',x:p.x,y:p.y,vx:Math.cos(a)*400,vy:Math.sin(a)*400,rot:0,dmg:D.dmg[L],pierce:D.pierce[L],r:7,life:.8,hit:new Set()});}
-    }else if(w.id==='fortuna'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount,roll=Math.random();
-      if(roll<.4){const ts=nearestEnemies(n);for(let i=0;i<n;i++){const t=ts[i%Math.max(1,ts.length)];if(t)strike(t.x,t.y,32*st.area,D.dmg[L],D.col);}sfx('zap');}
-      else if(roll<.75){pushWaves({x:p.x,y:p.y,max:D.R[L]*st.area,dmg:D.dmg[L],col:D.col,src:'fortuna'});}
-      else{const ts=nearestEnemies(n);for(let i=0;i<n;i++){const t=ts[i%Math.max(1,ts.length)],a=Math.random()*TAU,r=rand(40,140);
-        addMeteor({x:t?t.x+rand(-14,14):p.x+Math.cos(a)*r,y:t?t.y+rand(-14,14):p.y+Math.sin(a)*r,t:0,dur:.5+i*.08,R:36*st.area,dmg:D.dmg[L],src:'fortuna',col:D.col});}}
-    }else if(w.id==='garras'){w.timer=D.cd[L]*st.cd;const len=D.len[L]*st.area;
-      // Cada zarpazo va a uno de los enemigos más cercanos (el 1.º al más cercano, el 2.º al que sigue…)
-      volleys(1+st.amount,1,.14,(k,vi)=>{const p=G.p,a=aimAng(vi);G.slashes.push({x:p.x,y:p.y,dir:1,ang:a,len,life:.2});
-        hitLine(a,len,26*st.area,(e,cx,cy)=>hurt(e,D.dmg[L],cx*150,cy*150,'garras'));},w.timer);
+    }else if(w.id==='cartas'){const zv=G.zoraT>0;w.timer=D.cd[L]*st.cd*(zv?.5:1);const n=D.n[L]+st.amount;w.ang=(w.ang||0)+.35;
+      for(let i=0;i<n;i++){const a=w.ang+i/n*TAU;G.shots.push({src:'cartas',kind:'card',x:p.x,y:p.y,vx:Math.cos(a)*400,vy:Math.sin(a)*400,rot:0,dmg:D.dmg[L]*(zv?1.3:1),pierce:D.pierce[L]+(zv?2:0),r:7,life:.8,hit:new Set()});}
     }else if(w.id==='circulo'){w.timer=D.cd[L]*st.cd;const n=1+st.amount,r=D.r[L]*st.area;
       for(let i=0;i<n;i++){if(G.zones.length>=120)break;const a=i/n*TAU,o=i?r*1.4:0;G.zones.push({x:p.x+Math.cos(a)*o,y:p.y+Math.sin(a)*o,r,dmg:D.dmg[L],life:D.dur[L],tick:0,src:'circulo',fire:true});}
       ring(p.x,p.y,r,D.col);
-    }else if(w.id==='redomas'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;
-      for(let i=0;i<n;i++){const t=ts[i%ts.length];addMeteor({x:t.x+(i>=ts.length?rand(-20,20):0),y:t.y+(i>=ts.length?rand(-20,20):0),t:0,dur:.4+i*.06,R:D.r[L]*st.area,dmg:D.dmg[L],src:'redomas',col:D.col});}
-    }else if(w.id==='nubetox'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount,r=D.r[L]*st.area;
-      for(let i=0;i<n;i++){if(G.zones.length>=120)break;const a=Math.random()*TAU,d=rand(30,120);G.zones.push({x:p.x+Math.cos(a)*d,y:p.y+Math.sin(a)*d,r,dmg:D.dmg[L],life:D.dur[L],tick:0,src:'nubetox',col:D.col});}
     }else if(w.id==='mordisco'){const n=D.n[L]+st.amount,ts=nearestEnemies(n).filter(e=>Math.hypot(e.x-p.x,e.y-p.y)<240*st.area);if(!ts.length){w.timer=.15;continue;}w.timer=D.cd[L]*st.cd;
       for(const t of ts){hurt(t,D.dmg[L],(t.x-p.x)*2,(t.y-p.y)*2,'mordisco');ring(t.x,t.y,16,wCol('mordisco'));p.hp=Math.min(p.maxHp,p.hp+D.heal[L]);}
     }else if(w.id==='lunallena'){w.timer=D.cd[L]*st.cd;pushWaves({x:p.x,y:p.y,max:D.R[L]*st.area,dmg:D.dmg[L],col:wCol('lunallena'),src:'lunallena'});
-    }else if(w.id==='antorcha'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;
-      for(let i=0;i<n;i++){const t=ts[i%ts.length],a=Math.atan2(t.y-p.y,t.x-p.x)+(i>=ts.length?rand(-.25,.25):0);
-        G.shots.push({src:'antorcha',kind:'bolt',col:D.col,x:p.x,y:p.y,vx:Math.cos(a)*360,vy:Math.sin(a)*360,dmg:D.dmg[L],pierce:D.pierce[L],r:6,life:.9,burn:{dmg:Math.round(D.dmg[L]*.35),r:26*st.area},hit:new Set()});}
     }else if(w.id==='hoguera'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount,R=D.r[L]*st.area;w.ang=(w.ang||0)+.5;
       for(let i=0;i<n;i++){if(G.zones.length>=120)break;const a=w.ang+i/n*TAU;G.zones.push({x:p.x+Math.cos(a)*R,y:p.y+Math.sin(a)*R,r:22*st.area,dmg:D.dmg[L],life:2.2,tick:0,src:'hoguera',fire:true});}
     }else if(w.id==='siegaalmas'){w.timer=D.cd[L]*st.cd;const R=D.r[L]*st.area,ex=D.exe[L];
@@ -1979,7 +1941,7 @@ function gainXp(v){G.xp+=v*G.st.xpMul;if(!isFinite(G.xp))G.xp=0;if(G.xp>=G.need&
 function buildOptions(exclude){
   let pool=[];
   for(const w of G.weapons)if(w.lvl<wMax())pool.push({k:'w',id:w.id,lvl:w.lvl+1});
-  if(G.weapons.length<6)for(const id in WDEF)if(!G.weapons.find(w=>w.id===id)&&weaponUnlocked(id)&&(!WDEF[id].excl||WDEF[id].excl===G.char))pool.push({k:'w',id,lvl:1});
+  if(G.weapons.length<6)for(const id in WDEF)if(!G.weapons.find(w=>w.id===id)&&weaponUnlocked(id))pool.push({k:'w',id,lvl:1});
   const own=Object.keys(G.passives);
   for(const id of own)if(G.passives[id]<pMax(id))pool.push({k:'p',id,lvl:G.passives[id]+1});
   if(own.length<6)for(const id in PDEF)if(!(id in G.passives))pool.push({k:'p',id,lvl:1});
@@ -2161,6 +2123,7 @@ function update(dt){
     const dx=p.x-e.x,dy=p.y-e.y,d=Math.hypot(dx,dy)||1;
     if(d>far&&!e.elite){const a=Math.atan2(p.fy,p.fx)+rand(-1,1),R=spawnRadius();e.x=p.x+Math.cos(a)*R;e.y=p.y+Math.sin(a)*R;continue;}
     e.mh-=dt;
+    if(e.burnT>0){e.burnT-=dt;e.burnK=(e.burnK||0)-dt;if(e.burnK<=0){e.burnK=.5;hurt(e,e.burnD*.5,0,0,'azufre');if(e.dead)continue;}}
     if(e.frozen>0){e.frozen-=dt;e.flash-=dt;e.oh-=dt;continue;}
     let sx=0,sy=0;
     near(e.x,e.y,e.r+22,o=>{if(o===e)return;const ox=e.x-o.x,oy=e.y-o.y,dd=ox*ox+oy*oy,rr=e.r+o.r;
@@ -2194,8 +2157,16 @@ function update(dt){
   for(const tm of G.timers){tm.t-=dt;if(tm.t<=0&&!tm.done){tm.done=true;tm.fn();}}
   G.timers=G.timers.filter(tm=>!tm.done);
 
-  for(const f of G.flasks){f.t+=dt*2.8*G.st.projSpd;if(f.t>=1){f.dead=true;G.zones.push({x:f.tx,y:f.ty,r:f.r,dmg:f.dmg,life:f.dur,tick:0});}}
-  for(const z of G.zones){z.life-=dt;z.tick-=dt;if(z.tick<=0){z.tick=.3*G.st.cd;near(z.x,z.y,z.r+24,e=>{if(Math.hypot(e.x-z.x,e.y-z.y)<z.r+e.r*.5)hurt(e,z.dmg,0,0,z.src||'agua');});}}
+  for(const f of G.flasks){f.t+=dt*2.8*G.st.projSpd;if(f.t>=1){f.dead=true;
+    if(f.fx!=='matraz')G.zones.push({x:f.tx,y:f.ty,r:f.r,dmg:f.dmg,life:f.dur,tick:0});
+    else{const q=Math.random();// veneno, ácido que frena o explosión en cadena
+      if(q<.4)G.zones.push({x:f.tx,y:f.ty,r:f.r,dmg:f.dmg*.5,life:f.dur,tick:0,col:'#7dff6a',src:'matraz'});
+      else if(q<.75)G.zones.push({x:f.tx,y:f.ty,r:f.r,dmg:f.dmg*.35,life:f.dur,tick:0,slow:1,col:'#e8ff5a',src:'matraz'});
+      else for(let i=0;i<3;i++){const a=Math.random()*TAU,o=i?f.r*1.5:0;addMeteor({x:f.tx+Math.cos(a)*o,y:f.ty+Math.sin(a)*o,t:0,dur:.02+i*.22,R:f.r*1.3,dmg:f.dmg*(i?1.4:2.2),src:'matraz',col:'#ffb36b'});}}}}
+  for(const o of G.pops.splice(0)){G.rings.push({x:o.x,y:o.y,r:o.R,col:'#ff5a1f',life:.45});
+    near(o.x,o.y,o.R+24,e=>{if(e.dead)return;const dx=e.x-o.x,dy=e.y-o.y,d=Math.hypot(dx,dy)||1;if(d<o.R+e.r){hurt(e,o.d*3,dx/d*160,dy/d*160,'azufre');if(!e.dead){e.burnT=Math.max(e.burnT||0,Math.min(3,o.t));e.burnD=Math.max(e.burnD||0,o.d);e.burnR=o.R;}}});}
+  if(G.zoraT>0)G.zoraT-=dt;
+  for(const z of G.zones){z.life-=dt;z.tick-=dt;if(z.tick<=0){z.tick=.3*G.st.cd;near(z.x,z.y,z.r+24,e=>{if(Math.hypot(e.x-z.x,e.y-z.y)<z.r+e.r*.5){hurt(e,z.dmg,0,0,z.src||'agua');if(z.slow&&!e.dead)e.slowT=Math.max(e.slowT||0,z.slow);}});}}
   for(const sl of G.slashes)sl.life-=dt;
   for(const rn of G.runes){rn.life-=dt;rn.arm-=dt;let go=rn.life<=0;
     if(!go&&rn.arm<=0)near(rn.x,rn.y,rn.R*.5+24,e=>{if(!go&&!e.dead&&Math.hypot(e.x-rn.x,e.y-rn.y)<rn.R*.5+e.r)go=true;});
@@ -2228,7 +2199,7 @@ function update(dt){
     if(s.wob!==undefined&&s.kind!=='crow'){s.wob+=sd*10;const m=Math.hypot(s.vx,s.vy)||1,o=Math.cos(s.wob)*110*sd;s.x+=-s.vy/m*o;s.y+=s.vx/m*o;}
     s.x+=s.vx*sd;s.y+=s.vy*sd;s.life-=dt;if(s.life<=0){s.dead=true;if(s.burn&&G.zones.length<120)G.zones.push({x:s.x,y:s.y,r:s.burn.r,dmg:s.burn.dmg,life:1.6,tick:0,src:s.src,fire:true});continue;}
     near(s.x,s.y,s.r+24,e=>{if(s.dead||e.dead||s.hit.has(e))return;const rr=s.r+e.r;
-      if((e.x-s.x)**2+(e.y-s.y)**2<rr*rr){s.hit.add(e);if(s.slow)e.slowT=Math.max(e.slowT||0,s.slow);hurt(e,s.dmg,s.vx*.35,s.vy*.35,s.src);if(--s.pierce<0)s.dead=true;}});
+      if((e.x-s.x)**2+(e.y-s.y)**2<rr*rr){s.hit.add(e);if(s.slow)e.slowT=Math.max(e.slowT||0,s.slow);if(s.ign){e.burnT=Math.max(e.burnT||0,s.ign.t);e.burnD=Math.max(e.burnD||0,s.ign.d);e.burnR=s.ign.R;}hurt(e,s.dmg,s.vx*.35,s.vy*.35,s.src);if(--s.pierce<0)s.dead=true;}});
   }
 
   const mag=st.magnet;
@@ -2386,7 +2357,7 @@ function drawHero(g,x,y,ch,b,fx,lampSide){
     g.fillRect(hx-3.5,hy+1.5,7,1.5);
   }else{
     g.fillStyle=c.face;g.beginPath();g.arc(hx,hy,5,0,TAU);g.fill();
-    const eye={collar:'#c4123a',stone:'#7dffb0',reaper:'#b38cff',crown:'#7ad8ff'}[hat]||'#14112a';
+    const eye={morion:'#c4123a',collar:'#c4123a',stone:'#7dffb0',reaper:'#b38cff',crown:'#7ad8ff'}[hat]||'#14112a';
     if(hat==='reaper'){g.fillStyle='#14112a';g.beginPath();g.arc(hx-2,hy-.5,1.8,0,TAU);g.arc(hx+2,hy-.5,1.8,0,TAU);g.fill();g.fillStyle=eye;g.fillRect(hx-2.5,hy-1,1,1);g.fillRect(hx+1.5,hy-1,1,1);g.fillStyle='#14112a';g.fillRect(hx-2,hy+2.5,4,1);}
     else{g.fillStyle=eye;g.fillRect(hx-3,hy-1,2,2);g.fillRect(hx+1,hy-1,2,2);}
     if(hat==='fox'||hat==='berry'){g.fillStyle='#e2435a';g.fillRect(hx-4.5,hy+1,2.5,1);g.fillRect(hx+2,hy+1,2.5,1);}
@@ -2397,6 +2368,10 @@ function drawHero(g,x,y,ch,b,fx,lampSide){
   else if(hat==='brim'){g.fillStyle='#2b1c10';g.beginPath();g.ellipse(x,y-10+b,13,3.2,0,0,TAU);g.fill();g.fillRect(x-6,y-18+b,12,8);g.fillStyle='#8a5a2e';g.fillRect(x-6,y-12+b,12,1.6);}
   else if(hat==='horns'){g.strokeStyle='#d8cfb8';g.lineWidth=2.4;g.lineCap='round';g.beginPath();g.moveTo(x-5,y-11+b);g.quadraticCurveTo(x-12,y-14+b,x-10,y-21+b);g.moveTo(x+5,y-11+b);g.quadraticCurveTo(x+12,y-14+b,x+10,y-21+b);g.stroke();g.lineCap='butt';}
   else if(hat==='collar'){g.fillStyle='#120408';g.beginPath();g.arc(hx,hy-3,5.4,Math.PI,0);g.fill();}
+  else if(hat==='morion'){g.fillStyle='#c9ced8';g.beginPath();g.ellipse(hx,hy-4,9.5,2.2,0,0,TAU);g.fill();g.beginPath();g.arc(hx,hy-4.5,5.2,Math.PI,0);g.fill();
+    g.fillStyle='#9aa1ae';g.beginPath();g.moveTo(hx-5,hy-6);g.quadraticCurveTo(hx,hy-15,hx+5,hy-6);g.closePath();g.fill();
+    g.fillStyle='#e2435a';g.beginPath();g.moveTo(hx+2,hy-11);g.quadraticCurveTo(hx+11,hy-17,hx+10,hy-7);g.quadraticCurveTo(hx+7,hy-11,hx+2,hy-9);g.closePath();g.fill();
+    g.fillStyle='#ffcf6b';g.fillRect(x-1,y+1+b,2,7);g.fillRect(x-3,y+3+b,6,2);}
   else if(hat==='helm'){g.fillStyle='#c9d1e0';g.beginPath();g.arc(hx,hy-1.5,6,Math.PI,0);g.fill();g.fillRect(hx-.8,hy-2,1.6,4.5);g.fillStyle='#fff';for(const sd of[-1,1]){g.beginPath();g.moveTo(hx+sd*5,hy-4);g.lineTo(hx+sd*13,hy-12);g.lineTo(hx+sd*11,hy-4);g.closePath();g.fill();}}
   else if(hat==='fox'){for(const sd of[-1,1]){g.fillStyle='#e8742a';g.beginPath();g.moveTo(x+sd*3,y-11+b);g.lineTo(x+sd*8,y-20+b);g.lineTo(x+sd*9,y-9+b);g.closePath();g.fill();g.fillStyle='#fff4e8';g.beginPath();g.moveTo(x+sd*5,y-11+b);g.lineTo(x+sd*7.5,y-16+b);g.lineTo(x+sd*8,y-10+b);g.closePath();g.fill();}}
   else if(hat==='berry'){for(const sd of[-1,1]){g.fillStyle='#e8233f';g.beginPath();g.moveTo(x+sd*3,y-11+b);g.lineTo(x+sd*8,y-20+b);g.lineTo(x+sd*9,y-9+b);g.closePath();g.fill();g.fillStyle='#ffb3c1';g.beginPath();g.moveTo(x+sd*5,y-11+b);g.lineTo(x+sd*7.5,y-16+b);g.lineTo(x+sd*8,y-10+b);g.closePath();g.fill();}
@@ -2488,6 +2463,7 @@ function draw(now){
     // enemies
     for(const e of G.enemies)if(inView(e.x,e.y,40)){drawEnemy(e);
       if(e.slowT>0){ctx.strokeStyle='rgba(232,232,240,0.6)';ctx.lineWidth=1;ctx.beginPath();for(let k=0;k<4;k++){const a=k/4*Math.PI;ctx.moveTo(e.x-Math.cos(a)*(e.r+2),e.y-Math.sin(a)*(e.r+2));ctx.lineTo(e.x+Math.cos(a)*(e.r+2),e.y+Math.sin(a)*(e.r+2));}ctx.stroke();}
+      if(e.burnT>0){ctx.fillStyle=Math.sin(G.t*20+e.ph)>0?'rgba(255,110,40,0.35)':'rgba(255,190,70,0.3)';ctx.beginPath();ctx.arc(e.x,e.y-2,e.r+1,0,TAU);ctx.fill();}
       if(e.frozen>0){ctx.fillStyle='rgba(160,215,255,0.5)';ctx.beginPath();ctx.arc(e.x,e.y,e.r+3,0,TAU);ctx.fill();ctx.strokeStyle='rgba(220,240,255,0.8)';ctx.lineWidth=1;ctx.stroke();}}
     // allies
     for(const a of G.allies){ctx.globalAlpha=Math.min(1,a.life*2);const bb=Math.sin(a.ph)*1.5;
@@ -2502,6 +2478,12 @@ function draw(now){
       for(let i=0;i<n;i++){const a=atd.ang+i/n*TAU,ox=px+Math.cos(a)*R,oy=py+Math.sin(a)*R;ctx.save();ctx.translate(ox,oy);ctx.rotate(a+Math.PI/2);
         ctx.fillStyle='#4a2f1e';ctx.beginPath();ctx.moveTo(-5,-13);ctx.lineTo(5,-13);ctx.lineTo(9,-5);ctx.lineTo(6,13);ctx.lineTo(-6,13);ctx.lineTo(-9,-5);ctx.closePath();ctx.fill();
         ctx.strokeStyle='#b08a6a';ctx.lineWidth=1.5;ctx.stroke();ctx.strokeStyle='#e6dcc4';ctx.beginPath();ctx.moveTo(0,-7);ctx.lineTo(0,5);ctx.moveTo(-3,-3);ctx.lineTo(3,-3);ctx.stroke();ctx.restore();}}
+    const ics=G.weapons.find(w=>w.id==='incensario');
+    if(ics&&ics.sa!==undefined){const D=WDEF.incensario,L=Math.min(ics.lvl,5)-1,n=Math.min(8,1+G.st.amount),R=D.r[L]*G.st.area;
+      for(let i=0;i<n;i++){const a=ics.sa+i/n*TAU,ox=px+Math.cos(a)*R,oy=py+Math.sin(a)*R;
+        ctx.strokeStyle='rgba(200,180,130,0.7)';ctx.lineWidth=1.2;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(ox,oy);ctx.stroke();ctx.setLineDash([]);
+        ctx.fillStyle='rgba(255,224,160,0.18)';ctx.beginPath();ctx.arc(ox,oy,13,0,TAU);ctx.fill();
+        ctx.fillStyle='#c9a24a';ctx.beginPath();ctx.arc(ox,oy,7,0,TAU);ctx.fill();ctx.fillStyle='#ffe0a0';ctx.fillRect(ox-6,oy-1.5,12,3);ctx.fillStyle='#6b4a1a';ctx.fillRect(ox-1,oy-9,2,3);}}
     const cal=G.weapons.find(w=>w.id==='calaveras');
     if(cal){const D=WDEF.calaveras,L=Math.min(cal.lvl,5)-1,n=D.n[L]+G.st.amount,R=D.r[L]*G.st.area;
       for(let i=0;i<n;i++){const a=cal.ang+i/n*TAU,ox=px+Math.cos(a)*R,oy=py+Math.sin(a)*R;
@@ -2550,14 +2532,14 @@ function draw(now){
       const my=m.y-(1-f)*220,mx=m.x+(1-f)*60;
       if(m.src==='craneos'){ctx.fillStyle='#efe6d2';ctx.beginPath();ctx.arc(mx,my-1,6,0,TAU);ctx.fill();ctx.fillRect(mx-3.5,my+2,7,4);
         ctx.fillStyle='#14112a';ctx.beginPath();ctx.arc(mx-2.2,my-1,1.5,0,TAU);ctx.arc(mx+2.2,my-1,1.5,0,TAU);ctx.fill();ctx.fillStyle=Math.sin(G.t*24)>0?'#ffe27a':'#ff8a3d';ctx.beginPath();ctx.arc(mx+5,my-7,2,0,TAU);ctx.fill();continue;}
-      if(m.src==='avalancha'){ctx.fillStyle='#8a7f74';ctx.fillRect(mx-7,my-10,14,18);ctx.fillStyle='#5f564d';ctx.fillRect(mx-3,my-6,6,2);ctx.fillRect(mx-1,my-8,2,7);continue;}
+      if(m.src==='einherjar'){ctx.strokeStyle='#ffe9a8';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(mx,my);ctx.lineTo(mx+12,my-22);ctx.stroke();ctx.fillStyle='#fff6d6';ctx.beginPath();ctx.moveTo(mx-2,my+4);ctx.lineTo(mx+3,my-3);ctx.lineTo(mx-3,my-1);ctx.closePath();ctx.fill();continue;}
       ctx.strokeStyle='rgba(255,106,61,0.5)';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(mx,my);ctx.lineTo(mx+18,my-30);ctx.stroke();
       ctx.fillStyle='#ffb36b';ctx.beginPath();ctx.arc(mx,my,7,0,TAU);ctx.fill();ctx.fillStyle='#6b2f1a';ctx.beginPath();ctx.arc(mx+1,my+1,4,0,TAU);ctx.fill();}
     // flasks + whip slashes
     for(const f of G.flasks){const x=f.sx+(f.tx-f.sx)*f.t,y=f.sy+(f.ty-f.sy)*f.t-Math.sin(Math.PI*f.t)*50;
-      ctx.fillStyle='#7ac8ff';ctx.beginPath();ctx.arc(x,y,4,0,TAU);ctx.fill();ctx.fillStyle='#e8f6ff';ctx.fillRect(x-1,y-7,2,4);}
+      ctx.fillStyle=f.fx?'#9ae07a':'#7ac8ff';ctx.beginPath();ctx.arc(x,y,4,0,TAU);ctx.fill();ctx.fillStyle='#e8f6ff';ctx.fillRect(x-1,y-7,2,4);}
     for(const sl of G.slashes){const a=sl.life/.2;ctx.save();ctx.translate(sl.x,sl.y);if(sl.ang!==undefined)ctx.rotate(sl.ang);const d=sl.ang!==undefined?1:sl.dir;
-      ctx.globalAlpha=a;ctx.strokeStyle='#d06bff';ctx.lineWidth=6*a+1;ctx.lineCap='round';ctx.beginPath();
+      ctx.globalAlpha=a;ctx.strokeStyle=sl.col||'#d06bff';ctx.lineWidth=(sl.wd?sl.wd*.5:6)*a+1;ctx.lineCap='round';ctx.beginPath();
       ctx.moveTo(d*8,6);ctx.quadraticCurveTo(d*sl.len*.55,-18,d*sl.len,2);ctx.stroke();
       ctx.strokeStyle='#f3dcff';ctx.lineWidth=1.5;ctx.stroke();ctx.lineCap='butt';ctx.globalAlpha=1;ctx.restore();}
     // lightning
@@ -2937,6 +2919,7 @@ const APP_VER='dev'; // el workflow lo reemplaza por 1.0.<n> al compilar
 const RELEASES='https://github.com/JulianIbPe/cripta_nocturna/releases/latest';
 // Registro de cambios para todos los jugadores (lo de una sola cuenta, como el menú de pruebas, no va). El más nuevo arriba
 const CHANGELOG=[
+['1.0.60','15 nov',['Cada personaje arranca con una sola arma y ya no hay armas exclusivas: todas pueden salir al subir de nivel con cualquiera.','Arma de maestro: con su propia arma inicial, cada personaje pega de +26% (nivel 1) a +50% (nivel 5).','Armas nuevas: Pala del enterrador (Sepulturero), Matraz volátil (Elena), Lanza de Einherjar (Brunhild), Marca de azufre (Asmodeo: quema y los que mueren ardiendo explotan) y Saeta de la conquista (Sor Ignis).','El Incensario bendito ahora es un péndulo que golpea y deja humo sagrado que frena.','Zora: cada 40 bajas tiene una Visión del destino y sus cartas se aceleran, pegan más y atraviesan más.','Seraphiel arranca con la Cruz de luz y la Parca con la Siega de almas; las Hoces gemelas y el Halo sagrado quedan para todos.','Sor Ignis ahora es la Conquistadora, con morrión y pluma.','Se sacaron Rueda de la fortuna, Llamas de zorro, Grito desgarrador, Avalancha de lápidas, Martillo de trueno, Lanza de Odín, Garras infernales, Redomas, Nube tóxica y Antorcha sagrada.','Círculo de fuego y Campana de difuntos pegan bastante más; la campana además frena un poco.']],
 ['1.0.59','7 nov',['Skin nueva en la tienda: Frutillín, Bram el Hombre Lobo vestido de frutilla, con sus mordiscos y su Luna llena de color frutilla.','La clasificación y el guardado en la nube rechazan datos falsos o demasiado grandes.','Un progreso guardado editado a mano ya no puede tener mejoras o niveles por encima del máximo.']],
 ['1.0.58','6 nov',['La pantalla de muerte dice qué enemigo o jefe te mató.']],
 ['1.0.57','6 nov',['Las partidas largas con mucha área y muchos proyectiles extra ya no se traban: la Campana, la Nova de escarcha y las demás armas de área se calculan y se dibujan mucho más rápido.']],
@@ -3242,7 +3225,7 @@ function renderChars(){
       <div class="ch-head"><h3>${c.gems?'<span class="elite">Élite</span><br>':''}${c.name}</h3>${own?((SAVE.charLv[id]|0)?`<span class="chlv">★ Nv ${SAVE.charLv[id]}</span>`:''):priceHtml(c)}</div>
       <p class="ab"><b>${c.passive.name}.</b> ${c.passive.desc}</p>
       <p class="ab"><b class="act">${c.active.name}</b> <span class="cdv">· ${c.active.cd} s</span>. ${c.active.desc}</p>
-      <span class="startw">${svg(c.weapon,WDEF[c.weapon].col)}Empieza con ${WDEF[c.weapon].name}</span>`;
+      <span class="startw">${svg(c.weapon,WDEF[c.weapon].col)}Empieza con ${WDEF[c.weapon].name} · arma de maestro: con este personaje pega de +26% a +50%</span>`;
     b.addEventListener('click',()=>{pickSel=id;if(own){SAVE.sel=id;persist();}renderChars();});
     box.appendChild(b);if(id===pickSel)box.appendChild(CU);
     const g=b.querySelector('canvas').getContext('2d');g.setTransform(3.2,0,0,3.2,72,90);drawHero(g,0,0,id,0,.4,1);
@@ -3361,7 +3344,7 @@ function drawMenuHero(now){
 /* ---- Arsenal ---- */
 /* ---- Filtros y orden de las listas (Arsenal y Misiones); la elección queda mientras el juego esté abierto ---- */
 const LIST_OPTS={
-  w:{f:[['all','Todas'],['open','Desbloqueadas'],['lock','Bloqueadas'],['start','Iniciales'],['mis','De misión'],['excl','Exclusivas de élite']],
+  w:{f:[['all','Todas'],['open','Desbloqueadas'],['lock','Bloqueadas'],['start','Iniciales'],['mis','De misión']],
      s:[['def','Orden del juego'],['name','Nombre (A-Z)'],['dmg','Más daño'],['dmg5','Más daño a nivel 5'],['cd','Recarga más rápida']]},
   p:{f:[['all','Todos'],['atk','Ataque'],['def','Defensa'],['util','Utilidad']],
      s:[['def','Orden del juego'],['name','Nombre (A-Z)'],['max','Nivel máximo']]},
@@ -3386,13 +3369,13 @@ function renderArsenal(){
   let h='';const S=listSel[arsTab],tools=$('#arsTools');
   if(arsTab==='w'){
     const all=Object.keys(WDEF).map((id,i)=>{const D=WDEF[id];return{id,i,name:D.name,D,start:Object.values(CHARS).some(c=>c.weapon===id),lk:!weaponUnlocked(id)};});
-    const F={all:()=>true,open:w=>!w.lk,lock:w=>w.lk,start:w=>w.start,mis:w=>!!w.D.mission,excl:w=>!!w.D.excl}[S.f]||(()=>true);
+    const F={all:()=>true,open:w=>!w.lk,lock:w=>w.lk,start:w=>w.start,mis:w=>!!w.D.mission}[S.f]||(()=>true);
     const cdOf=w=>w.D.cd?w.D.cd[0]:w.D.tick?w.D.tick[0]:1/0;
     const SO={def:(a,b)=>a.i-b.i,name:byName,dmg:(a,b)=>b.D.dmg[0]-a.D.dmg[0]||byName(a,b),dmg5:(a,b)=>b.D.dmg[4]-a.D.dmg[4]||byName(a,b),cd:(a,b)=>cdOf(a)-cdOf(b)||byName(a,b)}[S.s];
     const list=all.filter(F).sort(SO);renderListTools(tools,'w',list.length,all.length,renderArsenal);if(!list.length)h=noRes;
     for(const {id} of list){const D=WDEF[id],st=Object.values(CHARS).find(c=>c.weapon===id);
     const lk=!weaponUnlocked(id),ms=D.mission&&MISSIONS.find(m=>m.id===D.mission);
-    h+=`<div class="aitem${lk?' lockd':''}"><span class="ic">${svg(lk?'candado':id,lk?'#6b6390':D.col)}</span><div><strong>${D.name}</strong><p>${D.up[0]}</p><small>${lk?'Bloqueada · misión '+ms.name+': '+ms.desc:st?'Arma inicial de '+st.short:ms?'Desbloqueada con la misión '+ms.name:D.excl?'Exclusiva de '+CHARS[D.excl].short+': arranca con ella':'Aparece al subir de nivel'} · hasta nivel ${WMAX} (más con el Yunque infernal)</small></div></div>`;}}
+    h+=`<div class="aitem${lk?' lockd':''}"><span class="ic">${svg(lk?'candado':id,lk?'#6b6390':D.col)}</span><div><strong>${D.name}</strong><p>${D.up[0]}</p><small>${lk?'Bloqueada · misión '+ms.name+': '+ms.desc:st?'Arma inicial de '+st.short+' (arma de maestro: con ese personaje pega de +26% a +50%)':ms?'Desbloqueada con la misión '+ms.name:'Aparece al subir de nivel'} · hasta nivel ${WMAX} (más con el Yunque infernal)</small></div></div>`;}}
   else if(arsTab==='r'){
     const all=Object.keys(RELICS).map(id=>({id,name:RELICS[id].name,r:RELICS[id].r})),list=all.filter(x=>S.f==='all'||x.r===+S.f);
     renderListTools(tools,'r',list.length,all.length,renderArsenal);
