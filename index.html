@@ -266,6 +266,14 @@ p{margin:0;line-height:1.35;color:var(--muted);max-width:60ch}
 .acct .msg{font-size:14px;color:var(--muted);line-height:1.35}
 .acct .err{font-size:14px;color:var(--blood)}
 .lb{display:grid;gap:6px}
+.pbadge{display:inline-block;padding:0 5px;border-radius:6px;background:#3a2a08;color:#ffd27a;font-weight:700;font-size:.85em;box-shadow:inset 0 0 0 1px #ffd27a}
+.pstats{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.pst{appearance:none;border:1px solid var(--stone-2);background:var(--stone);color:var(--ink);border-radius:10px;padding:8px 10px;font:inherit;font-size:15px;min-height:40px}.pst.on{background:var(--soul);color:#1a0d02;border-color:var(--soul)}
+.beast canvas{width:64px;height:64px;border-radius:12px;background:radial-gradient(circle at 50% 60%,#2a2148,#0f0d20);flex:none}.beast .lore{font-style:italic;color:var(--muted)}.beast.lockd .ic{display:grid;place-items:center;font-size:26px;font-weight:700;color:var(--muted)}
+.lbfil{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}.lbfil select{min-width:0;min-height:40px;border-radius:10px;background:var(--stone);color:var(--ink);border:1px solid var(--stone-2);font:inherit;font-size:14px;padding:0 6px}
+.lbrow.canopen{cursor:pointer}.lbrow.canopen:focus-visible{outline:2px solid var(--soul);outline-offset:2px}.lbbuild{padding:8px 12px 12px;margin:-4px 0 6px;border-radius:0 0 12px 12px;background:var(--stone);border:1px solid var(--stone-2);border-top:0}
+.build{display:grid;gap:4px;font-size:14px}.build div{display:flex;flex-wrap:wrap;gap:4px}.bchip{display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border-radius:8px;background:#0f0d20;font-size:13px}.bchip svg{width:16px;height:16px}
+.frow{display:flex;gap:6px}.frow input{flex:1;min-width:0;min-height:44px;border-radius:12px;background:var(--stone);color:var(--ink);border:1px solid var(--stone-2);padding:0 12px;font:inherit;font-size:16px}
+.lbrow.fr{grid-template-columns:1fr auto}.lbrow.fr .lbmeta{grid-column:1}.frdel{grid-column:2;grid-row:1/span 2;appearance:none;background:none;border:0;color:var(--muted);font-size:18px;min-width:44px;min-height:44px}
 .lbrow{display:grid;grid-template-columns:34px 1fr auto;gap:2px 10px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--stone);border:1px solid var(--stone-2)}
 .lbrow.me{border-color:var(--ember);box-shadow:0 0 18px rgba(255,138,61,.15)}
 .lbrank{grid-row:span 2;font-weight:700;font-size:20px;text-align:center;font-variant-numeric:tabular-nums;color:var(--muted)}
@@ -486,6 +494,8 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
       </div>
       <div class="tcol tr">
       <button class="tile wide" id="tBoard" style="order:1"><span id="tBoIc"></span><strong>Clasificación</strong><small id="tBoSub">Los mejores puntajes de todos</small></button>
+      <button class="tile" id="tPrest" style="order:5"><span id="tPrIc"></span><strong>Prestigio</strong><small id="tPrSub"></small></button>
+      <button class="tile" id="tBest" style="order:6"><span id="tBeIc"></span><strong>Monstruario</strong><small id="tBeSub"></small></button>
       <button class="tile" id="tRecords" style="order:5"><span id="tReIc"></span><strong>Récords</strong><small id="tReSub"></small></button>
       <button class="tile" id="tAcc" style="order:7"><span id="tAcIc"></span><strong>Cuenta</strong><small id="tAcSub">Guardar tu progreso</small></button>
       <button class="tile" id="tHow" style="order:8"><span id="tHoIc"></span><strong>Cómo jugar</strong><small>Controles y consejos</small></button>
@@ -566,7 +576,13 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
       <button role="radio" data-b="diario">Hoy</button>
       <button role="radio" data-b="semanal">Semana</button>
     </div>
+    <div class="lbfil" id="lbFil"></div>
     <div class="lb" id="lbList"></div>
+    <div class="dtitle">Amigos</div>
+    <p class="msg">Agregá a tus amigos por su nombre de usuario para comparar sus récords con los tuyos.</p>
+    <form class="frow" id="frForm"><input id="frIn" maxlength="16" autocomplete="off" placeholder="Nombre de usuario" aria-label="Nombre de usuario de tu amigo"><button class="btn" type="submit">Agregar</button></form>
+    <p class="toast" id="frToast" aria-live="polite"></p>
+    <div class="lb" id="frList"></div>
     <button class="btn ghost backBtn">Volver</button>
   </div>
 </section>
@@ -585,6 +601,9 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
     <div class="dtitle">Skins</div>
     <p class="cfgnote">Cambian cómo se ven el personaje y sus armas iniciales; no cambian sus estadísticas. Tocá una comprada para ponértela o sacártela.</p>
     <div class="shoplist" id="shopSkinList"></div>
+    <div class="dtitle">Cosméticos</div>
+    <p class="cfgnote">Estelas al caminar, efectos cuando mueren los enemigos y marcos para tu retrato (el marco también se ve en la clasificación). Tocá uno comprado para ponértelo o sacártelo.</p>
+    <div class="shoplist" id="shopCosList"></div>
     <div class="dtitle">Comprar monedas con gemas</div>
     <div class="shoplist" id="shopCoinsList"></div>
     <p class="toast" id="shopToast" aria-live="polite"></p>
@@ -624,6 +643,26 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
     <p class="toast" id="modToast" aria-live="polite"></p>
     <div id="modBody"></div>
     <button class="btn ghost" id="modBack">Volver</button>
+  </div>
+</section>
+
+<section id="bestiary" class="screen" hidden>
+  <div class="panel">
+    <div class="eyebrow">Lo que acecha en la noche</div>
+    <h2>Monstruario</h2>
+    <p id="bestSub"></p>
+    <div class="alist" id="bestList"></div>
+    <button class="btn ghost backBtn">Volver</button>
+  </div>
+</section>
+
+<section id="prest" class="screen" hidden>
+  <div class="panel">
+    <div class="eyebrow">Volver a empezar, más fuerte</div>
+    <h2>Prestigio</h2>
+    <div class="acct" id="prestBox"></div>
+    <p class="toast" id="prestToast" aria-live="polite"></p>
+    <button class="btn ghost backBtn">Volver</button>
   </div>
 </section>
 
@@ -817,7 +856,7 @@ body[data-stick="der"] #abBtn{right:auto;left:calc(env(safe-area-inset-left,0px)
 <script>
 (()=>{
 const $=s=>document.querySelector(s);
-const cv=$('#c'),ctx=cv.getContext('2d');
+const cv=$('#c');let ctx=cv.getContext('2d');
 let W=0,H=0,DPR=1,S=1,VW=0,VH=0;
 // Efectos reducidos (Configuración → Gráficos): se guarda por dispositivo, no en la cuenta
 let lowFx=false;try{lowFx=localStorage.getItem('cripta-lowfx')==='1';}catch(e){}
@@ -1363,7 +1402,8 @@ const BUFFS={
     desc:'Tu arma inicial arranca un nivel más alta por cada nivel.'},
 };
 const buffMax=id=>{const B=BUFFS[id];return B.gemOnly?B.gemOnly.length:B.coin.length+(B.gem||[]).length;};
-function buffNext(id){const B=BUFFS[id],lv=SAVE.buffs[id]|0;
+function buffNext(id){const r=buffNext0(id);if(r)r.n=Math.round(r.n*pMul());return r;}
+function buffNext0(id){const B=BUFFS[id],lv=SAVE.buffs[id]|0;
   if(B.gemOnly)return lv<B.gemOnly.length?{gem:true,n:B.gemOnly[lv]}:null;
   const cn=B.coin.length,gn=(B.gem||[]).length;if(lv<cn)return{gem:false,n:B.coin[lv]};if(lv<cn+gn)return{gem:true,n:B.gem[lv-cn]};return null;}
 const CHARS={
@@ -1556,9 +1596,41 @@ try{if(localStorage.getItem('cripta-muted')==='1')setMuted(true);}catch(e){}
 /* ---------- Mapas y suelo ---------- */
 // mods: hp/dmg/spd de enemigos, coin/gem/pts multiplican el botín y los puntos, xp se suma a la experiencia
 const CHAR_UP=[600,1200,2500,4000,6000],CHAR_GEM=[30,60],CHAR_MAX=CHAR_UP.length+CHAR_GEM.length;
+// Prestigio: cada reinicio suma 1 nivel máximo a todos los personajes (charMax) y encarece todo un 50% más (pMul)
+const charMax=()=>CHAR_MAX+(SAVE.prest|0),pMul=()=>1+.5*(SAVE.prest|0);
+const charUpCost=lv=>lv<CHAR_UP.length?{n:Math.round(CHAR_UP[lv]*pMul()),gem:false}:lv<CHAR_MAX?{n:Math.round(CHAR_GEM[lv-CHAR_UP.length]*pMul()),gem:true}:lv<charMax()?{n:Math.round((80+40*(lv-CHAR_MAX))*pMul()),gem:true,pr:true}:null;
+// Estadística a elegir en cada nivel de prestigio de un personaje (+1% fijo)
+const PSTATS={dmg:['Daño',G=>{G.st.dmg+=.01;}],hp:['Vida máxima',G=>{const v=Math.max(1,Math.round(G.p.maxHp*.01));G.p.maxHp+=v;G.p.hp+=v;}],spd:['Velocidad',G=>{G.st.spd+=.01;}],area:['Área',G=>{G.st.area+=.01;}],
+  cd:['Recarga',G=>{G.st.cdRaw=(G.st.cdRaw||G.st.cd)/1.01;G.st.cd=Math.max(.3,G.st.cdRaw);}],crit:['Crítico',G=>{G.st.crit+=.01;}],xp:['Experiencia',G=>{G.st.xpMul+=.01;}],luck:['Suerte',G=>{G.st.luck+=.01;}]};
+const PTITLES=['','Cazador de la cripta','Guardián del osario','Señor de la noche','Azote de la muerte','Leyenda eterna'];
+const pTitle=n=>!n?'':n<PTITLES.length?PTITLES[n]:PTITLES[PTITLES.length-1]+' '+n;
+const pBadge=n=>n?'<span class="pbadge">★'+n+'</span>':'';
+const P_PTS=.1;
+// Para reiniciar hace falta tener todo al máximo: personajes, sus niveles y la tienda
+function prestReq(){const ids=Object.keys(CHARS);return[
+  ['Personajes desbloqueados',ids.filter(id=>SAVE.unlocked.includes(id)).length,ids.length],
+  ['Personajes al nivel '+charMax(),ids.filter(id=>(SAVE.charLv[id]|0)>=charMax()).length,ids.length],
+  ['Mejoras de la tienda al máximo',Object.keys(BUFFS).filter(id=>(SAVE.buffs[id]|0)>=buffMax(id)).length,Object.keys(BUFFS).length]];}
+const prestReady=()=>prestReq().every(r=>r[1]>=r[2]);
+function doPrestige(){if(!prestReady())return false;
+  SAVE.prest=(SAVE.prest|0)+1;SAVE.pcoins=(SAVE.pcoins|0)+1;
+  Object.assign(SAVE,{coins:0,gems:0,unlocked:['sepulturero'],sel:'sepulturero',buffs:{},charLv:{},pstat:{}});
+  clearRun();pickSel='sepulturero';persist();return true;}
 /* ---- Skins: ch = personaje, col/hat reemplazan los de CHARS al dibujar, wcol = colores de sus armas. Se compran en la tienda (SAVE.skins) y se eligen ahí (SAVE.skin[ch]) ---- */
 const SKINS={frutillin:{ch:'lobo',name:'Frutillín',gems:120,desc:'Bram vestido de frutilla: pelaje rojo con semillitas, hojas en la cabeza y mordiscos y lunas de frutilla.',
-  col:{cloak:'#d8233f',hood:'#b01830',face:'#ffd6dc',lamp:'#ff6b88'},hat:'berry',wcol:{mordisco:'#ff3d6b',lunallena:'#ffa3b8'}}};
+  col:{cloak:'#d8233f',hood:'#b01830',face:'#ffd6dc',lamp:'#ff6b88'},hat:'berry',wcol:{mordisco:'#ff3d6b',lunallena:'#ffa3b8'}},
+  dorado:{ch:'sepulturero',name:'Enterrador dorado',gems:60,desc:'El Sepulturero con capa dorada y una pala que brilla como el oro.',
+    col:{cloak:'#6e5a1e',hood:'#8c7428',face:'#efe6d2',lamp:'#ffe27a'},hat:'hood',wcol:{pala:'#ffd27a'}},
+  nieve:{ch:'bruja',name:'Bruja de las nieves',gems:80,desc:'Morgana con capa blanca y sombrero escarchado.',
+    col:{cloak:'#cfe0f0',hood:'#8fb0d0',face:'#f0f8ff',lamp:'#7ad8ff'},hat:'witch',wcol:{}},
+  carmesi:{ch:'parca',name:'Parca carmesí',gems:150,desc:'La Parca con manto rojo sangre y una siega carmesí.',
+    col:{cloak:'#4a0610',hood:'#2a0308',face:'#e6dcc4',lamp:'#ff4d6d'},hat:'reaper',wcol:{siegaalmas:'#ff2d4d'}}};
+// Cosméticos que no son de un personaje: estela al caminar, efecto al morir los enemigos y marco del retrato (también se ve en la clasificación)
+const COS={
+  trail:{t:'Estelas',chispas:{name:'Chispas',gems:30,col:['#ffd27a','#ff8a3d']},almas:{name:'Almas',gems:45,col:['#5ee6c4','#9ad0ff']},petalos:{name:'Pétalos',gems:45,col:['#ff9ad0','#ffd6dc']},sombra:{name:'Sombra',gems:60,col:['#6a4aa8','#2a1d4a']}},
+  death:{t:'Efectos de muerte',ceniza:{name:'Ceniza',gems:30,col:['#8a8496','#4a4652']},confeti:{name:'Confeti',gems:50,col:['#ff4d6d','#ffd27a','#5ee6c4','#9ad0ff','#c06bff']},almas:{name:'Almas que suben',gems:50,col:['#5ee6c4','#e8fffa'],up:true},llamas:{name:'Llamas',gems:60,col:['#ff6a3d','#ffd27a'],up:true}},
+  frame:{t:'Marcos',oro:{name:'Oro',gems:40,col:['#ffd27a']},hueso:{name:'Hueso',gems:40,col:['#e6dcc4']},sangre:{name:'Sangre',gems:60,col:['#e2435a']},espectral:{name:'Espectral',gems:80,col:['#5ee6c4']}}};
+const cosOn=t=>{const id=SAVE.cos&&SAVE.cos[t];return id&&COS[t][id]&&SAVE.cos.own.includes(t+':'+id)?COS[t][id]:null;};
 const skinOf=ch=>{const id=SAVE.skin&&SAVE.skin[ch],S=SKINS[id];return S&&S.ch===ch&&SAVE.skins.includes(id)?S:null;};
 const wCol=id=>{const S=G&&skinOf(G.char);return S&&S.wcol[id]||WDEF[id].col;};
 const MAPS={
@@ -1641,7 +1713,7 @@ function newGame(ch,df,mp,o){o=o||{};
   G.st.xpMul+=.05*(BF().sabiduria|0);
   {const B=BF(),v=10*(B.vitalidad|0);G.p.maxHp+=v;G.p.hp+=v;G.st.dmg+=.04*(B.fuerza|0);G.st.coinMul+=.08*(B.codicia|0);}
   G.speed=speedOpts().includes(SAVE.speed)?SAVE.speed:1;
-  const cl=G.clean?0:SAVE.charLv[ch]|0;G.st.dmg+=.1*cl;G.p.maxHp+=10*cl;G.p.hp+=10*cl;G.abMul=Math.max(.4,1-.08*cl);if(cl&&c.grow)c.grow.f(G,cl);
+  const clAll=G.clean?0:SAVE.charLv[ch]|0,cl=Math.min(CHAR_MAX,clAll);if(!G.clean)for(const k of (SAVE.pstat[ch]||[]))if(PSTATS[k])PSTATS[k][1](G);G.prest=G.clean?0:SAVE.prest|0;G.dfx=cosOn('death');G.trail=cosOn('trail');G.st.dmg+=.1*cl;G.p.maxHp+=10*cl;G.p.hp+=10*cl;G.abMul=Math.max(.4,1-.08*cl);if(cl&&c.grow)c.grow.f(G,cl);
   G.wLv[c.weapon]=1;
   {const B=BF();G.charges=G.hc?{roll:0,ban:0,skip:0}:{roll:B.roll|0,ban:B.ban|0,skip:B.skip|0};}
   {const B=BF();G.st.magnet*=1+.1*(B.imanbuff|0);G.st.luck+=.06*(B.suerte|0);
@@ -1757,9 +1829,9 @@ function hurt(e,base,kx,ky,src){
   if(src!=='bomba'&&!lowFx&&(G.speed|0)<5&&G.texts.length<60)G.texts.push({x:e.x+rand(-4,4),y:e.y-e.r,txt:tier>=2?dmg+'!'.repeat(Math.min(3,tier-1)):dmg,life:tier>=2?.8:.6,big:dmg>=40||crit,crit:tier===1,oc:tier>=2});
   sfx('hit');
   if(e.hp<=0){e.dead=true;G.kills++;
-    const c=ETYPES[e.type].col;
+    const c=ETYPES[e.type].col,DF=G.dfx;
     for(let i=0;i<(e.elite?24:6);i++){const a=Math.random()*TAU,s=rand(30,e.elite?220:110);
-      if(G.parts.length<PCAP())G.parts.push({x:e.x,y:e.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rand(.25,.55),max:.55,col:c,sz:rand(2,4)});}
+      if(G.parts.length<PCAP())G.parts.push({x:e.x,y:e.y,vx:Math.cos(a)*s*(DF&&DF.up?.3:1),vy:DF&&DF.up?-rand(40,110):Math.sin(a)*s,life:rand(.25,.55),max:.55,col:DF?DF.col[i%DF.col.length]:c,sz:rand(2,4)});}
     G.killsBy[e.type]=(G.killsBy[e.type]|0)+1;
     if(e.type==='bombo'&&!(e.fuse>0)&&G.pops.length<30)G.pops.push({x:e.x,y:e.y,R:60,d:e.max,t:0,src:'bombo'});
     if(e.burnT>0&&G.pops.length<30)G.pops.push({x:e.x,y:e.y,R:e.burnR||50,d:e.burnD||6,t:e.burnT});
@@ -1767,11 +1839,11 @@ function hurt(e,base,kx,ky,src){
     if(G.char==='vidente'&&++G.zoraK%40===0){G.zoraT=6;if(G.texts.length<60)G.texts.push({x:G.p.x,y:G.p.y-30,txt:'¡Visión del destino!',life:1.2,big:true});}
     G.score+=ETYPES[e.type].pts*DIFFS[G.diff].pts*mapMul('pts')*(1+st.curse)*timeMult(G.t)*(G.event&&G.event.k==='luna'?1.5:1);
     dropGem(e.x,e.y,e.xp);
-    if(e.elite){for(let i=0;i<(e.boss?25:10)*st.coinMul;i++)addCoin(e.x+rand(-26,26),e.y+rand(-26,26));}
-    else if(Math.random()<.05*st.coinMul)addCoin(e.x+4,e.y+4);
+    if(e.elite){for(let i=0;i<(e.boss?18:7)*st.coinMul;i++)addCoin(e.x+rand(-26,26),e.y+rand(-26,26));}
+    else if(Math.random()<.035*st.coinMul)addCoin(e.x+4,e.y+4);
     if(e.boss)G.crysArr.push({x:e.x,y:e.y-22,sp:0,fly:false},{x:e.x+16,y:e.y-14,sp:0,fly:false});
     else if(e.elite&&Math.random()<.5)G.crysArr.push({x:e.x,y:e.y-22,sp:0,fly:false});
-    else if(Math.random()<.0015*(DIFFS[G.diff].gem||DIFFS[G.diff].coin)*mapMul('gem')*(1+.05*(BF().gemspawn|0)))G.crysArr.push({x:e.x-4,y:e.y-4,sp:0,fly:false});
+    else if(Math.random()<.001*(DIFFS[G.diff].gem||DIFFS[G.diff].coin)*mapMul('gem')*(1+.05*(BF().gemspawn|0)))G.crysArr.push({x:e.x-4,y:e.y-4,sp:0,fly:false});
     if(st.killHeal){G.killN++;if(G.killN%25===0){G.p.hp=Math.min(G.p.maxHp,G.p.hp+st.killHeal);G.texts.push({x:G.p.x,y:G.p.y-20,txt:'+'+st.killHeal,life:.8,heal:true});}}
     // Los jefes siempre dan un cofre y se abre solo (no hace falta ir a buscarlo); cualquier otro enemigo lo suelta con muy poca chance (no depende de la suerte)
     if(e.boss)G.chestQ=(G.chestQ|0)+1;else if(e.type==='pumpkin')G.items.push({x:e.x-18,y:e.y+10,kind:'chest'});else if(Math.random()<CHEST_CHANCE*(1+.01*(BF().cofres|0))/(1+G.t/300))G.items.push({x:e.x,y:e.y,kind:'chest'});
@@ -1839,7 +1911,7 @@ function updateWeapons(dt){
     w.timer-=dt*(G.noCd?20:1);if(w.timer>0)continue;
     if(w.id==='pala'){w.timer=D.cd[L]*st.cd;const len=D.len[L]*st.area,h=D.w[L]*st.area;
       volleys(1+st.amount,1,.16,(k,vi)=>{const p=G.p,a0=aimAng(vi);
-        for(const a of (D.both[L]?[a0,a0+Math.PI]:[a0])){G.slashes.push({x:p.x,y:p.y,dir:1,ang:a,len,life:.2,col:D.col,wd:h});
+        for(const a of (D.both[L]?[a0,a0+Math.PI]:[a0])){G.slashes.push({x:p.x,y:p.y,dir:1,ang:a,len,life:.2,col:wCol('pala'),wd:h});
           hitLine(a,len,h,(e,cx,cy)=>hurt(e,D.dmg[L],cx*300,cy*300,'pala'));}},w.timer);
     }else if(w.id==='matraz'){const n=D.n[L]+st.amount,ts=nearestEnemies(n);if(!ts.length){w.timer=.2;continue;}w.timer=D.cd[L]*st.cd;
       for(let i=0;i<n;i++){const t=ts[i%ts.length];G.flasks.push({sx:p.x,sy:p.y,tx:t.x+(i>=ts.length?rand(-30,30):0),ty:t.y+(i>=ts.length?rand(-30,30):0),t:0,r:D.r[L]*st.area,dmg:D.dmg[L],dur:D.dur[L],fx:'matraz'});}
@@ -1959,7 +2031,7 @@ function updateWeapons(dt){
     }else if(w.id==='hoguera'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount,R=D.r[L]*st.area;w.ang=(w.ang||0)+.5;
       for(let i=0;i<n;i++){if(G.zones.length>=120)break;const a=w.ang+i/n*TAU;G.zones.push({x:p.x+Math.cos(a)*R,y:p.y+Math.sin(a)*R,r:22*st.area,dmg:D.dmg[L],life:2.2,tick:0,src:'hoguera',fire:true});}
     }else if(w.id==='siegaalmas'){w.timer=D.cd[L]*st.cd;const R=D.r[L]*st.area,ex=D.exe[L];
-      volleys(1+st.amount,1,.25,()=>{const p=G.p;G.sweeps.push({x:p.x,y:p.y,R,life:.3,a0:Math.atan2(p.fy,p.fx),col:D.col});
+      volleys(1+st.amount,1,.25,()=>{const p=G.p;G.sweeps.push({x:p.x,y:p.y,R,life:.3,a0:Math.atan2(p.fy,p.fx),col:wCol('siegaalmas')});
         near(p.x,p.y,R+24,e=>{const dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy)||1;if(d>=R+e.r)return;hurt(e,D.dmg[L],dx/d*200,dy/d*200,'siegaalmas');
           if(!e.dead&&!e.elite&&e.hp<e.max*ex)hurt(e,e.hp*10+1e5,0,0,'siegaalmas');});},w.timer);
     }else if(w.id==='estacas'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount,a0=Math.random()*TAU;
@@ -2213,7 +2285,8 @@ function update(dt){
   if(G.t>=600&&!G.dawn){G.dawn=true;banner('¡Amaneció! Los enemigos se enfurecen');sfx('level');}
   const p=G.p,st=G.st;
   const [ix,iy]=inputVec();p.moving=!!(ix||iy);
-  if(p.moving){const m=Math.hypot(ix,iy);p.fx=ix/m;p.fy=iy/m;p.anim+=dt*10;}
+  if(p.moving){const m=Math.hypot(ix,iy);p.fx=ix/m;p.fy=iy/m;p.anim+=dt*10;
+    if(G.trail){G.trT=(G.trT||0)-dt;if(G.trT<=0&&G.parts.length<PCAP()){G.trT=.05;const tc=G.trail.col;G.parts.push({x:p.x-p.fx*8+rand(-4,4),y:p.y+6+rand(-3,3),vx:rand(-10,10),vy:-rand(5,25),life:.5,max:.5,col:tc[(Math.random()*tc.length)|0],sz:rand(2,3.5)});}}}
   const spd=105*st.spd*(p.mist>0?1.6:1);p.x+=ix*spd*dt;p.y+=iy*spd*dt;
   p.inv-=dt;p.mist-=dt;if(G.noCd)G.ab.cd=0;else if(G.ab.cd>0)G.ab.cd-=dt;G.freezeFx=Math.max(0,G.freezeFx-dt);G.bombFx=Math.max(0,(G.bombFx||0)-dt);p.hp=G.infHp?p.maxHp:Math.min(p.maxHp,p.hp+st.regen*dt);
   if(st.shield&&p.shield<st.shield){p.shT+=dt;if(p.shT>=SHIELD_RECHARGE){p.shT=0;p.shield++;}}else p.shT=0;
@@ -2457,12 +2530,12 @@ function drawEnemyBase(e){
   }else if(e.type==='caballero'){
     const b=Math.sin(e.ph)*1;ctx.fillStyle=fl?'#fff':'#5a6478';ctx.beginPath();ctx.roundRect(x-r*.8,y-r*.7+b,r*1.6,r*1.7,4);ctx.fill();
     ctx.fillStyle=fl?'#fff':'#9aa6bc';ctx.fillRect(x-r*.8,y-r*.7+b,r*1.6,4);ctx.fillStyle='#8a1430';ctx.beginPath();ctx.ellipse(x,y-r*.75+b,4,2,0,0,TAU);ctx.fill();
-    if(e.sh>0){const fx=G.p.x-x,fy=G.p.y-y,a=Math.atan2(fy,fx);ctx.strokeStyle='rgba(122,200,255,0.85)';ctx.lineWidth=3.5;ctx.beginPath();ctx.arc(x,y+b,r+4,a-.9,a+.9);ctx.stroke();}
+    if(e.sh>0){const fx=(G?G.p.x:x+1)-x,fy=(G?G.p.y:y)-y,a=Math.atan2(fy,fx);ctx.strokeStyle='rgba(122,200,255,0.85)';ctx.lineWidth=3.5;ctx.beginPath();ctx.arc(x,y+b,r+4,a-.9,a+.9);ctx.stroke();}
   }else if(e.type==='bombo'){
-    const b=Math.sin(e.ph)*1.5;ctx.fillStyle=fl||e.fuse>0&&Math.sin(G.t*40)>0?'#ff3d3d':'#3a2a22';ctx.beginPath();ctx.arc(x,y+b,r,0,TAU);ctx.fill();
+    const b=Math.sin(e.ph)*1.5;ctx.fillStyle=fl||e.fuse>0&&Math.sin((G?G.t:0)*40)>0?'#ff3d3d':'#3a2a22';ctx.beginPath();ctx.arc(x,y+b,r,0,TAU);ctx.fill();
     ctx.fillStyle='#efe6d2';ctx.beginPath();ctx.arc(x,y-1+b,r*.6,0,TAU);ctx.fill();ctx.fillStyle='#14112a';ctx.fillRect(x-4,y-3+b,3,3);ctx.fillRect(x+1,y-3+b,3,3);
     ctx.strokeStyle='#8a6a4a';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x+r*.5,y-r*.8+b);ctx.lineTo(x+r*.9,y-r*1.4+b);ctx.stroke();
-    ctx.fillStyle=Math.sin(G.t*30)>0?'#ffe27a':'#ff6a3d';ctx.beginPath();ctx.arc(x+r*.9,y-r*1.4+b,2.5,0,TAU);ctx.fill();
+    ctx.fillStyle=Math.sin((G?G.t:0)*30)>0?'#ffe27a':'#ff6a3d';ctx.beginPath();ctx.arc(x+r*.9,y-r*1.4+b,2.5,0,TAU);ctx.fill();
   }else if(e.type==='pumpkin'){
     const b=Math.sin(e.ph*.5)*1.5;
     const gl=ctx.createRadialGradient(x,y,4,x,y,r*2.4);gl.addColorStop(0,'rgba(255,138,61,0.35)');gl.addColorStop(1,'rgba(255,138,61,0)');
@@ -2889,6 +2962,7 @@ function renderAccount(){
   const st=document.createElement('strong');st.textContent=AUTH.name;const sm=document.createElement('small');
   sm.textContent=(LB.remote&&LB.remote.score?'Tu mejor puntaje: '+fmtPts(LB.remote.score)+'. ':'Todavía no tenés puntaje en la tabla. ')+'Se actualiza solo cuando lo superás.';
   box.append(st,sm);who.appendChild(box);el.appendChild(who);
+  if(SAVE.prest){const t=document.createElement('small');t.innerHTML=pBadge(SAVE.prest)+' '+pTitle(SAVE.prest);box.insertBefore(t,sm);}
 }
 // Si no había internet al terminar la partida, el récord queda pendiente en SAVE y se sube después
 async function flushScore(){
@@ -2897,35 +2971,61 @@ async function flushScore(){
   const pb=SAVE.pendB||{};
   for(const bid of Object.keys(pb)){try{await queueWrite(()=>fbDb('PUT','boards/'+bid+'/'+AUTH.uid,Object.assign({},pb[bid],{name:AUTH.name}),true));delete SAVE.pendB[bid];persist();}catch(e){}}
 }
+// Build final para ver desde la clasificación: armas, objetos y reliquias, como texto JSON corto
+function buildStr(){const o={w:G.weapons.map(w=>[w.id,w.lvl]),p:Object.entries(G.passives).slice(0,8),r:Object.entries(G.relics).filter(e=>e[1]>0).slice(0,30)};let t=JSON.stringify(o);if(t.length>1500){o.r=o.r.slice(0,10);t=JSON.stringify(o);}return t.slice(0,1500);}
+function buildHtml(b){let o;try{o=JSON.parse(b);}catch(e){return '<p class="lbempty">Build no disponible.</p>';}
+  const w=(o.w||[]).filter(x=>WDEF[x[0]]).map(x=>`<span class="bchip">${svg(x[0],WDEF[x[0]].col)}${WDEF[x[0]].name} ${x[1]}</span>`).join('');
+  const p=(o.p||[]).filter(x=>PDEF[x[0]]).map(x=>`<span class="bchip">${PDEF[x[0]].name} ${x[1]}</span>`).join('');
+  const r=(o.r||[]).filter(x=>RELICS[x[0]]).map(x=>`<span class="bchip">${RELICS[x[0]].name}${x[1]>1?' ×'+x[1]:''}</span>`).join('');
+  return `<div class="build"><b>Armas</b><div>${w||'—'}</div><b>Objetos</b><div>${p||'—'}</div><b>Reliquias</b><div>${r||'—'}</div></div>`;}
 function submitScore(){
   if(G.mod)return 'mod';
   if(!AUTH||!AUTH.name||!FB.apiKey)return null;
   // shortcut: el mejor puntaje de las tablas por modo se recuerda solo en este dispositivo (SAVE.bestB); desde otro se puede pisar con uno peor
   const bid=boardOf(G),sc=Math.floor(G.score),cur=bid==='scores'?((LB.remote&&LB.remote.score)||0):(SAVE.bestB[bid]|0);
   if(sc<=cur)return false;
-  const row={name:AUTH.name,score:sc,best:{t:Math.round((G.rushDone?G.rushT:G.t)*10)/10,k:G.kills,c:G.char,d:G.diff},at:Date.now()};
+  const row={name:AUTH.name,score:sc,best:{t:Math.round((G.rushDone?G.rushT:G.t)*10)/10,k:G.kills,c:G.char,d:G.diff,m:G.map},at:Date.now(),p:SAVE.prest|0,f:SAVE.cos.frame||'',b:buildStr()};
   if(bid==='scores'){LB.remote=row;SAVE.pendScore=row;}else{SAVE.bestB[bid]=sc;SAVE.pendB=Object.assign({},SAVE.pendB,{[bid]:row});}
   persist();flushScore();
   return true;
 }
-let boardRows=null,boardTimer=null,boardState='idle',boardSel='scores';
+let boardRows=null,boardTimer=null,boardState='idle',boardSel='scores',boardOpen=null;const boardF={c:'',m:'',d:''};
 const boardPath=()=>boardSel==='scores'?'scores':'boards/'+(boardSel==='diario'?'d'+dayId():boardSel==='semanal'?'w'+weekId():boardSel);
-function openBoard(){renderBoardSel();show('board');$('#board').scrollTop=0;renderAccount();subscribeBoard();}
+function openBoard(){renderBoardSel();renderBoardFil();renderFriends();show('board');$('#board').scrollTop=0;renderAccount();subscribeBoard();}
 function closeBoard(){clearInterval(boardTimer);boardTimer=null;}
 async function loadBoard(){
   try{
     // Con ".indexOn":"score" en las reglas trae solo los 50 mejores; si no, trae todo y ordena acá
     const path=boardPath();
-    let r=await fetch(FB.dbUrl+'/'+path+'.json?orderBy=%22score%22&limitToLast=50');
+    let r=await fetch(FB.dbUrl+'/'+path+'.json?orderBy=%22score%22&limitToLast=200');
     if(!r.ok)r=await fetch(FB.dbUrl+'/'+path+'.json');
     if(path!==boardPath())return;
     if(!r.ok)throw new Error('board');
     const j=await r.json()||{};
-    boardRows=Object.entries(j).map(([id,v])=>Object.assign({id},v)).filter(x=>typeof x.score==='number'&&x.score>0&&x.name).sort((x,y)=>y.score-x.score).slice(0,50);
+    boardRows=Object.entries(j).map(([id,v])=>Object.assign({id},v)).filter(x=>typeof x.score==='number'&&x.score>0&&x.name).sort((x,y)=>y.score-x.score).slice(0,200);
     boardState='ok';
   }catch(e){if(!boardRows)boardState='error';}
   renderBoardList();
 }
+function renderBoardFil(){const opt=(k,lab,list)=>`<select data-f="${k}" aria-label="${lab}"><option value="">${lab}: todos</option>${list.map(([v,n])=>`<option value="${v}"${boardF[k]===v?' selected':''}>${n}</option>`).join('')}</select>`;
+  $('#lbFil').innerHTML=opt('c','Personaje',Object.keys(CHARS).map(k=>[k,CHARS[k].short.replace(/^(el|la) /,'')]))+opt('m','Mapa',Object.keys(MAPS).map(k=>[k,MAPS[k].name]))+opt('d','Dificultad',Object.keys(DIFFS).map(k=>[k,DIFFS[k].name]));}
+// Amigos: usernames/<nombre> da el uid y scores/<uid> su mejor partida general
+async function renderFriends(){const el=$('#frList');if(!el)return;const fr=SAVE.friends;
+  if(!fr.length){el.innerHTML='<p class="lbempty">Todavía no agregaste a nadie.</p>';return;}
+  if(!FB.apiKey){el.innerHTML='<p class="lbempty">Hace falta internet y la clasificación activada.</p>';return;}
+  el.innerHTML='<p class="lbempty">Cargando…</p>';const mine=LB.remote||{};
+  const rows=await Promise.all(fr.map(async n=>{try{const uid=await (await fetch(FB.dbUrl+'/usernames/'+n+'.json')).json();if(!uid)return{n,miss:true};const sc=await (await fetch(FB.dbUrl+'/scores/'+uid+'.json')).json();return{n,sc};}catch(e){return{n,err:true};}}));
+  if($('#board').hidden)return;
+  el.innerHTML=rows.map(r=>{const s=r.sc||{},b=s.best||{},d=(s.score|0)-(mine.score|0);
+    const info=r.miss?'No existe ese nombre':r.err?'No se pudo cargar':s.score?fmtPts(s.score)+' · '+(typeof b.t==='number'?fmt(b.t):'')+(b.c&&CHARS[b.c]?' · '+CHARS[b.c].short:'')+(mine.score?' · '+(d>0?'te gana por '+fmtPts(d):d<0?'le ganás por '+fmtPts(-d):'empatados'):''):'Todavía sin puntaje';
+    return `<div class="lbrow fr"><span class="lbname">${(s.p|0)?pBadge(s.p|0)+' ':''}${r.n.replace(/[^a-z0-9_-]/g,'')}</span><span class="lbmeta">${info}</span><button class="frdel" data-fr="${r.n}" aria-label="Sacar a ${r.n}">✕</button></div>`;}).join('');}
+$('#frForm').addEventListener('submit',ev=>{ev.preventDefault();const v=$('#frIn').value.trim().toLowerCase(),t=$('#frToast');
+  if(!/^[a-z0-9_-]{3,16}$/.test(v)){t.textContent='Escribí un nombre de usuario válido (3 a 16 letras, números, - o _).';return;}
+  if(AUTH&&AUTH.name&&AUTH.name.toLowerCase()===v){t.textContent='Ese sos vos.';return;}
+  if(SAVE.friends.includes(v)){t.textContent='Ya está en tu lista.';return;}if(SAVE.friends.length>=30){t.textContent='Llegaste al máximo de 30 amigos.';return;}
+  SAVE.friends.push(v);persist();$('#frIn').value='';t.textContent='Listo: agregaste a '+v+'.';renderFriends();});
+$('#frList').addEventListener('click',ev=>{const b=ev.target.closest('[data-fr]');if(!b)return;SAVE.friends=SAVE.friends.filter(x=>x!==b.dataset.fr);persist();renderFriends();});
+$('#lbFil').addEventListener('change',ev=>{const k=ev.target.dataset.f;if(!k)return;boardF[k]=ev.target.value;boardOpen=null;renderBoardList();});
 function renderBoardSel(){document.querySelectorAll('#lbSel [data-b]').forEach(b=>b.setAttribute('aria-checked',String(b.dataset.b===boardSel)));}
 function subscribeBoard(){
   closeBoard();
@@ -2939,23 +3039,30 @@ function renderBoardList(){
   if(boardState==='off'){note('La clasificación todavía no está activada en esta versión del juego.');return;}
   if(boardState==='error'){note('No se pudo cargar la tabla. Revisá tu internet; se vuelve a intentar sola.');return;}
   if(!boardRows){note('Cargando la tabla…');return;}
-  if(!boardRows.length){note('Nadie aparece todavía en la tabla. ¡El primer puesto puede ser tuyo!');return;}
+  const rows=boardRows.filter(r=>{const d=r.best||{};return(!boardF.c||d.c===boardF.c)&&(!boardF.d||d.d===boardF.d)&&(!boardF.m||(d.m||'cripta')===boardF.m);}).slice(0,50);
+  if(!rows.length){note(boardRows.length?'Nadie con ese filtro todavía.':'Nadie aparece todavía en la tabla. ¡El primer puesto puede ser tuyo!');return;}
   const me=AUTH&&AUTH.uid;
-  boardRows.forEach((r,i)=>{
+  rows.forEach((r,i)=>{
     const d=(r.best&&typeof r.best==='object')?r.best:{},row=document.createElement('div');row.className='lbrow'+(i<3?' r'+(i+1):'')+(r.id===me?' me':'');
     const rk=document.createElement('span');rk.className='lbrank';rk.textContent=i+1;
     const nm=document.createElement('span');nm.className='lbname';nm.textContent=String(r.name).slice(0,16);
+    if((r.p|0)>0){const pb=document.createElement('span');pb.className='pbadge';pb.textContent='★'+(r.p|0);pb.title=pTitle(r.p|0);nm.prepend(pb,' ');}
+    {const F=COS.frame[r.f];if(F&&r.f!=='t')row.style.boxShadow='inset 0 0 0 2px '+F.col[0];}
     if(r.id===me){const y=document.createElement('span');y.className='youtag';y.textContent='vos';nm.appendChild(y);}
     const tm=document.createElement('span');tm.className='lbtime';tm.textContent=fmtPts(r.score);
     const mt=document.createElement('span');mt.className='lbmeta';
     if(DIFFS[d.d]){const ch=document.createElement('span');ch.className='diffchip '+d.d;ch.textContent=DIFFS[d.d].name;mt.appendChild(ch);}
     mt.appendChild(document.createTextNode((typeof d.t==='number'?fmt(d.t)+' · ':'')+((d.k|0)+' bajas')+(d.c&&CHARS[d.c]?' · '+CHARS[d.c].short:'')));
     row.append(rk,nm,tm,mt);el.appendChild(row);
+    // Top 10: tocando la fila se ve la build con la que hizo ese puntaje
+    if(i<10&&typeof r.b==='string'){row.classList.add('canopen');row.tabIndex=0;row.setAttribute('role','button');row.setAttribute('aria-expanded',String(boardOpen===r.id));
+      const tg=()=>{boardOpen=boardOpen===r.id?null:r.id;renderBoardList();};row.onclick=tg;row.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();tg();}};
+      if(boardOpen===r.id){const bx=document.createElement('div');bx.className='lbbuild';bx.innerHTML=buildHtml(r.b);el.appendChild(bx);}}
   });
 }
 
 /* ---------- Screens ---------- */
-const screens=['menu','config','chars','maps','howto','changelog','arsenal','records','board','shop','missions','account','levelup','chest','pause','over','mod'];
+const screens=['bestiary','prest','menu','config','chars','maps','howto','changelog','arsenal','records','board','shop','missions','account','levelup','chest','pause','over','mod'];
 function show(name){for(const sc of screens)$('#'+sc).hidden=sc!==name;const h=!(G&&(state==='play'||state==='levelup'||state==='chest'||state==='paused'));$('#hud').hidden=h;$('#hud').classList.toggle('top',state==='levelup'||state==='chest');$('#abBtn').hidden=h||state!=='play';}
 const SAVE_KEY='cripta-save';
 function loadSave(){let sv=null;try{sv=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');}catch(e){}return normalizeSave(sv);}
@@ -2965,7 +3072,13 @@ function normalizeSave(sv){
   if(!sv||typeof sv!=='object'){sv={coins:0,unlocked:['sepulturero'],sel:'sepulturero',best:null,mode:'normal',muts:[],hc:false,bestB:{}};try{const b=JSON.parse(localStorage.getItem('cripta-best')||'null');if(b)sv.best=b;}catch(e){}}
   if(!Array.isArray(sv.unlocked))sv.unlocked=[];if(!sv.unlocked.includes('sepulturero'))sv.unlocked.push('sepulturero');
   if(!CHARS[sv.sel])sv.sel='sepulturero';if(!DIFFS[sv.diff])sv.diff='facil';if(!sv.life||typeof sv.life!=='object')sv.life={runs:0,kills:0,time:0,coins:0,dawns:0};if(!sv.bestBy||typeof sv.bestBy!=='object'){sv.bestBy={};if(sv.best)sv.bestBy.facil=sv.best;}sv.coins=sv.coins|0;sv.gems=sv.gems|0;if(!sv.buffs||typeof sv.buffs!=='object')sv.buffs={};if(!sv.charLv||typeof sv.charLv!=='object')sv.charLv={};if((sv.buffs.revivir|0)>0){sv.gems=(sv.gems|0)+[0,150,550][Math.min(2,sv.buffs.revivir|0)];}delete sv.buffs.revivir; // Segunda vida se sacó de la tienda: se devuelven las gemas
-  for(const k in BUFFS)sv.buffs[k]=Math.min(buffMax(k),Math.max(0,sv.buffs[k]|0));sv.unlocked=sv.unlocked.filter(id=>CHARS[id]);for(const id in sv.charLv){if(!CHARS[id])delete sv.charLv[id];else sv.charLv[id]=Math.min(CHAR_MAX,Math.max(0,sv.charLv[id]|0));}if(!Array.isArray(sv.misPaid))sv.misPaid=[];sv.misPaid=sv.misPaid.filter(id=>MISSIONS.some(m=>m.id===id&&m.reward));for(const k in sv.life)if(typeof sv.life[k]==='number')sv.life[k]=Math.max(0,sv.life[k]);if(!Array.isArray(sv.skins))sv.skins=[];sv.skins=sv.skins.filter(id=>SKINS[id]);if(!sv.skin||typeof sv.skin!=='object')sv.skin={};for(const ch in sv.skin)if(!sv.skins.includes(sv.skin[ch]))delete sv.skin[ch];if(!Array.isArray(sv.maps))sv.maps=[];sv.maps=sv.maps.filter(k=>MAPS[k]&&k!=='cripta');if(!MAPS[sv.map]||(sv.map!=='cripta'&&!sv.maps.includes(sv.map)))sv.map='cripta';if(typeof sv.life.gems!=='number')sv.life.gems=0;return sv;}
+  for(const k in BUFFS)sv.buffs[k]=Math.min(buffMax(k),Math.max(0,sv.buffs[k]|0));sv.unlocked=sv.unlocked.filter(id=>CHARS[id]);for(const id in sv.charLv){if(!CHARS[id])delete sv.charLv[id];else sv.charLv[id]=Math.min(CHAR_MAX+Math.max(0,sv.prest|0),Math.max(0,sv.charLv[id]|0));}if(!Array.isArray(sv.misPaid))sv.misPaid=[];sv.misPaid=sv.misPaid.filter(id=>MISSIONS.some(m=>m.id===id&&m.reward));for(const k in sv.life)if(typeof sv.life[k]==='number')sv.life[k]=Math.max(0,sv.life[k]);if(!Array.isArray(sv.skins))sv.skins=[];sv.skins=sv.skins.filter(id=>SKINS[id]);if(!sv.skin||typeof sv.skin!=='object')sv.skin={};for(const ch in sv.skin)if(!sv.skins.includes(sv.skin[ch]))delete sv.skin[ch];if(!Array.isArray(sv.maps))sv.maps=[];sv.maps=sv.maps.filter(k=>MAPS[k]&&k!=='cripta');if(!MAPS[sv.map]||(sv.map!=='cripta'&&!sv.maps.includes(sv.map)))sv.map='cripta';if(typeof sv.life.gems!=='number')sv.life.gems=0;
+  sv.prest=Math.max(0,sv.prest|0);sv.pcoins=Math.max(0,sv.pcoins|0);
+  if(!sv.pstat||typeof sv.pstat!=='object')sv.pstat={};for(const ch in sv.pstat){if(!CHARS[ch]||!Array.isArray(sv.pstat[ch])){delete sv.pstat[ch];continue;}sv.pstat[ch]=sv.pstat[ch].filter(k=>PSTATS[k]).slice(0,Math.max(0,(sv.charLv[ch]|0)-CHAR_MAX));}
+  if(!sv.cos||typeof sv.cos!=='object')sv.cos={};if(!Array.isArray(sv.cos.own))sv.cos.own=[];sv.cos.own=sv.cos.own.filter(x=>{const[t,id]=String(x).split(':');return COS[t]&&COS[t][id]&&id!=='t';});
+  for(const t in COS)if(typeof sv.cos[t]!=='string'||!sv.cos.own.includes(t+':'+sv.cos[t]))sv.cos[t]='';
+  if(!Array.isArray(sv.friends))sv.friends=[];sv.friends=sv.friends.filter(x=>typeof x==='string'&&/^[a-z0-9_-]{3,16}$/.test(x)).slice(0,30);
+  return sv;}
 let SAVE=loadSave();
 function persist(){SAVE.savedAt=Date.now();try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE));}catch(e){}scheduleCloud();}
 /* ---- Account: cloud save (Firebase, mail y contraseña por REST) + file backup ---- */
@@ -3083,6 +3196,7 @@ function renderMode(){const m=SAVE.mode;
   if(m==='mut')mb.innerHTML=Object.entries(MUTS).map(([k,M])=>`<label class="modchk"><input type="checkbox" data-mu="${k}"${SAVE.muts.includes(k)?' checked':''}> <span>${M.name} <small>· ${M.desc} · puntos ${fmtMult(M.pts)}</small></span></label>`).join('');
   $('#hcRow').hidden=m==='diario';$('#hcChk').checked=!!SAVE.hc;}
 const CHANGELOG=[
+['1.0.63','16 nov',['Prestigio: con todo al máximo podés reiniciar a cambio de un título, la insignia ★, una moneda de prestigio, +10% de puntos para siempre y +1 nivel máximo para todos los personajes, donde elegís qué estadística sube 1%. Cada prestigio encarece todo un 50%.','Monstruario: los enemigos y jefes que derrotaste, con sus estadísticas, cómo atacan y su historia.','Cosméticos nuevos en la tienda: 3 skins (Enterrador dorado, Bruja de las nieves y Parca carmesí), estelas al caminar, efectos cuando mueren los enemigos y marcos para el retrato.','Clasificación: filtros por personaje, mapa y dificultad; tocando a alguien del top 10 ves su build; y una lista de amigos para comparar récords.','Caen menos monedas y gemas, y el bonus por tiempo es más chico.']],
 ['1.0.62','16 nov',['Dificultad nueva: Pesadilla, con el triple de vida, más daño y velocidad, y enemigos de mitad de partida desde el principio.','Modos nuevos en Personajes: Partida limpia (sin tienda ni niveles de personaje, enemigos más débiles y monedas y gemas al 1%), Mutaciones (reglas a elección que multiplican los puntos), Boss Rush (5 minutos con doble experiencia contra un jefe final gigante), Desafío diario (mismo personaje, mapa y reglas para todos) y Desafío semanal (una regla especial y 25 gemas si sobrevivís 10 minutos).','Hardcore: sin Cambiar, Bloquear ni Saltar, con ×1,15 de puntos.','La clasificación tiene una tabla por modo: General, Partida limpia, Mutaciones, Boss Rush, la del día y la de la semana.']],
 ['1.0.61','16 nov',['Pasado el amanecer los enemigos se enfurecen: más vida, daño y velocidad, y aparecen más seguido. Desde el minuto 30 crecen sin freno.','Eventos al azar durante la partida: Luna de sangre (enemigos más fuertes, pero 50% más de experiencia y puntos), Niebla (casi no se ve) y Lluvia de meteoros (esquivá las marcas: también aplastan enemigos).','Enemigos nuevos: Calavera de pólvora (explota al llegar), Carnero diabólico (apunta y embiste), Caballero sin cabeza (escudo que se come el daño) y Brujo cadavérico (invoca murciélagos).','Jefes nuevos cada 5 minutos: El Nigromante (levanta esqueletos) y El Jinete sin Cabeza (anillos de fuego). El Archiliche y el Devorador también aprendieron esos ataques.']],
 ['1.0.60','15 nov',['Cada personaje arranca con una sola arma y ya no hay armas exclusivas: todas pueden salir al subir de nivel con cualquiera.','Arma de maestro: con su propia arma inicial, cada personaje pega de +26% (nivel 1) a +50% (nivel 5).','Armas nuevas: Pala del enterrador (Sepulturero), Matraz volátil (Elena), Lanza de Einherjar (Brunhild), Marca de azufre (Asmodeo: quema y los que mueren ardiendo explotan) y Saeta de la conquista (Sor Ignis).','El Incensario bendito ahora es un péndulo que golpea y deja humo sagrado que frena.','Zora: cada 40 bajas tiene una Visión del destino y sus cartas se aceleran, pegan más y atraviesan más.','Seraphiel arranca con la Cruz de luz y la Parca con la Siega de almas; las Hoces gemelas y el Halo sagrado quedan para todos.','Sor Ignis ahora es la Conquistadora, con morrión y pluma.','Se sacaron Rueda de la fortuna, Llamas de zorro, Grito desgarrador, Avalancha de lápidas, Martillo de trueno, Lanza de Odín, Garras infernales, Redomas, Nube tóxica y Antorcha sagrada.','Círculo de fuego y Campana de difuntos pegan bastante más; la campana además frena un poco.']],
@@ -3401,22 +3515,24 @@ function renderChars(){
 }
 const CU=document.getElementById('charUp');
 // Del 1 al 5 se paga con monedas; el 6 y el 7, con gemas
-const charUpCost=lv=>lv<CHAR_UP.length?{n:CHAR_UP[lv],gem:false}:lv<CHAR_MAX?{n:CHAR_GEM[lv-CHAR_UP.length],gem:true}:null;
-let cuConfirm=false,cuTimer=null;
+let cuConfirm=false,cuTimer=null,cuStat='dmg';
 function renderCharUp(){
   const el=CU,c=CHARS[pickSel],own=SAVE.unlocked.includes(pickSel);
   if(!own){el.hidden=true;return;}el.hidden=false;
-  const lv=SAVE.charLv[pickSel]|0,max=CHAR_MAX,nc=charUpCost(lv),next=nc&&nc.n,have=nc&&nc.gem?SAVE.gems:SAVE.coins,can=!!nc&&have>=next;
+  const lv=SAVE.charLv[pickSel]|0,max=charMax(),nc=charUpCost(lv),next=nc&&nc.n,have=nc&&nc.gem?SAVE.gems:SAVE.coins,can=!!nc&&have>=next;
   let bars='';for(let i=0;i<max;i++)bars+=`<i class="${i<lv?'on':''}"></i>`;
   el.innerHTML=`<strong>Mejoras de ${c.name} · Nv ${lv}/${max}</strong><div class="cu-lv">${bars}</div>
     <p>${lv?`+${lv*10}% de daño · +${lv*10} de vida · -${lv*8}% de recarga en ${c.active.name}${c.grow?' · '+c.grow.d(lv):''}`:'Todavía sin mejoras.'}</p>
-    ${next===null?'<p class="maxed">Nivel máximo</p>':`<button class="shopitem${cuConfirm?' confirm':''}" id="cuBtn"${can?'':' disabled'}><strong>Subir a nivel ${lv+1}</strong><small>${can?(nc.gem?'Se paga con gemas':'Se paga con monedas'):'Te faltan '+(next-have).toLocaleString('es-AR')+(nc.gem?' gemas':' monedas')}</small><span class="pr">${cuConfirm?'Confirmar':(nc.gem?'<i class="gemi"></i>':'<i class="coin"></i>')+next.toLocaleString('es-AR')}</span></button>`}`;
+    ${(SAVE.pstat[pickSel]||[]).length?`<p>Prestigio: ${Object.entries((SAVE.pstat[pickSel]||[]).reduce((a,k)=>(a[k]=(a[k]|0)+1,a),{})).map(([k,n])=>'+'+n+'% '+PSTATS[k][0].toLowerCase()).join(' · ')}</p>`:''}
+    ${nc&&nc.pr?`<p>Nivel de prestigio: elegí qué estadística sube 1%.</p><div class="pstats">${Object.entries(PSTATS).map(([k,v])=>`<button class="pst${k===cuStat?' on':''}" data-ps="${k}">${v[0]}</button>`).join('')}</div>`:''}
+    ${next===null?'<p class="maxed">Nivel máximo</p>':`<button class="shopitem${cuConfirm?' confirm':''}" id="cuBtn"${can?'':' disabled'}><strong>Subir a nivel ${lv+1}${nc.pr?' (+1% '+PSTATS[cuStat][0].toLowerCase()+')':''}</strong><small>${can?(nc.gem?'Se paga con gemas':'Se paga con monedas'):'Te faltan '+(next-have).toLocaleString('es-AR')+(nc.gem?' gemas':' monedas')}</small><span class="pr">${cuConfirm?'Confirmar':(nc.gem?'<i class="gemi"></i>':'<i class="coin"></i>')+next.toLocaleString('es-AR')}</span></button>`}`;
+  el.querySelectorAll('[data-ps]').forEach(x=>x.addEventListener('click',()=>{cuStat=x.dataset.ps;cuConfirm=false;renderCharUp();}));
   const b=el.querySelector('#cuBtn');if(b)b.addEventListener('click',()=>{
     if(!cuConfirm){cuConfirm=true;clearTimeout(cuTimer);cuTimer=setTimeout(()=>{cuConfirm=false;if(!$('#chars').hidden)renderCharUp();},3500);renderCharUp();return;}
     cuConfirm=false;clearTimeout(cuTimer);const lv2=SAVE.charLv[pickSel]|0,cost=charUpCost(lv2);if(!cost||(cost.gem?SAVE.gems:SAVE.coins)<cost.n)return;
-    if(cost.gem)SAVE.gems-=cost.n;else SAVE.coins-=cost.n;SAVE.charLv[pickSel]=lv2+1;persist();sfx('level');renderChars();});
+    if(cost.gem)SAVE.gems-=cost.n;else SAVE.coins-=cost.n;SAVE.charLv[pickSel]=lv2+1;if(cost.pr)(SAVE.pstat[pickSel]=SAVE.pstat[pickSel]||[]).push(cuStat);persist();sfx('level');renderChars();});
 }
-function costOf(c){return c.gems?{n:c.gems,have:SAVE.gems,w:'gemas',gem:true}:{n:c.price,have:SAVE.coins,w:'monedas',gem:false};}
+function costOf(c){return c.gems?{n:Math.round(c.gems*pMul()),have:SAVE.gems,w:'gemas',gem:true}:{n:Math.round(c.price*pMul()),have:SAVE.coins,w:'monedas',gem:false};}
 function priceHtml(c){const k=costOf(c);return `<span class="price${k.gem?' g':''}">${k.gem?'<i class="gemi"></i>':'<i class="coin"></i>'}${k.n}</span>`;}
 function startLabel(sb,prefix){
   const c=CHARS[pickSel],own=SAVE.unlocked.includes(pickSel),k=costOf(c);
@@ -3428,7 +3544,7 @@ function tryStartOrBuy(){
   initAudio();const c=CHARS[pickSel];
   if(SAVE.mode==='diario'){start(pickSel);return;}
   if(SAVE.unlocked.includes(pickSel)){SAVE.sel=pickSel;persist();start(pickSel);}
-  else if(costOf(c).have>=costOf(c).n){if(c.gems)SAVE.gems-=c.gems;else SAVE.coins-=c.price;SAVE.unlocked.push(pickSel);SAVE.sel=pickSel;persist();sfx('level');if(!$('#chars').hidden)renderChars();renderMenu();}
+  else if(costOf(c).have>=costOf(c).n){if(c.gems)SAVE.gems-=costOf(c).n;else SAVE.coins-=costOf(c).n;SAVE.unlocked.push(pickSel);SAVE.sel=pickSel;persist();sfx('level');if(!$('#chars').hidden)renderChars();renderMenu();}
 }
 // Vista previa de un mapa: su suelo con el personaje elegido parado en el medio
 function drawMapPreview(cv,id){const g=cv.getContext('2d'),w=cv.width,h=cv.height;groundPat(id);
@@ -3478,6 +3594,9 @@ function renderMenu(){
   $('#tChIc').innerHTML=svg('calaveras','#efe6d2');$('#tArIc').innerHTML=svg('hacha','#ff9b8a');
   $('#tReIc').innerHTML=svg('reloj','#ffd27a');$('#tHoIc').innerHTML=svg('grimorio','#b38cff');$('#tLgIc').innerHTML=svg('pergamino','#9fd8ff');
   $('#tAcIc').innerHTML=svg('cuenta','#9ad0ff');renderAcctTile();
+  $('#tPrIc').innerHTML=svg('corona','#ffd27a');$('#tPrSub').innerHTML=SAVE.prest?pBadge(SAVE.prest)+' '+pTitle(SAVE.prest):prestReady()?'¡Ya podés reiniciar!':'Reiniciá con todo al máximo';
+  $('#tBeIc').innerHTML=svg('calaveras','#c8beff');{const kb=SAVE.life.killsBy||{};$('#tBeSub').textContent=Object.keys(ETYPES).filter(k=>kb[k]>0).length+' de '+Object.keys(ETYPES).length+' descubiertos';}
+  {const F=cosOn('frame');$('#heroCv').style.boxShadow=F?'0 0 0 3px '+F.col[0]+', 0 0 14px '+F.col[0]:'';$('#heroCv').style.borderRadius=F?'16px':'';}
   $('#tMiIc').innerHTML=svg('mision','#5ee6c4');$('#tMiSub').textContent=MISSIONS.filter(m=>m.prog()>=m.goal).length+' de '+MISSIONS.length+' cumplidas';
   $('#tChSub').textContent=SAVE.unlocked.length+' de '+CH_IDS.length+' desbloqueados';
   $('#tArSub').textContent=Object.keys(WDEF).length+' armas · '+Object.keys(PDEF).length+' objetos';
@@ -3609,12 +3728,22 @@ function renderShop(){
   $('#shopMapList').innerHTML=Object.keys(MAPS).filter(k=>k!=='cripta').map(id=>{const M=MAPS[id],own=mapOwned(id),g=!!M.gems,pr=g?M.gems:M.coins,can=g?SAVE.gems>=pr:SAVE.coins>=pr,conf=shopConfirm==='m-'+id;
     return `<div class="buff"><span class="ic" style="background:${M.bg};border-color:${M.dl}">${svg('pergamino',M.dl)}</span><strong>${M.name}</strong><p>${M.desc} ${MAP_PRE(id)}.</p>`+
       (own?`<p class="maxed">Comprado</p>`:`<button class="shopitem${conf?' confirm':''}" data-k="m" data-id="${id}" id="shop-m-${id}"${can?'':' disabled'}><strong>Comprar mapa</strong><small>${g?'Se paga con gemas':'Se paga con monedas'}</small><span class="pr">${conf?'Confirmar':(g?'<i class="gemi"></i>':'<i class="coin"></i>')+N(pr)}</span></button>`)+'</div>';}).join('');
+  renderCosShop();
   $('#shopSkinList').innerHTML=Object.keys(SKINS).map(id=>{const K=SKINS[id],C=CHARS[K.ch],own=SAVE.skins.includes(id),on=own&&SAVE.skin[K.ch]===id,has=SAVE.unlocked.includes(K.ch),can=has&&SAVE.gems>=K.gems,conf=shopConfirm==='s-'+id;
     return `<div class="buff"><span class="ic" style="border-color:${K.col.lamp}">${svg('colmillo',K.col.cloak)}</span><strong>${K.name} · ${C.short}</strong><p>${K.desc}</p>`+
       (own?`<button class="shopitem" data-k="s" data-id="${id}" id="shop-s-${id}"><strong>${on?'Puesta':'Comprada'}</strong><small>${on?'Tocá para volver al aspecto normal':'Tocá para ponértela'}</small><span class="pr">${on?'Sacar':'Usar'}</span></button>`
         :`<button class="shopitem${conf?' confirm':''}" data-k="s" data-id="${id}" id="shop-s-${id}"${can?'':' disabled'}><strong>Comprar skin</strong><small>${has?'Se paga con gemas':'Primero desbloqueá a '+C.short}</small><span class="pr">${conf?'Confirmar':'<i class="gemi"></i>'+N(K.gems)}</span></button>`)+'</div>';}).join('');
 }
+function renderCosShop(){const N=v=>v.toLocaleString('es-AR');
+  $('#shopCosList').innerHTML=Object.entries(COS).map(([t,grp])=>Object.entries(grp).filter(([id])=>id!=='t').map(([id,K])=>{const own=SAVE.cos.own.includes(t+':'+id),on=own&&SAVE.cos[t]===id,can=SAVE.gems>=K.gems,conf=shopConfirm==='x-'+t+'-'+id;
+    return `<div class="buff"><span class="ic" style="border-color:${K.col[0]};background:linear-gradient(135deg,${K.col.join(',')}${K.col.length<2?','+K.col[0]:''})"></span><strong>${K.name}</strong><p>${grp.t}</p>`+
+      (own?`<button class="shopitem" data-k="x" data-t="${t}" data-id="${id}"><strong>${on?'Puesto':'Comprado'}</strong><small>${on?'Tocá para sacártelo':'Tocá para ponértelo'}</small><span class="pr">${on?'Sacar':'Usar'}</span></button>`
+        :`<button class="shopitem${conf?' confirm':''}" data-k="x" data-t="${t}" data-id="${id}"${can?'':' disabled'}><strong>Comprar</strong><small>Se paga con gemas</small><span class="pr">${conf?'Confirmar':'<i class="gemi"></i>'+N(K.gems)}</span></button>`)+'</div>';}).join('')).join('');}
 function shopClick(btn){
+  if(btn.dataset.k==='x'){const t=btn.dataset.t,id=btn.dataset.id,K=COS[t]&&COS[t][id],key='x-'+t+'-'+id;if(!K||id==='t')return;
+    if(SAVE.cos.own.includes(t+':'+id)){SAVE.cos[t]=SAVE.cos[t]===id?'':id;persist();$('#shopToast').textContent=SAVE.cos[t]?'Listo: '+K.name+' puesto.':'Listo: sacaste '+K.name+'.';renderShop();renderMenu();return;}
+    if(shopConfirm!==key){shopConfirm=key;clearTimeout(shopTimer);shopTimer=setTimeout(()=>{shopConfirm=null;if(!$('#shop').hidden)renderShop();},3500);$('#shopToast').textContent='';renderShop();return;}
+    shopConfirm=null;clearTimeout(shopTimer);if(SAVE.gems<K.gems)return;SAVE.gems-=K.gems;SAVE.cos.own.push(t+':'+id);SAVE.cos[t]=id;persist();sfx('level');$('#shopToast').textContent='Listo: '+K.name+'. Ya lo tenés puesto.';renderShop();renderMenu();return;}
   if(btn.dataset.k==='s'){const id=btn.dataset.id,K=SKINS[id],key='s-'+id;if(!K)return;
     if(SAVE.skins.includes(id)){if(SAVE.skin[K.ch]===id)delete SAVE.skin[K.ch];else SAVE.skin[K.ch]=id;persist();$('#shopToast').textContent=SAVE.skin[K.ch]?'Listo: '+CHARS[K.ch].short+' usa '+K.name+'.':'Listo: '+CHARS[K.ch].short+' vuelve a su aspecto normal.';renderShop();return;}
     if(!SAVE.unlocked.includes(K.ch))return;
@@ -3637,9 +3766,20 @@ function shopClick(btn){
   else{if(SAVE.gems<it.pay)return;SAVE.gems-=it.pay;SAVE.coins+=it.get;}
   persist();sfx('level');$('#shopToast').textContent='Listo: +'+it.get.toLocaleString('es-AR')+' '+(kind==='g'?(it.get>1?'gemas':'gema'):'monedas')+'.';renderShop();
 }
-['#shopBuffList','#shopCoinsList','#shopMapList','#shopSkinList'].forEach(sel=>$(sel).addEventListener('click',e=>{const b=e.target.closest('.shopitem');if(b&&!b.disabled)shopClick(b);}));
+['#shopBuffList','#shopCoinsList','#shopMapList','#shopSkinList','#shopCosList'].forEach(sel=>$(sel).addEventListener('click',e=>{const b=e.target.closest('.shopitem');if(b&&!b.disabled)shopClick(b);}));
 $('#tShop').addEventListener('click',()=>{initAudio();shopConfirm=null;$('#shopToast').textContent='';renderShop();show('shop');$('#shop').scrollTop=0;});
 $('#tArsenal').addEventListener('click',()=>{renderArsenal();show('arsenal');$('#arsenal').scrollTop=0;});
+let prArm=false,prT=null;
+function renderPrest(){const n=SAVE.prest|0,R=prestReq(),ok=prestReady();
+  $('#prestBox').innerHTML=`<div class="who"><div><strong>${n?pBadge(n)+' '+pTitle(n):'Sin prestigio todavía'}</strong><small>Monedas de prestigio: ${SAVE.pcoins|0} · puntos ×${String(Math.round((1+P_PTS*n)*100)/100).replace('.',',')} · nivel máximo de personajes ${charMax()} · precios ×${String(pMul()).replace('.',',')}</small></div></div>
+    <p class="msg">Cuando tengas todo al máximo podés reiniciar tu progreso a cambio de: un título nuevo, 1 moneda de prestigio, la insignia ★, +10% de puntos para siempre y +1 nivel máximo para todos los personajes (en ese nivel elegís qué estadística sube 1%). Cada prestigio hace todo 50% más caro.</p>
+    <p class="msg">Se reinician monedas, gemas, personajes, sus niveles y la tienda. Se quedan mapas, skins, cosméticos, misiones, récords y tu historial.</p>
+    ${R.map(r=>`<div class="drow"><span class="dn">${r[1]>=r[2]?'✔':'·'} ${r[0]}</span><span class="dv">${r[1]}/${r[2]}</span><i style="width:${(r[1]/r[2]*100).toFixed(1)}%;background:${r[1]>=r[2]?'var(--soul)':'var(--ember)'}"></i></div>`).join('')}
+    <button class="btn${prArm?' confirm':''}" id="prestBtn"${ok?'':' disabled'}>${ok?(prArm?'Tocá de nuevo para reiniciar':'Reiniciar con prestigio '+(n+1)+': '+pTitle(n+1)):'Todavía no tenés todo al máximo'}</button>`;
+  const b=$('#prestBtn');b.onclick=()=>{if(!prestReady())return;if(!prArm){prArm=true;clearTimeout(prT);prT=setTimeout(()=>{prArm=false;if(!$('#prest').hidden)renderPrest();},4000);renderPrest();return;}
+    prArm=false;clearTimeout(prT);if(doPrestige()){sfx('level');$('#prestToast').textContent='¡Prestigio '+SAVE.prest+'! Ahora sos '+pTitle(SAVE.prest)+'.';renderPrest();renderMenu();}};}
+$('#tPrest').addEventListener('click',()=>{prArm=false;$('#prestToast').textContent='';renderPrest();show('prest');$('#prest').scrollTop=0;});
+$('#tBest').addEventListener('click',()=>{renderBestiary();show('bestiary');$('#bestiary').scrollTop=0;});
 $('#tRecords').addEventListener('click',()=>{renderRecords();show('records');$('#records').scrollTop=0;});
 $('#tHow').addEventListener('click',()=>{renderDiffTables();show('howto');$('#howto').scrollTop=0;});
 $('#tLog').addEventListener('click',()=>{const L=$('#logList');if(!L.childElementCount)for(const[v,d,its]of CHANGELOG){const t=document.createElement('div');t.className='dtitle';t.textContent=(v?'Versión '+v+' · ':'')+d;L.appendChild(t);
@@ -3728,10 +3868,38 @@ function resume(){const s=G&&G.pauseFrom;if(G)G.pauseFrom=null;if(s==='levelup')
 function renderAfk(){const b=$('#afkBtn');if(b&&G)b.setAttribute('aria-pressed',String(!!G.afk));}
 function toggleAfk(){if(!G||(state!=='play'&&state!=='levelup'&&state!=='chest'))return;G.afk=!G.afk;renderAfk();sfx('gem');banner(G.afk?'AFK activado: la experiencia y los cofres se guardan':'AFK desactivado');}
 // Nombre de quien te mató; los jefes usan su `name` de ETYPES
+// Monstruario: lo que se cuenta de cada enemigo (los jefes arman su texto con sus ataques, ACT_TXT)
+const BEAST={bat:['Murciélago','Rápido y frágil; llega en enjambres.','Duermen colgados de las cruces y se despiertan con el olor de la lámpara.'],
+  zombie:['Zombi','Lento, pero aguanta más que un murciélago.','Vecinos del pueblo que nunca terminaron de irse.'],
+  ghost:['Fantasma','Avanza a tirones, más rápido y duro que un zombi.','Almas que siguen buscando su lápida.'],
+  skel:['Esqueleto','Duro y pega fuerte.','Los huesos del osario se arman solos cuando cae la noche.'],
+  pumpkin:['Calabaza maldita','Élite cada 2 minutos: mucha vida y siempre deja un cofre.','La última cosecha del sepulturero viejo.'],
+  arana:['Araña','Muy rápida y zigzaguea.','Hijas de la Reina Araña.'],
+  vampiro:['Vampiro','Rápido y pega fuerte.','Sirvientes del Conde que salieron a cazar.'],
+  gargola:['Gárgola','Lenta, enorme y pega muy fuerte.','Las estatuas de la catedral se cansaron de mirar.'],
+  carnero:['Carnero diabólico','Se frena, apunta y embiste en línea recta: movete de costado.','Lo criaban para los sacrificios y se escapó.'],
+  brujo:['Brujo cadavérico','Se queda lejos e invoca murciélagos cada pocos segundos.','Estudió tanto la muerte que se le pegó.'],
+  caballero:['Caballero sin cabeza','Su escudo se come 75% del daño hasta romperse.','Perdió la cabeza en una batalla y nunca dejó de pelear.'],
+  bombo:['Calavera de pólvora','Corre hacia vos y explota. Si la matás antes, explota contra los enemigos.','Un artificiero que se tomó su trabajo demasiado en serio.'],
+  reina:[0,0,'Teje sus nidos debajo de las tumbas más viejas.'],conde:[0,0,'El dueño del castillo de la colina.'],coloso:[0,0,'Cien lápidas que se cansaron de estar quietas.'],
+  nigromante:[0,0,'Tiene un ejército y no le importa ninguno.'],jinete:[0,0,'Busca su cabeza desde hace trescientos años.'],
+  baronesa:[0,0,'Se baña en sangre para no envejecer.'],tejedora:[0,0,'La madre de todas las arañas.'],titan:[0,0,'El osario entero, de pie.'],
+  archilich:[0,0,'El primer muerto que se negó a morir.'],devorador:[0,0,'Lo que queda cuando la noche no termina.'],rushboss:[0,0,'El jefe final del Boss Rush.']};
+const ACT_TXT={reina:'pone arañas',conde:'embiste',coloso:'golpea el suelo',invoca:'levanta esqueletos',nova:'tira anillos de fuego'};
+function beastInfo(k){const d=ETYPES[k],b=BEAST[k]||[0,0,''],mb=MILE_BOSSES.find(m=>m[1]===k);
+  return{name:b[0]||d.name||k,desc:b[1]||((k==='rushboss'?'Jefe final del Boss Rush':mb?'Jefe supremo del minuto '+mb[0]:'Jefe cada 5 minutos')+': '+(d.acts||[k]).map(a=>ACT_TXT[a]).join(', ')+'.'),lore:b[2]};}
+function drawBeast(cvs,k){const g=cvs.getContext('2d'),d=ETYPES[k],old=ctx;g.clearRect(0,0,cvs.width,cvs.height);
+  try{ctx=g;g.save();g.translate(cvs.width/2,cvs.height/2);const sc=Math.min(2.6,cvs.width*.3/d.r);g.scale(sc,sc);drawEnemy({type:k,x:0,y:0,r:d.r,ph:1,flash:0,hp:1,max:1,sh:d.shield?1:0,chg:0,fuse:0});g.restore();}finally{ctx=old;}}
+function renderBestiary(){const kb=SAVE.life.killsBy||{},ks=Object.keys(ETYPES),seen=ks.filter(k=>kb[k]>0).length;
+  $('#bestSub').textContent='Descubriste '+seen+' de '+ks.length+'. Un enemigo aparece cuando lo matás por primera vez.';
+  const el=$('#bestList');el.innerHTML=ks.map(k=>{const d=ETYPES[k],n=kb[k]|0,I=beastInfo(k);
+    return n?`<div class="aitem beast"><canvas width="96" height="96" data-bk="${k}"></canvas><div><strong>${I.name}${d.boss?' <span class="elite">Jefe</span>':''}</strong><p>${I.desc}</p><p class="lore">${I.lore}</p><small>Vida ${d.hp.toLocaleString('es-AR')} · daño ${d.dmg} · velocidad ${d.spd} · ${d.pts.toLocaleString('es-AR')} puntos · derrotados: ${n.toLocaleString('es-AR')}</small></div></div>`
+      :`<div class="aitem beast lockd"><span class="ic">?</span><div><strong>???</strong><p>Todavía no lo derrotaste.</p></div></div>`;}).join('');
+  el.querySelectorAll('[data-bk]').forEach(c=>drawBeast(c,c.dataset.bk));}
 const KILLER={carnero:'Un carnero diabólico',brujo:'Un brujo cadavérico',caballero:'Un caballero sin cabeza',bombo:'Una calavera de pólvora',meteoro:'Un meteoro',bat:'Un murciélago',zombie:'Un zombi',ghost:'Un fantasma',skel:'Un esqueleto',pumpkin:'Una calabaza maldita',arana:'Una araña',vampiro:'Un vampiro',gargola:'Una gárgola'};
 function gameOver(){
   state='over';clearRun();joy.active=false;Math.random=RND;
-  const DF=DIFFS[G.diff],timeBonus=Math.floor(G.t/30),dawnBonus=G.dawn?50:0,base=G.coins+timeBonus+dawnBonus,diffBonus=Math.round(base*(DF.coin*mapMul('coin')-1)),eco=G.clean?(G.t>6e8?.67:.01):1,earned=Math.floor((base+diffBonus)*eco);
+  const DF=DIFFS[G.diff],timeBonus=Math.floor(G.t/40),dawnBonus=G.dawn?50:0,base=G.coins+timeBonus+dawnBonus,diffBonus=Math.round(base*(DF.coin*mapMul('coin')-1)),eco=G.clean?(G.t>6e8?.67:.01):1,earned=Math.floor((base+diffBonus)*eco);
   const prev=SAVE.bestBy[G.diff],record=G.mode==='normal'&&(!prev||G.t>prev.t);
   const doneBefore=MISSIONS.filter(m=>m.prog()>=m.goal).map(m=>m.id);
   const L=SAVE.life;L.elites=(L.elites|0)+G.elitesKilled;L.bestT=Math.max(L.bestT||0,G.t);L.maxLvl=Math.max(L.maxLvl|0,G.lvl);L.runs++;L.kills+=G.kills;L.time+=G.t;L.coins+=earned;if(G.dawn)L.dawns++;
@@ -3748,9 +3916,10 @@ function gameOver(){
   $('#overTitle').textContent=G.rush?(G.rushDone?'¡Derrotaste al Devorador en '+fmt(G.rushT)+'!':'Se acabó el tiempo'):G.dawn?'¡Viste el amanecer!':G.ended?'Terminaste la partida':'Te alcanzaron';
   $('#overSub').textContent=(G.killer&&!G.ended?'Te mató: '+(KILLER[G.killer]||(ETYPES[G.killer]&&ETYPES[G.killer].name)||'algo en la oscuridad')+'. ':'')+(G.dawn?'Pasaste el amanecer y aguantaste hasta '+fmt(G.t)+' con '+CHARS[G.char].short+'.':'Sobreviviste '+fmt(G.t)+' con '+CHARS[G.char].short+'. El amanecer llega a los 10:00.');
   if(G.rush)G.score=G.rushDone?100000+Math.round((RUSH_T-G.rushT)*1000):0;else if(G.ptsMul>1)G.score*=G.ptsMul;
+  if(!G.rush&&G.prest)G.score*=1+P_PTS*G.prest;
   G.score=Math.floor(G.score);
   $('#stScore').textContent=fmtPts(G.score);
-  $('#stMult').textContent='Bajas y jefes · llegaste a '+fmtMult(timeMult(G.t))+' por tiempo · '+fmtMult(DF.pts)+' por '+DF.name+(G.rush?' · Boss Rush: 100.000 + 1.000 por segundo que sobró':G.ptsMul>1?' · '+fmtMult(Math.round(G.ptsMul*100)/100)+' por '+(G.hc?'Hardcore':'')+(G.hc&&G.muts.length?' y ':'')+(G.muts.length?'mutadores':''):'');
+  $('#stMult').textContent='Bajas y jefes · llegaste a '+fmtMult(timeMult(G.t))+' por tiempo · '+fmtMult(DF.pts)+' por '+DF.name+(G.rush?' · Boss Rush: 100.000 + 1.000 por segundo que sobró':G.ptsMul>1?' · '+fmtMult(Math.round(G.ptsMul*100)/100)+' por '+(G.hc?'Hardcore':'')+(G.hc&&G.muts.length?' y ':'')+(G.muts.length?'mutadores':''):'')+(!G.rush&&G.prest?' · '+fmtMult(Math.round((1+P_PTS*G.prest)*100)/100)+' por prestigio':'');
   if(G.mode==='normal'&&(!SAVE.bestScore||G.score>SAVE.bestScore.score))SAVE.bestScore={score:G.score,t:G.t,k:G.kills,c:G.char,diff:G.diff};persist();
   $('#stTime').textContent=fmt(G.t);$('#stLvl').textContent=G.lvl;$('#stKills').textContent=G.kills;
   $('#overCoins').innerHTML=`<div><span>Monedas recogidas</span><span>${G.coins}</span></div><div><span>Por tiempo sobrevivido</span><span>${timeBonus}</span></div>${dawnBonus?`<div><span>Bonus amanecer</span><span>${dawnBonus}</span></div>`:''}${diffBonus?`<div><span>Bonus ${DF.name} (+${Math.round((DF.coin-1)*100)}%)</span><span>${diffBonus}</span></div>`:''}${G.clean?`<div><span>Partida limpia</span><span>×${Math.round(eco*100)}%</span></div>`:''}<div class="tot"><span>Ganaste +${earned}</span><span>Total ${SAVE.coins}</span></div><div class="gemrow"><span>Gemas +${gemsEarned}${G.dawn?' (2 del amanecer)':''}</span><span>Total ${SAVE.gems}</span></div>`;

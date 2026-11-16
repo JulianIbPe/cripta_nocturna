@@ -75,10 +75,22 @@
           },
           "$other": {
             ".validate": false
+          },
+          "m": {
+            ".validate": "newData.isString() && newData.val().length <= 12"
           }
         },
         "$other": {
           ".validate": false
+        },
+        "p": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000"
+        },
+        "f": {
+          ".validate": "newData.isString() && newData.val().length <= 12"
+        },
+        "b": {
+          ".validate": "newData.isString() && newData.val().length <= 1500"
         }
       }
     },
@@ -116,10 +128,22 @@
             },
             "$other": {
               ".validate": false
+            },
+            "m": {
+              ".validate": "newData.isString() && newData.val().length <= 12"
             }
           },
           "$other": {
             ".validate": false
+          },
+          "p": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000"
+          },
+          "f": {
+            ".validate": "newData.isString() && newData.val().length <= 12"
+          },
+          "b": {
+            ".validate": "newData.isString() && newData.val().length <= 1500"
           }
         }
       }
