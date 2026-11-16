@@ -4,10 +4,18 @@
       "$uid": {
         ".read": "auth != null && auth.uid === $uid && auth.token.email_verified === true",
         ".write": "auth != null && auth.uid === $uid && auth.token.email_verified === true",
-        "at": { ".validate": "newData.isNumber()" },
-        "data": { ".validate": "newData.isString() && newData.val().length < 1000000" },
-        "run": { ".validate": "newData.isString() && newData.val().length < 1000000" },
-        "$other": { ".validate": false }
+        "at": {
+          ".validate": "newData.isNumber()"
+        },
+        "data": {
+          ".validate": "newData.isString() && newData.val().length < 1000000"
+        },
+        "run": {
+          ".validate": "newData.isString() && newData.val().length < 1000000"
+        },
+        "$other": {
+          ".validate": false
+        }
       }
     },
     "usernames": {
@@ -36,22 +44,84 @@
     },
     "scores": {
       ".read": true,
-      ".indexOn": ["score"],
+      ".indexOn": [
+        "score"
+      ],
       "$uid": {
         ".write": "auth != null && auth.uid === $uid && auth.token.email_verified === true",
         ".validate": "newData.hasChildren(['name', 'score', 'best', 'at']) && newData.child('score').val() <= newData.child('best').child('k').val() * 1000000 + 100000 && newData.child('best').child('k').val() <= newData.child('best').child('t').val() * 20000 + 1000",
-        "name": { ".validate": "newData.isString() && newData.val() === newData.parent().parent().parent().child('users').child($uid).child('name').val()" },
-        "score": { ".validate": "newData.isNumber() && newData.val() >= 0" },
-        "at": { ".validate": "newData.isNumber() && newData.val() <= now + 600000" },
+        "name": {
+          ".validate": "newData.isString() && newData.val() === newData.parent().parent().parent().child('users').child($uid).child('name').val()"
+        },
+        "score": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "at": {
+          ".validate": "newData.isNumber() && newData.val() <= now + 600000"
+        },
         "best": {
           ".validate": "newData.hasChildren(['t', 'k', 'c', 'd'])",
-          "t": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000" },
-          "k": { ".validate": "newData.isNumber() && newData.val() >= 0" },
-          "c": { ".validate": "newData.isString() && newData.val().length <= 20" },
-          "d": { ".validate": "newData.isString() && newData.val().length <= 12" },
-          "$other": { ".validate": false }
+          "t": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000"
+          },
+          "k": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          },
+          "c": {
+            ".validate": "newData.isString() && newData.val().length <= 20"
+          },
+          "d": {
+            ".validate": "newData.isString() && newData.val().length <= 12"
+          },
+          "$other": {
+            ".validate": false
+          }
         },
-        "$other": { ".validate": false }
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    "boards": {
+      "$b": {
+        ".read": true,
+        ".indexOn": [
+          "score"
+        ],
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && auth.token.email_verified === true && $b.matches(/^(limpia|mut|rush|d[0-9]{8}|w[0-9]{4,6})$/)",
+          ".validate": "newData.hasChildren(['name', 'score', 'best', 'at']) && newData.child('score').val() <= newData.child('best').child('k').val() * 1000000 + 100000 && newData.child('best').child('k').val() <= newData.child('best').child('t').val() * 20000 + 1000",
+          "name": {
+            ".validate": "newData.isString() && newData.val() === newData.parent().parent().parent().parent().child('users').child($uid).child('name').val()"
+          },
+          "score": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          },
+          "at": {
+            ".validate": "newData.isNumber() && newData.val() <= now + 600000"
+          },
+          "best": {
+            ".validate": "newData.hasChildren(['t', 'k', 'c', 'd'])",
+            "t": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000"
+            },
+            "k": {
+              ".validate": "newData.isNumber() && newData.val() >= 0"
+            },
+            "c": {
+              ".validate": "newData.isString() && newData.val().length <= 20"
+            },
+            "d": {
+              ".validate": "newData.isString() && newData.val().length <= 12"
+            },
+            "$other": {
+              ".validate": false
+            }
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
       }
     }
   }
