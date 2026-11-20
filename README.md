@@ -41,3 +41,6 @@ La tabla de clasificación usa las cuentas del juego (Firebase): cualquiera la p
 - **APK:** `bash android/build.sh` (necesita JDK 17 y Android SDK con `platforms;android-34` y `build-tools;34.0.0`; por defecto los busca en `D:\Programas`).
 - **.exe:** `cd desktop && cp ../index.html . && npm install && npm run dist`.
 - **GitHub Actions** (`.github/workflows/release.yml`) compila los dos y publica el Release. Necesita los secrets `ANDROID_KEYSTORE_B64` (el `android/cripta.keystore` en base64) y `CRIPTA_KS_PASS`.
+
+## Créditos
+ - Fork hecho a partir de la versión 1.0.63 del juego original por JulianIpBe
