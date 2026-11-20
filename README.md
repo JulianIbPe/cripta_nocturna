@@ -11,7 +11,7 @@ Abrí `index.html` en el navegador (celular o compu). No necesita instalación n
 
 ## Descargar
 
-En [Releases](https://github.com/JulianIbPe/cripta_nocturna/releases/latest) está la última versión para Windows (`criptanocturna-<versión>.exe`, por ejemplo `criptanocturna-1.0.19.exe`; no se instala: se abre directo) para Android (`criptanocturna-<versión>.apk`) y para iPhone y iPad (`criptanocturna-<versión>.ipa`). El .ipa no está firmado con una cuenta de desarrollador de Apple: se instala con [AltStore](https://altstore.io) o [Sideloadly](https://sideloadly.io), que lo firman con tu Apple ID (con un Apple ID gratis, iOS pide volver a firmarlo cada 7 días). Cada commit a `main` publica una versión nueva y las apps avisan en el menú cuando hay una.
+En [Releases](https://github.com/shrekbraz/cripta_nocturna/releases/latest) está la última versión para Windows (`criptanocturna-<versión>.exe`, por ejemplo `criptanocturna-1.0.19.exe`; no se instala: se abre directo) para Android (`criptanocturna-<versión>.apk`) y para iPhone y iPad (`criptanocturna-<versión>.ipa`). El .ipa no está firmado con una cuenta de desarrollador de Apple: se instala con [AltStore](https://altstore.io) o [Sideloadly](https://sideloadly.io), que lo firman con tu Apple ID (con un Apple ID gratis, iOS pide volver a firmarlo cada 7 días). Cada commit a `main` publica una versión nueva y las apps avisan en el menú cuando hay una.
 
 ## Qué tiene
 
@@ -43,4 +43,4 @@ La tabla de clasificación usa las cuentas del juego (Firebase): cualquiera la p
 - **GitHub Actions** (`.github/workflows/release.yml`) compila los dos y publica el Release. Necesita los secrets `ANDROID_KEYSTORE_B64` (el `android/cripta.keystore` en base64) y `CRIPTA_KS_PASS`.
 
 ## Créditos
- - Fork hecho a partir de la versión 1.0.63 del [Releases](https://github.com/JulianIbPe/cripta_nocturna) por [JulianIbPe](https://github.com/JulianIbPe)
+ - Fork hecho a partir de la versión 1.0.63 del [juego original](https://github.com/JulianIbPe/cripta_nocturna) por [JulianIbPe](https://github.com/JulianIbPe)
