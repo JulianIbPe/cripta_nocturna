@@ -43,4 +43,4 @@ La tabla de clasificación usa las cuentas del juego (Firebase): cualquiera la p
 - **GitHub Actions** (`.github/workflows/release.yml`) compila los dos y publica el Release. Necesita los secrets `ANDROID_KEYSTORE_B64` (el `android/cripta.keystore` en base64) y `CRIPTA_KS_PASS`.
 
 ## Créditos
- - Fork hecho a partir de la versión 1.0.63 del juego original por JulianIpBe
+ - Fork hecho a partir de la versión 1.0.63 del [Releases](https://github.com/JulianIbPe/cripta_nocturna) por [JulianIbPe](https://github.com/JulianIbPe)
