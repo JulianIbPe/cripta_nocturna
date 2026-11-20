@@ -998,6 +998,9 @@ const WDEF={
   espectros:{name:'Espectros errantes',col:'#cfe0ff',
     up:['Suelta almas en pena que salen girando en espiral y atraviesan a los enemigos.','+1 espectro','+4 de daño y atraviesan 1 más','+1 espectro y recarga más rápida','+2 espectros y +6 de daño'],
     dmg:[9,9,13,13,19],cd:[1.3,1.25,1.2,1.05,.95],n:[3,4,4,5,7],pierce:[1,1,2,2,2]},
+  plaga:{name:'Enjambre espectral',col:'#c9a8ff',evo:true,
+    up:['Evolución de Carmilla: murciélagos en zigzag y espectros en espiral, a la vez.','','','',''],
+    dmg:[38,38,38,38,38],dmg2:[39,39,39,39,39],cd:[1,1,1,1,1],n:[8,8,8,8,8],m:[7,7,7,7,7],pierce:[2,2,2,2,2]},
   cartas:{name:'Cartas del destino',col:'#e8c8ff',
     up:['Lanza cartas filosas en cruz que van girando con cada tirada y atraviesan enemigos.','+3 de daño','+2 cartas','+4 de daño, atraviesan 1 más y recarga más rápida','+2 cartas y +5 de daño'],
     dmg:[9,12,12,16,21],cd:[1,.95,.9,.8,.72],n:[4,4,6,6,8],pierce:[1,1,1,2,2]},
@@ -1315,6 +1318,7 @@ const ICON={
   verdugo:'<path d="M5 21V10a7 7 0 0 1 14 0v11z"/><path d="M8 12h3M13 12h3"/>',
   tintero:'<path d="M7 10h10v10H7z"/><path d="M9 10V7h6v3"/><path d="M14 4l6-2"/>',
 };
+ICON.plaga=ICON.murcielagos;
 const svg=(id,col)=>`<svg viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[id]}</svg>`;
 
 const DIFFS={
@@ -1814,7 +1818,7 @@ function hurt(e,base,kx,ky,src){
   if(src&&G.wMult[src])base*=G.wMult[src];
   if(src&&G.wLv&&G.wLv[src]>5)base*=1+.12*(G.wLv[src]-5);
   // Arma de maestro: el arma inicial del personaje pega +26% (nivel 1) a +50% (nivel 5 o más)
-  if(src&&src===CHARS[G.char].weapon)base*=masterMul(G.wLv[src]);
+  if(src&&(src===CHARS[G.char].weapon||src==='plaga'))base*=masterMul(G.wLv[src]);
   if(G.maxDmg)base=Math.max(base,e.hp*10+1e5);
   const st=G.st;let tier=0;if(st.crit>0){tier=Math.floor(st.crit);if(Math.random()<st.crit-tier)tier++;}
   // Nerf: la Sobrecarga convierte en daño solo la mitad del exceso, y cada nivel de overcrit pasado el primero suma ×0,5 (×2, ×2,5, ×3…)
@@ -1953,6 +1957,12 @@ function updateWeapons(dt){
       volleys(1+st.amount,1,.18,()=>{const p=G.p,a0=aimAng();
         for(const a of (D.both[L]?[a0,a0+Math.PI]:[a0])){G.slashes.push({x:p.x,y:p.y,dir:1,ang:a,len,life:.2});
           hitLine(a,len,h,(e,cx,cy)=>hurt(e,D.dmg[L],cx*160,cy*160,'latigo'));}},w.timer);
+          }else if(w.id==='plaga'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount,m=D.m[L]+st.amount;
+      // Patrón del Enjambre de murciélagos
+      for(let i=0;i<n;i++){const a=Math.random()*TAU;G.shots.push({src:'plaga',kind:'batling',x:p.x,y:p.y,vx:Math.cos(a)*220,vy:Math.sin(a)*220,wob:Math.random()*TAU,dmg:D.dmg[L],pierce:1,r:6,life:1.6,hit:new Set()});}
+      // Patrón de los Espectros errantes (espiral)
+      const a0=Math.random()*TAU,sp=Math.random()<.5?2.2:-2.2;
+      for(let i=0;i<m;i++){const a=a0+i/m*TAU;G.shots.push({src:'plaga',kind:'bolt',col:D.col,x:p.x,y:p.y,vx:Math.cos(a)*230,vy:Math.sin(a)*230,spin:sp,dmg:D.dmg2[L],pierce:D.pierce[L],r:6,life:1.6,hit:new Set()});}
     }else if(w.id==='murcielagos'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount;
       for(let i=0;i<n;i++){const a=Math.random()*TAU;G.shots.push({src:'murcielagos',kind:'batling',x:p.x,y:p.y,vx:Math.cos(a)*220,vy:Math.sin(a)*220,wob:Math.random()*TAU,dmg:D.dmg[L],pierce:1,r:6,life:1.6,hit:new Set()});}
     }else if(w.id==='meteoro'){w.timer=D.cd[L]*st.cd;const n=D.n[L]+st.amount;
@@ -2111,16 +2121,20 @@ $('#abBtn').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagat
 /* ---------- Level up ---------- */
 // Con "Subidas de nivel en jefes: después del jefe" la experiencia se junta (la barra queda llena) y los niveles se suben recién cuando el jefe muere
 function gainXp(v){G.xp+=v*G.st.xpMul*(G.event&&G.event.k==='luna'?1.5:1);if(!isFinite(G.xp))G.xp=0;if(G.xp>=G.need&&!luOk()){if(!G.xpHeld){G.xpHeld=true;if(G.texts.length<60)G.texts.push({x:G.p.x,y:G.p.y-30,txt:G.afk?'Experiencia guardada hasta salir de AFK':'Experiencia guardada hasta vencer al jefe',life:1.6,heal:true});}return;}G.xpHeld=false;while(G.xp>=G.need&&G.need>0){G.xp-=G.need;G.lvl++;G.need=xpNeed(G.lvl);G.pending++;}}
+// Evolución de Carmilla: Enjambre de murciélagos nv 20 + Espectros errantes nv 20
+const canEvo=()=>G.char==='vampira'&&!G.weapons.some(w=>w.id==='plaga')&&['murcielagos','espectros'].every(id=>{const w=G.weapons.find(x=>x.id===id);return !!w&&w.lvl>=WMAX;});
 function buildOptions(exclude){
   let pool=[];
   for(const w of G.weapons)if(w.lvl<wMax())pool.push({k:'w',id:w.id,lvl:w.lvl+1});
-  if(G.weapons.length<6)for(const id in WDEF)if(!G.weapons.find(w=>w.id===id)&&weaponUnlocked(id))pool.push({k:'w',id,lvl:1});
+  if(G.weapons.length<6)for(const id in WDEF)if(!WDEF[id].evo&&!G.weapons.find(w=>w.id===id)&&weaponUnlocked(id))pool.push({k:'w',id,lvl:1});
   const own=Object.keys(G.passives);
   for(const id of own)if(G.passives[id]<pMax(id))pool.push({k:'p',id,lvl:G.passives[id]+1});
   if(own.length<6)for(const id in PDEF)if(!(id in G.passives))pool.push({k:'p',id,lvl:1});
   pool=pool.filter(o=>!G.banned.has(o.k+':'+o.id)&&!(exclude&&exclude.has(o.k+':'+o.id)));
   for(let i=pool.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[pool[i],pool[j]]=[pool[j],pool[i]];}
-  const out=pool.slice(0,3);for(const o of out)if(!(o.k==='p'&&PDEF[o.id].fixed))o.r=rollRarity();
+  const evo=canEvo()&&!G.banned.has('e:plaga')&&!(exclude&&exclude.has('e:plaga'));
+  const out=pool.slice(0,evo?2:3);if(evo)out.unshift({k:'e',id:'plaga',lvl:1});
+  for(const o of out)if(o.k!=='e'&&!(o.k==='p'&&PDEF[o.id].fixed))o.r=rollRarity();
   return out;}
 // Las subidas de nivel esperan: en AFK hasta que lo desactivás, y con la opción de Configuración SAVE.bossHold (apagada de entrada) mientras haya un jefe vivo
 const bossAlive=()=>!!G&&G.enemies.some(e=>e.boss&&e.hp>0);
@@ -2143,6 +2157,7 @@ function renderLevelUp(lock){
     let name,col,desc,tag;const rr=o.r!==undefined?RAR[o.r]:null;
     if(o.k==='w'){const D=WDEF[o.id];name=D.name;col=D.col;desc=(o.lvl<=5?D.up[o.lvl-1]:'+12% de daño a esta arma por nivel extra')+(rr&&rr.wb?' · +'+pc(rr.wb)+' de daño a esta arma':'');tag=o.lvl===1?'Arma nueva':'Nv '+o.lvl;}
     else if(o.k==='p'){const D=PDEF[o.id];name=D.name;col=D.col;desc=D.desc(rr?rr.m:1);tag=o.lvl===1?'Objeto nuevo':'Nv '+o.lvl;}
+    else if(o.k==='e'){name=WDEF.plaga.name;col=WDEF.plaga.col;desc='Fusiona Enjambre de murciélagos y Espectros errantes: lanza los dos patrones a la vez, con +20 de daño base. Reemplaza a las dos armas.';tag='Evolución';}
     else{name='Manzana acaramelada';col='#e2435a';desc='Recuperás 40 de vida';tag='Curación';}
     const b=document.createElement('button');b.className='card'+(o.r?' r'+o.r:'');b.id='opt-'+o.k+'-'+o.id;
     if(rr&&o.r>0)b.style.borderColor=rr.c;
@@ -2155,7 +2170,7 @@ function renderLevelUp(lock){
   $('#luHint').textContent=G.banMode?'Tocá la mejora que querés bloquear por el resto de la partida.':'';
 }
 function banish(idx){
-  const o=G.curOpts[idx];if(!o||o.k==='h'){G.banMode=false;renderLevelUp(false);return;}
+  const o=G.curOpts[idx];if(!o||o.k==='h'||o.k==='e'){G.banMode=false;renderLevelUp(false);return;}
   G.banned.add(optKey(o));G.charges.ban--;G.banMode=false;
   const ex=new Set(G.curOpts.map(optKey));const nw=buildOptions(ex).find(x=>x.k!=='h'&&!ex.has(optKey(x)));
   if(nw)G.curOpts[idx]=nw;else G.curOpts.splice(idx,1);
@@ -2192,6 +2207,13 @@ function pick(o){
   const rr=o.r!==undefined?RAR[o.r]:RAR[0];
   if(o.k==='w'){let w=G.weapons.find(w=>w.id===o.id);if(w)w.lvl++;else{w={id:o.id,lvl:1,timer:.2,ang:0};G.weapons.push(w);}G.wLv[o.id]=w.lvl;if(rr.wb)G.wMult[o.id]=(G.wMult[o.id]||1)+rr.wb;}
   else if(o.k==='p'){G.passives[o.id]=(G.passives[o.id]||0)+1;PDEF[o.id].apply(rr.m);}
+  else if(o.k==='e'){const b=G.weapons.find(w=>w.id==='murcielagos'),lv=b?b.lvl:WMAX;
+    G.weapons=G.weapons.filter(w=>w.id!=='murcielagos'&&w.id!=='espectros');
+    G.weapons.push({id:'plaga',lvl:Math.max(lv,WMAX),timer:.2,ang:0});
+    G.wLv.plaga=Math.max(lv,WMAX);G.wMult.plaga=(G.wMult.murcielagos||1)+(G.wMult.espectros||1)-1;
+    delete G.wLv.murcielagos;delete G.wLv.espectros;
+    G.banned.add('w:murcielagos');G.banned.add('w:espectros'); // no vuelven a salir como armas sueltas
+    sfx('boss');G.shake=.4;banner('¡Evolución: '+WDEF.plaga.name+'!');}
   else{G.p.hp=Math.min(G.p.maxHp,G.p.hp+40);}
   luDone();
 }
@@ -3661,7 +3683,7 @@ function renderArsenal(){
     const list=all.filter(F).sort(SO);renderListTools(tools,'w',list.length,all.length,renderArsenal);if(!list.length)h=noRes;
     for(const {id} of list){const D=WDEF[id],st=Object.values(CHARS).find(c=>c.weapon===id);
     const lk=!weaponUnlocked(id),ms=D.mission&&MISSIONS.find(m=>m.id===D.mission);
-    h+=`<div class="aitem${lk?' lockd':''}"><span class="ic">${svg(lk?'candado':id,lk?'#6b6390':D.col)}</span><div><strong>${D.name}</strong><p>${D.up[0]}</p><small>${lk?'Bloqueada · misión '+ms.name+': '+ms.desc:st?'Arma inicial de '+st.short+' (arma de maestro: con ese personaje pega de +26% a +50%)':ms?'Desbloqueada con la misión '+ms.name:'Aparece al subir de nivel'} · hasta nivel ${WMAX} (más con el Yunque infernal)</small></div></div>`;}}
+    h+=`<div class="aitem${lk?' lockd':''}"><span class="ic">${svg(lk?'candado':id,lk?'#6b6390':D.col)}</span><div><strong>${D.name}</strong><p>${D.up[0]}</p><small>${lk?'Bloqueada · misión '+ms.name+': '+ms.desc:st?'Arma inicial de '+st.short+' (arma de maestro: con ese personaje pega de +26% a +50%)':D.evo?'Evolución de Carmilla: Enjambre de murciélagos nv 20 + Espectros errantes nv 20':ms?'Desbloqueada con la misión '+ms.name:'Aparece al subir de nivel'} · hasta nivel ${WMAX} (más con el Yunque infernal)</small></div></div>`;}}
   else if(arsTab==='r'){
     const all=Object.keys(RELICS).map(id=>({id,name:RELICS[id].name,r:RELICS[id].r})),list=all.filter(x=>S.f==='all'||x.r===+S.f);
     renderListTools(tools,'r',list.length,all.length,renderArsenal);
